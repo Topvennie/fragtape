@@ -7,7 +7,6 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/topvennie/fragtape/pkg/config"
 	"github.com/topvennie/fragtape/pkg/sqlc"
 )
 
@@ -19,17 +18,25 @@ type psql struct {
 // Interface compliance
 var _ DB = (*psql)(nil)
 
-func NewPSQL() (DB, error) {
+type PostgresCfg struct {
+	Host     string
+	Port     int
+	Database string
+	User     string
+	Password string
+}
+
+func NewPSQL(cfg PostgresCfg) (DB, error) {
 	pgConfig, err := pgxpool.ParseConfig("")
 	if err != nil {
 		return nil, err
 	}
 
-	pgConfig.ConnConfig.Host = config.GetDefaultString("db.host", "db")
-	pgConfig.ConnConfig.Port = config.GetDefaultUint16("db.port", 5432)
-	pgConfig.ConnConfig.Database = config.GetDefaultString("db.database", "fragtape")
-	pgConfig.ConnConfig.User = config.GetDefaultString("db.user", "postgres")
-	pgConfig.ConnConfig.Password = config.GetDefaultString("db.password", "postgres")
+	pgConfig.ConnConfig.Host = cfg.Host
+	pgConfig.ConnConfig.Port = uint16(cfg.Port)
+	pgConfig.ConnConfig.Database = cfg.Database
+	pgConfig.ConnConfig.User = cfg.User
+	pgConfig.ConnConfig.Password = cfg.Password
 
 	pool, err := pgxpool.NewWithConfig(context.Background(), pgConfig)
 	if err != nil {
