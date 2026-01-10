@@ -18,5 +18,23 @@
 @theme {
   --breakpoint-3xl: 142em;
   --breakpoint-4xl: 172em;
+  --color-primary: #E6EDF3;
   --color-secondary: #B7C7D6;
+
+  --animate-pulse-extreme: pulse-extreme 5s ease-in-out infinite;
+
+  @keyframes pulse-extreme {
+    0% {
+      opacity: 0.6
+    }
+    20% {
+      opacity: 0.05
+    }
+    70% {
+      opacity: 0.05
+    }
+    100% {
+      opacity: 0.6
+    }
+  }
 }
