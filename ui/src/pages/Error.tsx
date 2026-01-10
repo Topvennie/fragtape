@@ -32,14 +32,14 @@ export const Error = ({ error, reset }: ErrorComponentProps) => {
   }
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-[url(/src/assets/smoke.webm)]">
+    <div className="relative -mt-20 -mx-[calc((100vw-100%)/2)] overflow-hidden bg-[url(/src/assets/smoke.webm)]">
       <video
         autoPlay
         loop
         muted
         playsInline
         preload="auto"
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 h-full object-cover"
       >
         <source src={Smoke} type="video/webm" />
       </video>

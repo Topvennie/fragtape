@@ -9,4 +9,11 @@ export namespace API {
     display_name: string;
     avatar_url: string;
   }
+
+  export interface Demo extends Base {
+    source: string;
+    status: string;
+    created_at: string;
+    status_updated_at: string;
+  }
 }

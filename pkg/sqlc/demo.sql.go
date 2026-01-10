@@ -73,7 +73,7 @@ func (q *Queries) DemoGet(ctx context.Context, id int32) (Demo, error) {
 const demoGetByUser = `-- name: DemoGetByUser :many
 SELECT id, user_id, source, source_id, status, demo_file_id, created_at, status_updated_at, deleted_at
 FROM demos
-WHERE user_id = $1 AND deleted_at = NULL
+WHERE user_id = $1 AND deleted_at IS NULL
 ORDER BY created_at DESC
 `
 

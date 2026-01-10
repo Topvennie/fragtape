@@ -33,7 +33,7 @@ func (d *Demo) GetAll(ctx context.Context, userID int) ([]dto.Demo, error) {
 	return utils.SliceMap(demos, dto.DemoDTO), nil
 }
 
-func (d *Demo) Create(ctx context.Context, userID int, file []byte) error {
+func (d *Demo) Upload(ctx context.Context, userID int, file []byte) error {
 	demo := &model.Demo{
 		UserID:     userID,
 		Source:     model.DemoSourceManual,

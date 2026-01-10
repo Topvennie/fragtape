@@ -6,7 +6,7 @@ WHERE id = $1;
 -- name: DemoGetByUser :many
 SELECT *
 FROM demos
-WHERE user_id = $1 AND deleted_at = NULL
+WHERE user_id = $1 AND deleted_at IS NULL
 ORDER BY created_at DESC;
 
 -- name: DemoCreate :one
