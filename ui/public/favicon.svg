@@ -1,16 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 144">
   <defs>
     <style>
       .big {
         fill: none;
-        stroke: #E67E22;
+        stroke: #00D1FF;
         stroke-width: 4;
         stroke-linecap: round;
         stroke-linejoin: round;
       }
       .small {
         fill: none;
-        stroke: #E67E22;
+        stroke: #00D1FF;
         stroke-width: 2;
         stroke-linecap: round;
         stroke-linejoin: round;
@@ -19,23 +19,23 @@
   </defs>
 
   <g class="big">    
-    <circle cx="100" cy="100" r="40" />
+    <circle cx="72" cy="72" r="40" />
 
-    <line x1="100" y1="50" x2="100" y2="80" />
-    <line x1="100" y1="120" x2="100" y2="150" />
+    <line x1="72" y1="22" x2="72" y2="52" />
+    <line x1="72" y1="92" x2="72" y2="122" />
     
-    <line x1="50" y1="100" x2="80" y2="100" />
-    <line x1="120" y1="100" x2="150" y2="100" />
+    <line x1="22" y1="72" x2="52" y2="72" />
+    <line x1="92" y1="72" x2="122" y2="72" />
   </g>
 
   <g class="small">
-     <line x1="100" y1="90" x2="100" y2="110" />
-    <line x1="90" y1="100" x2="110" y2="100" />
+     <line x1="72" y1="62" x2="72" y2="82" />
+    <line x1="62" y1="72" x2="82" y2="72" />
   </g>
 
   <g class="big">
     <path d="
-      M 169 110
+      M 141 82
       a 70 70 0 0 0 0 -20
       l -15 -1
       a 55 55 0 0 0 -9 -20

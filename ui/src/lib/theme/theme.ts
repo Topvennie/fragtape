@@ -1,48 +1,40 @@
-import { createTheme } from "@mantine/core";
+import { colorsTuple, createTheme } from "@mantine/core";
 
 export const theme = createTheme({
   fontFamily: "Inter, sans-serif",
+  white: "#E6EDF3",
   colors: {
     primary: [
-      "#e4fef8",
-      "#d4f7ef",
-      "#adecdd",
-      "#7fe0c9",
-      "#60d7bb",
-      "#48d2b1",
-      "#39cfac",
-      "#27b796",
-      "#17a384",
-      "#008d71"
-    ],
-    secondary: [
-      "#f6edff",
-      "#dcc9f3",
-      "#caaeeb",
-      "#ac81e0",
-      "#945cd7",
-      "#8444d1",
-      "#7c38cf",
-      "#6b2ab8",
-      "#5f25a5",
-      "#521d91"
+      "#defeff",
+      "#caf8ff",
+      "#99edff",
+      "#64e3ff",
+      "#3ddafe",
+      "#25d5fe",
+      "#00d1ff",
+      "#00bae4",
+      "#00a6cc",
+      "#0090b4"
     ],
     background: [
-      "#f7f8f9",
-      "#e7e7e7",
-      "#cccccd",
-      "#aeb1b4",
-      "#94999f",
-      "#838a92",
-      "#7a838d",
-      "#67717b",
-      "#5a646f",
-      "#4a5763"
+      "#f1f4f9",
+      "#e1e5ec",
+      "#bec8da",
+      "#98aac8",
+      "#7990ba",
+      "#6580b1",
+      "#5a78ae",
+      "#4a6699",
+      "#121A27",
+      "#0f1724"
     ],
+    steam: colorsTuple("#171a21"),
   },
+  autoContrast: true,
   primaryColor: "primary",
-  primaryShade: 3,
+  primaryShade: 6,
   cursorType: "pointer",
+  defaultRadius: "md",
   breakpoints: {
     xs: "36em",
     sm: "40em",
