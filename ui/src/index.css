@@ -1,0 +1,22 @@
+@layer theme, base, mantine, components, utilities, mantine-datatable;
+
+@import 'tailwindcss';
+@import '@mantine/core/styles.layer.css';
+@import '@mantine/dates/styles.css';
+
+@layer base {
+  body {
+    font-family: Inter, sans-serif;
+    font-feature-settings: 'liga' 1, 'calt' 1;
+  }
+}
+
+@utility font-content {
+  font-family: "Inter", sans-serif;
+}
+
+@theme {
+  --breakpoint-3xl: 142em;
+  --breakpoint-4xl: 172em;
+  --color-muted: #989898;
+}

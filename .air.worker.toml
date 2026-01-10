@@ -1,0 +1,28 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+entrypoint = "worker"
+cmd = "make build-worker"
+delay = 1000
+exclude_dir = [
+  "cmd/server",
+  "internal/server",
+  "cmd/renderer",
+  "internal/renderer",
+  "ui",
+  "tmp",
+  "screenshots",
+]
+include_ext = ["go"]
+kill_delay = "0s"
+log = "build-worker-errors.log"
+
+[color]
+main = "green"
+watcher = "green"
+build = "green"
+runner = "green"
+
+[screen]
+clear_on_rebuild = false

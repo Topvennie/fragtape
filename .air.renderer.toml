@@ -1,0 +1,28 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+entrypoint = "renderer"
+cmd = "make build-renderer"
+delay = 1000
+exclude_dir = [
+  "cmd/server",
+  "internal/server",
+  "cmd/worker",
+  "internal/worker",
+  "ui",
+  "tmp",
+  "screenshots",
+]
+include_ext = ["go"]
+kill_delay = "0s"
+log = "build-renderer-errors.log"
+
+[color]
+main = "cyan"
+watcher = "cyan"
+build = "cyan"
+runner = "cyan"
+
+[screen]
+clear_on_rebuild = false

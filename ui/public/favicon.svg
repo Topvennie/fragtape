@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <style>
+      .big {
+        fill: none;
+        stroke: #E67E22;
+        stroke-width: 4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .small {
+        fill: none;
+        stroke: #E67E22;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+    </style>
+  </defs>
+
+  <g class="big">    
+    <circle cx="100" cy="100" r="40" />
+
+    <line x1="100" y1="50" x2="100" y2="80" />
+    <line x1="100" y1="120" x2="100" y2="150" />
+    
+    <line x1="50" y1="100" x2="80" y2="100" />
+    <line x1="120" y1="100" x2="150" y2="100" />
+  </g>
+
+  <g class="small">
+     <line x1="100" y1="90" x2="100" y2="110" />
+    <line x1="90" y1="100" x2="110" y2="100" />
+  </g>
+
+  <g class="big">
+    <path d="
+      M 169 110
+      a 70 70 0 0 0 0 -20
+      l -15 -1
+      a 55 55 0 0 0 -9 -20
+      l 10 -11
+      a 70 70 0 0 0 -14 -14
+      l -10 11
+      a 55 55 0 0 0 -20 -9
+      l -1 -15
+      a 70 70 0 0 0 -20 0
+      l -1 15
+      a 55 55 0 0 0 -21 9
+      l -11 -11
+      a 70 70 0 0 0 -14 14
+      l 11 11
+      a 55 55 0 0 0 -8 20
+      l -15 1
+      a 70 70 0 0 0 0 20
+      l 15 1
+      a 55 55 0 0 0 9 20
+      l -11 11
+      a 70 70 0 0 0 14 14
+      l 11 -11
+      a 55 55 0 0 0 20 9
+      l 1 15
+      a 70 70 0 0 0 20 0
+      l 1 -15
+      a 55 55 0 0 0 21 -9
+      l 10 11
+      a 70 70 0 0 0 14 -14
+      l -11 -11
+      a 55 55 0 0 0 9 -21
+      Z
+      " />
+  </g>
+</svg>

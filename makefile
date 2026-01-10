@@ -1,0 +1,45 @@
+all: build
+
+setup:
+	@go get tool
+	@cd ui && pnpm install
+
+build-server:
+	@go build -o server cmd/server/main.go
+
+build-worker:
+	@go build -o worker cmd/worker/main.go
+
+build-renderer:
+	@go build -o renderer cmd/renderer/main.go
+
+watch:
+	@docker compose up backend frontend worker renderer
+	@docker compose down
+
+goose:
+	@docker compose down
+	@docker compose up db -d
+	@docker compose exec db bash -c 'until pg_isready -U postgres; do sleep 1; done'
+	@read -p "Action: " action; \
+	go tool goose -dir ./db/migrations postgres "user=postgres password=postgres host=localhost port=5432 dbname=flashback sslmode=disable" $$action
+	@docker compose down db
+
+migrate:
+	@docker compose down
+	@docker compose up db -d
+	@docker compose exec db bash -c 'until pg_isready -U postgres; do sleep 1; done'
+	@go tool goose -dir ./db/migrations postgres "user=postgres password=postgres host=localhost port=5432 dbname=flashback sslmode=disable" up
+	@docker compose down db
+
+create-migration:
+	@read -p "Enter migration name: " name; \
+	go tool goose -dir ./db/migrations create $$name sql
+
+query:
+	@go tool sqlc generate
+
+dead:
+	@go tool deadcode ./...
+
+.PHONY: all setup build-server build-worker build-renderer goose migrate create-migration query dead
