@@ -4,8 +4,8 @@ CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   uid TEXT NOT NULL,
   name TEXT NOT NULL,
-  display_name TEXT,
-  email TEXT NOT NULL,
+  display_name TEXT NOT NULL,
+  avatar_url TEXT NOT NULL,
 
   UNIQUE (uid)
 );

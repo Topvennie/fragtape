@@ -7,21 +7,16 @@ type User struct {
 	UID         string `json:"uid"`
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
-	Email       string `json:"email"`
+	AvatarURL   string `json:"avatar_url"`
 }
 
 func UserDTO(user *model.User) User {
-	name := user.Name
-	if user.DisplayName != "" {
-		name = user.DisplayName
-	}
-
 	return User{
 		ID:          user.ID,
 		UID:         user.UID,
-		Name:        name,
+		Name:        user.Name,
 		DisplayName: user.DisplayName,
-		Email:       user.Email,
+		AvatarURL:   user.AvatarURL,
 	}
 }
 

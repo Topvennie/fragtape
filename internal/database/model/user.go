@@ -8,25 +8,20 @@ type User struct {
 	UID         string
 	Name        string
 	DisplayName string
-	Email       string
+	AvatarURL   string
 }
 
 func UserModel(user sqlc.User) *User {
-	displayName := ""
-	if user.DisplayName.Valid {
-		displayName = user.DisplayName.String
-	}
-
 	return &User{
 		ID:          int(user.ID),
 		UID:         user.Uid,
 		Name:        user.Name,
-		DisplayName: displayName,
-		Email:       user.Email,
+		DisplayName: user.DisplayName,
+		AvatarURL:   user.AvatarUrl,
 	}
 }
 
-// Equal returns true if all non unique values are equal
-func (u *User) Equal(u2 User) bool {
-	return u.Name == u2.Name && u.DisplayName == u2.DisplayName && u.Email == u2.Email
+// EqualEntry returns true if all non unique values are equal
+func (u *User) EqualEntry(u2 User) bool {
+	return u.Name == u2.Name && u.DisplayName == u2.DisplayName && u.AvatarURL == u2.AvatarURL
 }

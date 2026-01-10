@@ -20,7 +20,7 @@ export const Login = () => {
             <Button onClick={login} fullWidth color="steam" leftSection={<SteamIcon className="h-5 w-5" />}>
               Log in with Steam
             </Button>
-            <ActionIcon onClick={e => e.preventDefault()} component="a" href="https://github.com/topvennie/fragtape" rel="noopener noreferrer" target="_blank" variant="transparent">
+            <ActionIcon component="a" href="https://github.com/topvennie/fragtape" rel="noopener noreferrer" target="_blank" variant="transparent">
               <GithubIcon className="text-(--mantine-color-white)" />
             </ActionIcon>
           </Stack>

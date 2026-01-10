@@ -4,14 +4,10 @@
 
 package sqlc
 
-import (
-	"github.com/jackc/pgx/v5/pgtype"
-)
-
 type User struct {
 	ID          int32
 	Uid         string
 	Name        string
-	DisplayName pgtype.Text
-	Email       string
+	DisplayName string
+	AvatarUrl   string
 }

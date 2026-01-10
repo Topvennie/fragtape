@@ -1,0 +1,29 @@
+app:
+  name:
+
+server:
+  api:
+    host:
+    port:
+
+  auth:
+    steam:
+      api_key:
+      callback_url:
+
+  db:
+    host:
+    port:
+    database:
+    user:
+    password:
+
+  minio:
+    bucket:
+    endpoint:
+    secure:
+    username:
+    password:
+
+  redis:
+    url:

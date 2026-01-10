@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shareed2k/goth_fiber"
 	routers "github.com/topvennie/fragtape/internal/server/api"
+	"github.com/topvennie/fragtape/internal/server/middlewares"
 	"github.com/topvennie/fragtape/internal/server/service"
 	"github.com/topvennie/fragtape/pkg/config"
 
@@ -57,7 +58,11 @@ func New(service service.Service, pool *pgxpool.Pool) *Server {
 	// Register routes
 	api := app.Group("/api")
 
-	routers.NewUser(api, service)
+	routers.NewAuth(api, service)
+
+	protectedAPI := api.Use(middlewares.ProtectedRoute)
+
+	routers.NewUser(protectedAPI, service)
 
 	// Static files if served in production
 	if !config.IsDev() {

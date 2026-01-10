@@ -9,8 +9,33 @@ import (
 	"context"
 )
 
+const userCreate = `-- name: UserCreate :one
+INSERT INTO users (uid, name, display_name, avatar_url)
+VALUES ($1, $2, $3, $4)
+RETURNING id
+`
+
+type UserCreateParams struct {
+	Uid         string
+	Name        string
+	DisplayName string
+	AvatarUrl   string
+}
+
+func (q *Queries) UserCreate(ctx context.Context, arg UserCreateParams) (int32, error) {
+	row := q.db.QueryRow(ctx, userCreate,
+		arg.Uid,
+		arg.Name,
+		arg.DisplayName,
+		arg.AvatarUrl,
+	)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
 const userGet = `-- name: UserGet :one
-SELECT id, uid, name, display_name, email
+SELECT id, uid, name, display_name, avatar_url
 FROM users
 WHERE id = $1
 `
@@ -23,7 +48,49 @@ func (q *Queries) UserGet(ctx context.Context, id int32) (User, error) {
 		&i.Uid,
 		&i.Name,
 		&i.DisplayName,
-		&i.Email,
+		&i.AvatarUrl,
 	)
 	return i, err
+}
+
+const userGetByUID = `-- name: UserGetByUID :one
+SELECT id, uid, name, display_name, avatar_url
+FROM users
+WHERE uid = $1
+`
+
+func (q *Queries) UserGetByUID(ctx context.Context, uid string) (User, error) {
+	row := q.db.QueryRow(ctx, userGetByUID, uid)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Uid,
+		&i.Name,
+		&i.DisplayName,
+		&i.AvatarUrl,
+	)
+	return i, err
+}
+
+const userUpdate = `-- name: UserUpdate :exec
+UPDATE users
+SET name = $2, display_name = $3, avatar_url = $4
+WHERE id = $1
+`
+
+type UserUpdateParams struct {
+	ID          int32
+	Name        string
+	DisplayName string
+	AvatarUrl   string
+}
+
+func (q *Queries) UserUpdate(ctx context.Context, arg UserUpdateParams) error {
+	_, err := q.db.Exec(ctx, userUpdate,
+		arg.ID,
+		arg.Name,
+		arg.DisplayName,
+		arg.AvatarUrl,
+	)
+	return err
 }
