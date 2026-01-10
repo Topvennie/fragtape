@@ -1,3 +1,24 @@
+app:
+  name:
+
 server:
   api:
+    host:
     port: 3001
+
+  db:
+    host:
+    port:
+    database:
+    user:
+    password:
+
+  minio:
+    bucket:
+    endpoint:
+    secure:
+    username:
+    password:
+
+  redis:
+    url:
