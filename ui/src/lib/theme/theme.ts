@@ -16,6 +16,7 @@ export const theme = createTheme({
       "#00a6cc",
       "#0090b4"
     ],
+    muted: colorsTuple("#B7C7D6"),
     background: [
       "#f1f4f9",
       "#e1e5ec",
@@ -28,7 +29,7 @@ export const theme = createTheme({
       "#121A27",
       "#0f1724"
     ],
-    steam: colorsTuple("#171a21"),
+    steam: colorsTuple("#171A21"),
   },
   autoContrast: true,
   primaryColor: "primary",

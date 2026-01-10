@@ -7,6 +7,6 @@ export namespace API {
     uid: string;
     name: string;
     display_name: string;
-    email: string;
+    avatar_url: string;
   }
 }
