@@ -4,6 +4,115 @@
 
 package sqlc
 
+import (
+	"database/sql/driver"
+	"fmt"
+
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
+type DemoSource string
+
+const (
+	DemoSourceManual DemoSource = "manual"
+	DemoSourceSteam  DemoSource = "steam"
+	DemoSourceFaceit DemoSource = "faceit"
+)
+
+func (e *DemoSource) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = DemoSource(s)
+	case string:
+		*e = DemoSource(s)
+	default:
+		return fmt.Errorf("unsupported scan type for DemoSource: %T", src)
+	}
+	return nil
+}
+
+type NullDemoSource struct {
+	DemoSource DemoSource
+	Valid      bool // Valid is true if DemoSource is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullDemoSource) Scan(value interface{}) error {
+	if value == nil {
+		ns.DemoSource, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.DemoSource.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullDemoSource) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.DemoSource), nil
+}
+
+type DemoStatus string
+
+const (
+	DemoStatusQueuedParse  DemoStatus = "queued_parse"
+	DemoStatusParsing      DemoStatus = "parsing"
+	DemoStatusQueuedRender DemoStatus = "queued_render"
+	DemoStatusRendering    DemoStatus = "rendering"
+	DemoStatusRendered     DemoStatus = "rendered"
+	DemoStatusCompleted    DemoStatus = "completed"
+	DemoStatusFailed       DemoStatus = "failed"
+)
+
+func (e *DemoStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = DemoStatus(s)
+	case string:
+		*e = DemoStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for DemoStatus: %T", src)
+	}
+	return nil
+}
+
+type NullDemoStatus struct {
+	DemoStatus DemoStatus
+	Valid      bool // Valid is true if DemoStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullDemoStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.DemoStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.DemoStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullDemoStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.DemoStatus), nil
+}
+
+type Demo struct {
+	ID              int32
+	UserID          int32
+	Source          DemoSource
+	SourceID        pgtype.Text
+	Status          DemoStatus
+	DemoFileID      pgtype.Text
+	CreatedAt       pgtype.Timestamptz
+	StatusUpdatedAt pgtype.Timestamptz
+	DeletedAt       pgtype.Timestamptz
+}
+
 type User struct {
 	ID          int32
 	Uid         string
