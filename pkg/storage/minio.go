@@ -1,8 +1,6 @@
-// Package storage connects with a file / image storage
 package storage
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/storage/minio"
 )
 
@@ -14,8 +12,8 @@ type MinioCfg struct {
 	Secret    string
 }
 
-func Minio(cfg MinioCfg) fiber.Storage {
-	return minio.New(minio.Config{
+func Minio(cfg MinioCfg) {
+	S = minio.New(minio.Config{
 		Bucket:   cfg.Bucket,
 		Endpoint: cfg.Endpoint,
 		Secure:   cfg.Secure,
