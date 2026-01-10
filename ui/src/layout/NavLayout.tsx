@@ -2,7 +2,7 @@ import { LinkButton } from "@/components/atoms/LinkButton";
 import { UserIcon } from "@/components/atoms/UserIcon";
 import { FragtapeIcon } from "@/components/icons/FragtapeIcon";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { ActionIcon, AppShell, Burger, Group, Stack } from "@mantine/core";
+import { ActionIcon, AppShell, Burger, Container, Group, Stack } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { LinkProps, useNavigate } from "@tanstack/react-router";
 import { ComponentProps } from "react";
@@ -39,7 +39,7 @@ const NavLink = ({ route, close }: { route: Route, close?: () => void }) => {
   );
 };
 
-export const NavLayout = (props: Props) => {
+export const NavLayout = ({ children }: Props) => {
   const { user, logout } = useAuth()
 
   const [opened, { close, toggle }] = useDisclosure();
@@ -54,13 +54,13 @@ export const NavLayout = (props: Props) => {
       header={{ height: 60 }}
       footer={{ height: 60 }}
       navbar={{ width: 300, breakpoint: "lg", collapsed: { desktop: true, mobile: !opened } }}
-      padding="lg"
+      className="max-h-screen overflow-hidden"
     >
       <AppShell.Header px="md" withBorder={false} bg="background.9">
         <Group h="100%" justify="space-between">
           <Group gap="xs" visibleFrom="lg">
             <ActionIcon onClick={handleHome} size="xl" variant="subtle">
-              <FragtapeIcon className="size-6 text-(--mantine-color-primary-6)" />
+              <FragtapeIcon className="size-8 text-(--mantine-color-primary-6)" />
             </ActionIcon>
             <p className="font-bold text-xl text-primary mr-4">Fragtape</p>
             {routes.map(r => <NavLink key={r.title} route={r} />)}
@@ -85,8 +85,10 @@ export const NavLayout = (props: Props) => {
           {routes.map(r => <NavLink key={r.title} route={r} close={close} />)}
         </Stack>
       </AppShell.Navbar>
-      <AppShell.Main className="w-screen">
-        <div className="mx-auto" {...props} />
+      <AppShell.Main>
+        <Container fluid className="container mx-auto pt-20">
+          {children}
+        </Container>
       </AppShell.Main>
     </AppShell>
   )
