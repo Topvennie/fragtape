@@ -8,8 +8,9 @@ import { User } from "../types/user";
 export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [user, setUser] = useState<User | null>(null);
   const [forbidden, setForbidden] = useState(false);
+  const [error, setError] = useState<Error | null>(null)
 
-  const { data, isLoading, error } = useUser();
+  const { data, isLoading, error: userError } = useUser();
   const { mutate: logoutMutation } = useUserLogout();
 
   useEffect(() => {
@@ -20,25 +21,31 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   }, [data]);
 
   useEffect(() => {
-    if (error && isResponseNot200Error(error)) {
-      if (error.response.status === 403) {
-        setForbidden(true);
-        return;
+    if (userError) {
+      if (!isResponseNot200Error(userError)) {
+        setError(userError)
+        return
       }
+
+      if (userError.response.status === 403) setForbidden(true)
+      else if (userError.response.status !== 401) setError(userError)
+
+      return
     }
 
     setForbidden(false);
-  }, [error]);
+    setError(null)
+  }, [userError]);
 
   const logout = useCallback(() => {
     logoutMutation(undefined, {
       onSuccess: () => notifications.show({ message: "Logged out" }),
-      onError: (err) => { throw new Error(`Logout failed ${err}`) },
+      onError: (err) => { console.log(`Logout failed ${err}`) },
       onSettled: () => setUser(null),
     });
   }, [logoutMutation]);
 
-  const value = useMemo(() => ({ user, isLoading, forbidden, login: useUserLogin, logout }), [user, isLoading, forbidden, logout]);
+  const value = useMemo(() => ({ user, isLoading, forbidden, error, login: useUserLogin, logout }), [user, isLoading, forbidden, error, logout]);
 
   return <AuthContext value={value}>{children}</AuthContext>;
 }

@@ -5,6 +5,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   forbidden: boolean;
+  error: Error | null;
   login: () => void;
   logout: () => void;
 }
