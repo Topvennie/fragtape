@@ -1,4 +1,4 @@
-module github.com/topvennie/flashback
+module github.com/topvennie/fragtape
 
 go 1.25.5
 

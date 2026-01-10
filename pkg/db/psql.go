@@ -7,8 +7,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/topvennie/flashback/pkg/config"
-	"github.com/topvennie/flashback/pkg/sqlc"
+	"github.com/topvennie/fragtape/pkg/config"
+	"github.com/topvennie/fragtape/pkg/sqlc"
 )
 
 type psql struct {
@@ -27,7 +27,7 @@ func NewPSQL() (DB, error) {
 
 	pgConfig.ConnConfig.Host = config.GetDefaultString("db.host", "db")
 	pgConfig.ConnConfig.Port = config.GetDefaultUint16("db.port", 5432)
-	pgConfig.ConnConfig.Database = config.GetDefaultString("db.database", "flashback")
+	pgConfig.ConnConfig.Database = config.GetDefaultString("db.database", "fragtape")
 	pgConfig.ConnConfig.User = config.GetDefaultString("db.user", "postgres")
 	pgConfig.ConnConfig.Password = config.GetDefaultString("db.password", "postgres")
 

@@ -5,8 +5,8 @@ import (
 
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
-	"github.com/topvennie/flashback/pkg/config"
-	"github.com/topvennie/flashback/pkg/db"
+	"github.com/topvennie/fragtape/pkg/config"
+	"github.com/topvennie/fragtape/pkg/db"
 )
 
 //go:embed db/migrations/*.sql

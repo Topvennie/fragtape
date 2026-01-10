@@ -2,7 +2,7 @@ services:
   db:
     image: postgres:16
     environment:
-      POSTGRES_DB: flashback
+      POSTGRES_DB: fragtape
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
