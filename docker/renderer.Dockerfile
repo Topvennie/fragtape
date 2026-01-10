@@ -12,6 +12,6 @@ FROM alpine:3.22
 WORKDIR /app
 
 COPY --from=builder /app/renderer .
-COPY --from=builder /app/config/production.toml ./config/production.toml
+COPY --from=builder /app/config/production.yml ./config/production.yml
 
 ENTRYPOINT ["./renderer"]

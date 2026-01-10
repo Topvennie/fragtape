@@ -36,7 +36,7 @@ WORKDIR /app
 
 COPY --from=backend-builder /app/server .
 COPY --from=backend-builder /app/migrate .
-COPY --from=backend-builder /app/config/production.toml ./config/production.toml
+COPY --from=backend-builder /app/config/production.yml ./config/production.yml
 COPY --from=frontend-builder /frontend/ui/dist ./public
 
 ENV APP_ENV=production
