@@ -4,19 +4,16 @@ export interface User {
   id: number;
   uid: string;
   name: string;
-  email: string;
-  hasProfile: boolean;
+  displayName: string;
+  avatarUrl: string;
 }
 
 export const convertUser = (user: API.User): User => {
-  let name = user.name
-  if (user.display_name !== "") name = user.display_name
-
   return {
     id: user.id,
     uid: user.uid,
-    name: name,
-    email: user.email,
-    hasProfile: false,
+    name: user.name,
+    displayName: user.display_name,
+    avatarUrl: user.avatar_url
   }
 }
