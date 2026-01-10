@@ -1,5 +1,5 @@
 root = "."
-tmp_dir = "tmp"
+tmp_dir = "tmp_server"
 
 [build]
 entrypoint = "server"
@@ -11,7 +11,8 @@ exclude_dir = [
   "cmd/renderer",
   "internal/renderer",
   "ui",
-  "tmp",
+  "tmp_worker",
+  "tmp_renderer",
   "screenshots",
 ]
 include_ext = ["go"]
@@ -23,6 +24,9 @@ main = "yellow"
 watcher = "yellow"
 build = "yellow"
 runner = "yellow"
+
+[misc]
+clean_on_exit = false
 
 [screen]
 clear_on_rebuild = false
