@@ -1,0 +1,18 @@
+tmp/
+
+# IDE specific files
+.vscode
+.idea
+
+# .env file
+.env
+.env.*
+!.env.example
+!.env.prod.example
+
+# Project build
+/server
+/worker
+/renderer
+/migrate
+

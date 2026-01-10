@@ -1,0 +1,55 @@
+#!/bin/bash
+
+CHANGED_FILES=$(git diff --cached --name-only)
+
+LINT_SERVER=false
+LINT_WORKER=false
+LINT_RENDERER=false
+LINT_FRONTEND=false
+LINT_ALL=false
+
+for file in $CHANGED_FILES; do
+  if [[ $file == cmd/server/* ]] || [[ $file == internal/server/* ]]; then
+    LINT_SERVER=true
+  elif [[ $file == cmd/worker/* ]] || [[ $file == internal/worker/* ]]; then
+    LINT_WORKER=true
+  elif [[ $file == cmd/renderer/* ]] || [[ $file == internal/renderer/* ]]; then
+    LINT_RENDERER=true
+  elif [[ $file == ui/* ]]; then
+    LINT_FRONTEND=true
+  else
+    LINT_ALL=true
+    break
+  fi
+done
+
+if [ "$LINT_ALL" = true ]; then
+  echo "Linting Everything"
+  golangci-lint run ./... || exit 1
+else
+  if [ "$LINT_SERVER" = true ]; then
+    echo "Linting Server"
+    golangci-lint run ./cmd/server/... ./internal/server/... || exit 1
+  fi
+
+  if [ "$LINT_WORKER" = true ]; then
+    echo "Linting Worker"
+    golangci-lint run ./cmd/worker/... ./internal/worker/... || exit 1
+  fi
+
+  if [ "$LINT_RENDERER" = true ]; then
+    echo "Linting Renderer"
+    golangci-lint run ./cmd/renderer/... ./internal/renderer/... || exit 1
+  fi
+fi
+
+if [ "$LINT_FRONTEND" ]; then
+  cd ui || exit 1
+  echo "Linting Frontend"
+  pnpm --silent run lint || exit 1
+  echo "Typecheck Frontend"
+  pnpm --silent run typecheck || exit 1
+  cd - >/dev/null || exit 1
+fi
+
+echo "Passed"

@@ -1,0 +1,9 @@
+.git/
+.githooks/
+.github/
+server
+worker
+renderer
+migrate
+screenshots/
+tmp/
