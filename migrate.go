@@ -17,7 +17,13 @@ func main() {
 		panic(err)
 	}
 	// setup database
-	db, err := db.NewPSQL()
+	db, err := db.NewPSQL(db.PostgresCfg{
+		Host:     config.GetDefaultString("server.db.host", "db"),
+		Port:     config.GetDefaultInt("server.db.port", 5432),
+		Database: config.GetDefaultString("server.db.database", "fragtape"),
+		User:     config.GetDefaultString("server.db.user", "postgres"),
+		Password: config.GetDefaultString("server.db.password", "postgres"),
+	})
 	if err != nil {
 		panic(err)
 	}
