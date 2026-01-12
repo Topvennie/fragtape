@@ -57,13 +57,14 @@ func (ns NullDemoSource) Value() (driver.Value, error) {
 type DemoStatus string
 
 const (
-	DemoStatusQueuedParse  DemoStatus = "queued_parse"
-	DemoStatusParsing      DemoStatus = "parsing"
-	DemoStatusQueuedRender DemoStatus = "queued_render"
-	DemoStatusRendering    DemoStatus = "rendering"
-	DemoStatusRendered     DemoStatus = "rendered"
-	DemoStatusCompleted    DemoStatus = "completed"
-	DemoStatusFailed       DemoStatus = "failed"
+	DemoStatusQueuedParse    DemoStatus = "queued_parse"
+	DemoStatusParsing        DemoStatus = "parsing"
+	DemoStatusQueuedRender   DemoStatus = "queued_render"
+	DemoStatusRendering      DemoStatus = "rendering"
+	DemoStatusQueuedFinalize DemoStatus = "queued_finalize"
+	DemoStatusFinalizing     DemoStatus = "finalizing"
+	DemoStatusFinished       DemoStatus = "finished"
+	DemoStatusFailed         DemoStatus = "failed"
 )
 
 func (e *DemoStatus) Scan(src interface{}) error {
@@ -125,6 +126,7 @@ type Highlight struct {
 	UserID    int32
 	DemoID    int32
 	FileID    pgtype.Text
+	FileWebID pgtype.Text
 	Title     string
 	CreatedAt pgtype.Timestamptz
 }

@@ -11,6 +11,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o recorder ./cmd/recorde
 FROM alpine:3.22
 WORKDIR /app
 
+RUN apk add --no-cache ca-certificates tzdata
+
 COPY --from=builder /app/recorder .
 COPY --from=builder /app/config/production.yml ./config/production.yml
 

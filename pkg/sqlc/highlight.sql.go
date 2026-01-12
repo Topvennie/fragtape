@@ -12,26 +12,43 @@ import (
 )
 
 const highlightCreate = `-- name: HighlightCreate :one
-INSERT INTO highlights (demo_id, file_id, title)
-VALUES ($1, $2, $3)
+INSERT INTO highlights (demo_id, file_id, file_web_id, title)
+VALUES ($1, $2, $3, $4)
 RETURNING id
 `
 
 type HighlightCreateParams struct {
-	DemoID int32
-	FileID pgtype.Text
-	Title  string
+	DemoID    int32
+	FileID    pgtype.Text
+	FileWebID pgtype.Text
+	Title     string
 }
 
 func (q *Queries) HighlightCreate(ctx context.Context, arg HighlightCreateParams) (int32, error) {
-	row := q.db.QueryRow(ctx, highlightCreate, arg.DemoID, arg.FileID, arg.Title)
+	row := q.db.QueryRow(ctx, highlightCreate,
+		arg.DemoID,
+		arg.FileID,
+		arg.FileWebID,
+		arg.Title,
+	)
 	var id int32
 	err := row.Scan(&id)
 	return id, err
 }
 
+const highlightDeleteFile = `-- name: HighlightDeleteFile :exec
+UPDATE highlights
+SET file_id = NULL, file_web_id = NULL
+WHERE id = $1
+`
+
+func (q *Queries) HighlightDeleteFile(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, highlightDeleteFile, id)
+	return err
+}
+
 const highlightGetByDemo = `-- name: HighlightGetByDemo :many
-SELECT id, user_id, demo_id, file_id, title, created_at
+SELECT id, user_id, demo_id, file_id, file_web_id, title, created_at
 FROM highlights
 WHERE demo_id = $1
 `
@@ -50,6 +67,7 @@ func (q *Queries) HighlightGetByDemo(ctx context.Context, demoID int32) ([]Highl
 			&i.UserID,
 			&i.DemoID,
 			&i.FileID,
+			&i.FileWebID,
 			&i.Title,
 			&i.CreatedAt,
 		); err != nil {
@@ -63,18 +81,31 @@ func (q *Queries) HighlightGetByDemo(ctx context.Context, demoID int32) ([]Highl
 	return items, nil
 }
 
-const highlightUpdateFile = `-- name: HighlightUpdateFile :exec
+const highlightUpdate = `-- name: HighlightUpdate :exec
 UPDATE highlights
-SET file_id = $2
+SET 
+  demo_id = coalesce($2, demo_id),
+  file_id = coalesce($3, file_id),
+  file_web_id = coalesce($4, file_web_id),
+  title = coalesce($5, title)
 WHERE id = $1
 `
 
-type HighlightUpdateFileParams struct {
-	ID     int32
-	FileID pgtype.Text
+type HighlightUpdateParams struct {
+	ID        int32
+	DemoID    pgtype.Int4
+	FileID    pgtype.Text
+	FileWebID pgtype.Text
+	Title     pgtype.Text
 }
 
-func (q *Queries) HighlightUpdateFile(ctx context.Context, arg HighlightUpdateFileParams) error {
-	_, err := q.db.Exec(ctx, highlightUpdateFile, arg.ID, arg.FileID)
+func (q *Queries) HighlightUpdate(ctx context.Context, arg HighlightUpdateParams) error {
+	_, err := q.db.Exec(ctx, highlightUpdate,
+		arg.ID,
+		arg.DemoID,
+		arg.FileID,
+		arg.FileWebID,
+		arg.Title,
+	)
 	return err
 }

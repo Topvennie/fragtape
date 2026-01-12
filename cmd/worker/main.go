@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/topvennie/fragtape/internal/database/repository"
+	"github.com/topvennie/fragtape/internal/worker/finalize"
 	"github.com/topvennie/fragtape/internal/worker/parse"
 	"github.com/topvennie/fragtape/pkg/config"
 	"github.com/topvennie/fragtape/pkg/db"
@@ -50,14 +51,23 @@ func main() {
 		zap.S().Fatalf("Starting parser failed %v", err)
 	}
 
+	finalizer := finalize.New(*repo)
+	if err := finalizer.Start(context.Background()); err != nil {
+		zap.S().Fatalf("Starting finalizer failed %v", err)
+	}
+
 	zap.S().Info("Worker is running")
 
 	fmt.Println()
 	fmt.Println("┌──────────────────────────────────────────┐")
 	fmt.Println("│              Fragtape Worker             │")
 	fmt.Println("│                                          │")
-	fmt.Printf("│  Interval       %-24s │\n", config.GetDefaultDurationS("worker.interval_s", 60))
-	fmt.Printf("│  Concurrency    %-24d │\n", config.GetDefaultInt("worker.concurrent", 8))
+	fmt.Println("│  Parser                                  │")
+	fmt.Printf("│    Interval       %-22s │\n", config.GetDefaultDurationS("worker.interval_s.parser", 60))
+	fmt.Printf("│    Concurrency    %-22d │\n", config.GetDefaultInt("worker.concurrent.parser", 8))
+	fmt.Println("│  Finalizer                               │")
+	fmt.Printf("│    Interval       %-22s │\n", config.GetDefaultDurationS("worker.interval_s.finalizer", 60))
+	fmt.Printf("│    Concurrency    %-22d │\n", config.GetDefaultInt("worker.concurrent.finalizer", 8))
 	fmt.Println("└──────────────────────────────────────────┘")
 	fmt.Println()
 

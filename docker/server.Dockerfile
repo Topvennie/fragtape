@@ -34,6 +34,8 @@ RUN pnpm run build
 FROM alpine:3.22 AS prod
 WORKDIR /app
 
+RUN apk add --no-cache ca-certificates tzdata
+
 COPY --from=backend-builder /app/server .
 COPY --from=backend-builder /app/migrate .
 COPY --from=backend-builder /app/config/production.yml ./config/production.yml

@@ -28,7 +28,11 @@ server:
 
 worker:
   interval_s:
-  concurrent: 2
+    parser:
+    finalizer:
+  concurrent:
+    parser:
+    finalizer:
 
   db:
     host:

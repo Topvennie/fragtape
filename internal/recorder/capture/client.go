@@ -6,17 +6,15 @@ import (
 	"github.com/topvennie/fragtape/pkg/config"
 )
 
-type client struct {
+type Capturer struct {
 	repo      repository.Repository
 	highlight repository.Highlight
 
 	dummy bool
 }
 
-var C *client
-
-func Init(repo repository.Repository) {
-	C = &client{
+func New(repo repository.Repository) *Capturer {
+	return &Capturer{
 		repo:      repo,
 		highlight: *repo.NewHighlight(),
 		dummy:     config.GetDefaultBool("recorder.dummy_data", false),

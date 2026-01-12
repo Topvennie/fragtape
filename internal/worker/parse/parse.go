@@ -1,4 +1,4 @@
-// Package parse gets unparsed demos, parses them to highlight segments and adds them to the job queue
+// Package parse parses demos
 package parse
 
 import (
@@ -28,8 +28,8 @@ func New(repo repository.Repository) *Parser {
 		demo:       *repo.NewDemo(),
 		highlight:  *repo.NewHighlight(),
 		repo:       repo,
-		interval:   config.GetDefaultDurationS("worker.interval_s", 60),
-		concurrent: config.GetDefaultInt("worker.concurrent", 8),
+		interval:   config.GetDefaultDurationS("worker.interval_s.parser", 60),
+		concurrent: config.GetDefaultInt("worker.concurrent.parser", 8),
 	}
 }
 

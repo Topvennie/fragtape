@@ -8,10 +8,9 @@ func toString(s string) pgtype.Text {
 	return pgtype.Text{String: s, Valid: s != ""}
 }
 
-// Uncomment when used
-// func toInt(i int) pgtype.Int4 {
-// 	return pgtype.Int4{Int32: int32(i), Valid: i != 0}
-// }
+func toInt(i int) pgtype.Int4 {
+	return pgtype.Int4{Int32: int32(i), Valid: i != 0}
+}
 
 // Uncomment when used
 // func toBool(b *bool) pgtype.Bool {
