@@ -34,10 +34,11 @@ func New(repo repository.Repository) *Recorder {
 
 // Start starts the loop to get new jobs and render them
 func (r *Recorder) Start(ctx context.Context) error {
-	// Reset stuck demos
-	if err := r.demo.ResetStatusAll(ctx, model.DemoStatusRendering, model.DemoStatusQueuedRender); err != nil {
-		return err
-	}
+	// This doesn't work because it needs to be horizontally scalable
+	// FIXME: reset stuck demos
+	// if err := r.demo.ResetStatusAll(ctx, model.DemoStatusRendering, model.DemoStatusQueuedRender); err != nil {
+	// 	return err
+	// }
 
 	// Start the loop
 	go func() {
