@@ -1,7 +1,5 @@
 app:
   name:
-  queue:
-    render:
 
 server:
   api:
@@ -29,7 +27,7 @@ server:
     password:
 
 worker:
-  interval:
+  interval_s:
   concurrent: 2
 
   db:
@@ -46,5 +44,20 @@ worker:
     username:
     password:
 
-  redis:
-    url:
+renderer:
+  interval_s:
+  dummy_data: true
+
+  db:
+    host:
+    port:
+    database:
+    user:
+    password:
+
+  minio:
+    bucket:
+    endpoint:
+    secure:
+    username:
+    password:

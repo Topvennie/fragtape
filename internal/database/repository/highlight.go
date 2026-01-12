@@ -2,10 +2,13 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/pkg/sqlc"
+	"github.com/topvennie/fragtape/pkg/utils"
 )
 
 type Highlight struct {
@@ -16,6 +19,18 @@ func (r *Repository) NewHighlight() *Highlight {
 	return &Highlight{
 		repo: *r,
 	}
+}
+
+func (h *Highlight) GetByDemo(ctx context.Context, demoID int) ([]*model.Highlight, error) {
+	highlights, err := h.repo.queries(ctx).HighlightGetByDemo(ctx, int32(demoID))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get highlights by demo %d | %w", demoID, err)
+	}
+
+	return utils.SliceMap(highlights, model.HighlightModel), nil
 }
 
 func (h *Highlight) Create(ctx context.Context, highlight *model.Highlight) error {

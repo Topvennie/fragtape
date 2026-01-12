@@ -1,7 +1,5 @@
 app:
   name: fragtape
-  queue:
-    render: render
 
 server:
   api:
@@ -45,5 +43,20 @@ worker:
     username: minio
     password: miniominio
 
-  redis:
-    url: redis://default@redis:6379
+renderer:
+  interval_s: 60
+  dummy_data: false
+
+  db:
+    host: db
+    port: 5432
+    database: fragtape
+    user: postgres
+    password: postgres
+
+  minio:
+    bucket: fragtape
+    endpoint: minio:9000
+    secure: false
+    username: minio
+    password: miniominio
