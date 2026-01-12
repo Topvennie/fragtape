@@ -8,7 +8,16 @@ import (
 	"github.com/topvennie/fragtape/pkg/storage"
 )
 
-func getHighlights(demo model.Demo) ([]model.Highlight, error) {
+type highlight struct {
+	HighlightID int `json:"highlight_id"`
+	DemoID      int `json:"demo_id"`
+}
+
+func (h highlight) toModel() *model.Highlight {
+	return &model.Highlight{}
+}
+
+func getHighlights(demo model.Demo) ([]highlight, error) {
 	if demo.FileID == "" {
 		return nil, errors.New("demo file deleted")
 	}
@@ -21,6 +30,6 @@ func getHighlights(demo model.Demo) ([]model.Highlight, error) {
 	return nil, nil
 }
 
-func submitHighlights(_ []model.Highlight) error {
+func submitHighlights(_ []highlight) error {
 	return nil
 }
