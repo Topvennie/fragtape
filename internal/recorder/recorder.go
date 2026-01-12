@@ -1,5 +1,5 @@
-// Package renderer converts a highligh job to an actual video
-package renderer
+// Package recorder renders highlights
+package recorder
 
 import (
 	"context"
@@ -7,31 +7,32 @@ import (
 
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
+	"github.com/topvennie/fragtape/internal/recorder/render"
 	"github.com/topvennie/fragtape/pkg/config"
 	"go.uber.org/zap"
 )
 
 const maxAttempts = 3
 
-type Render struct {
+type Recorder struct {
 	demo      repository.Demo
 	highlight repository.Highlight
 
 	interval time.Duration
-	dummy    bool
 }
 
-func New(repo repository.Repository) *Render {
-	return &Render{
+func New(repo repository.Repository) *Recorder {
+	render.Init(repo)
+
+	return &Recorder{
 		demo:      *repo.NewDemo(),
 		highlight: *repo.NewHighlight(),
-		interval:  config.GetDefaultDurationS("renderer.interval_s", 60),
-		dummy:     config.GetDefaultBool("renderer.dummy_data", false),
+		interval:  config.GetDefaultDurationS("recorder.interval_s", 60),
 	}
 }
 
 // Start starts the loop to get new jobs and render them
-func (r *Render) Start(ctx context.Context) error {
+func (r *Recorder) Start(ctx context.Context) error {
 	// Reset stuck demos
 	if err := r.demo.ResetStatusAll(ctx, model.DemoStatusRendering, model.DemoStatusQueuedRender); err != nil {
 		return err
@@ -58,7 +59,7 @@ func (r *Render) Start(ctx context.Context) error {
 	return nil
 }
 
-func (r *Render) loop(ctx context.Context) error {
+func (r *Recorder) loop(ctx context.Context) error {
 	// Get demos
 	// Their attemps counter is increased by the query
 	demos, err := r.demo.GetByStatusUpdateAtomic(ctx, model.DemoStatusQueuedRender, model.DemoStatusRendering, 1)
@@ -69,7 +70,7 @@ func (r *Render) loop(ctx context.Context) error {
 	for len(demos) > 0 {
 		demo := demos[0]
 
-		err := r.render(ctx, *demo)
+		err = render.C.Render(ctx, *demo)
 		if err != nil {
 			// Something failed
 			// Reset status
@@ -94,24 +95,6 @@ func (r *Render) loop(ctx context.Context) error {
 			return err
 		}
 	}
-
-	return nil
-}
-
-// render will render the clips, save them to minio and save the file id
-// to the right highlight in the render struct
-func (r *Render) render(ctx context.Context, demo model.Demo) error {
-	highlights, err := r.highlight.GetByDemo(ctx, demo.ID)
-	if err != nil {
-		return err
-	}
-
-	if len(highlights) == 0 {
-		// No highlights
-		return nil
-	}
-
-	// Actually render it now
 
 	return nil
 }

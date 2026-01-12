@@ -5,7 +5,7 @@ WORKDIR /app
 RUN apk add --no-cache make gcc musl-dev
 
 RUN go install github.com/air-verse/air@latest
-COPY .air.renderer.toml .
+COPY .air.recorder.toml .
 
 COPY go.mod go.sum ./
 

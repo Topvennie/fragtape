@@ -14,6 +14,6 @@ tmp*/
 # Project build
 /server
 /worker
-/renderer
+/recorder
 /migrate
 

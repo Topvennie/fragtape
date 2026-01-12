@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/topvennie/fragtape/internal/database/repository"
-	renderer "github.com/topvennie/fragtape/internal/renderer/render"
+	"github.com/topvennie/fragtape/internal/recorder"
 	"github.com/topvennie/fragtape/pkg/config"
 	"github.com/topvennie/fragtape/pkg/db"
 	"github.com/topvennie/fragtape/pkg/logger"
@@ -25,38 +25,38 @@ func main() {
 	zap.ReplaceGlobals(zapLogger)
 
 	db, err := db.NewPSQL(db.PostgresCfg{
-		Host:     config.GetDefaultString("renderer.db.host", "db"),
-		Port:     config.GetDefaultInt("renderer.db.port", 5432),
-		Database: config.GetDefaultString("renderer.db.database", "fragtape"),
-		User:     config.GetDefaultString("renderer.db.user", "postgres"),
-		Password: config.GetDefaultString("renderer.db.password", "postgres"),
+		Host:     config.GetDefaultString("recorder.db.host", "db"),
+		Port:     config.GetDefaultInt("recorder.db.port", 5432),
+		Database: config.GetDefaultString("recorder.db.database", "fragtape"),
+		User:     config.GetDefaultString("recorder.db.user", "postgres"),
+		Password: config.GetDefaultString("recorder.db.password", "postgres"),
 	})
 	if err != nil {
 		zap.S().Fatalf("Unable to connect to db %v", err)
 	}
 
 	storage.Minio(storage.MinioCfg{
-		Bucket:    config.GetDefaultString("renderer.minio.bucket", "fragtape"),
-		Endpoint:  config.GetDefaultString("renderer.minio.endpoint", "minio:9000"),
-		Secure:    config.GetDefaultBool("renderer.minio.secure", false),
-		AccessKey: config.GetDefaultString("renderer.minio.username", "minio"),
-		Secret:    config.GetDefaultString("renderer.minio.password", "miniominio"),
+		Bucket:    config.GetDefaultString("recorder.minio.bucket", "fragtape"),
+		Endpoint:  config.GetDefaultString("recorder.minio.endpoint", "minio:9000"),
+		Secure:    config.GetDefaultBool("recorder.minio.secure", false),
+		AccessKey: config.GetDefaultString("recorder.minio.username", "minio"),
+		Secret:    config.GetDefaultString("recorder.minio.password", "miniominio"),
 	})
 
 	repo := repository.New(db)
 
-	renderer := renderer.New(*repo)
-	if err := renderer.Start(context.Background()); err != nil {
-		zap.S().Fatalf("Starting renderer failed %v", err)
+	recorder := recorder.New(*repo)
+	if err := recorder.Start(context.Background()); err != nil {
+		zap.S().Fatalf("Starting recorder failed %v", err)
 	}
 
-	zap.S().Info("Renderer is running")
+	zap.S().Info("Recorder is running")
 
 	fmt.Println()
 	fmt.Println("┌─────────────────────────────────────────┐")
-	fmt.Println("│            Fragtape Renderer            │")
+	fmt.Println("│            Fragtape Recorder            │")
 	fmt.Println("│                                         │")
-	fmt.Printf("│  Interval       %-23s │\n", config.GetDefaultDurationS("renderer.interval_s", 60))
+	fmt.Printf("│  Interval       %-23s │\n", config.GetDefaultDurationS("recorder.interval_s", 60))
 	fmt.Println("└──────────────────────────────────────────┘")
 	fmt.Println()
 

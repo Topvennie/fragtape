@@ -52,7 +52,8 @@ Endpoints:
   - Parses demos and plans highlight segments
   - Adds segments to job queue
   - Processes finished clips (e.g. send discord messages)
-- **Renderer**
+  - Horizontally scalable (although not very useful, the recorder will most likely be the bottleneck)
+- **Recorder**
   - Consumes jobs
   - Runs CS2 + tooling to generate clips
   - Uploads results to object storage
