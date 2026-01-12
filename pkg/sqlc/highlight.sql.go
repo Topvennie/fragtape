@@ -30,6 +30,39 @@ func (q *Queries) HighlightCreate(ctx context.Context, arg HighlightCreateParams
 	return id, err
 }
 
+const highlightGetByDemo = `-- name: HighlightGetByDemo :many
+SELECT id, user_id, demo_id, file_id, title, created_at
+FROM highlights
+WHERE demo_id = $1
+`
+
+func (q *Queries) HighlightGetByDemo(ctx context.Context, demoID int32) ([]Highlight, error) {
+	rows, err := q.db.Query(ctx, highlightGetByDemo, demoID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Highlight
+	for rows.Next() {
+		var i Highlight
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.DemoID,
+			&i.FileID,
+			&i.Title,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const highlightUpdateFile = `-- name: HighlightUpdateFile :exec
 UPDATE highlights
 SET file_id = $2

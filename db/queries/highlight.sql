@@ -1,3 +1,8 @@
+-- name: HighlightGetByDemo :many
+SELECT *
+FROM highlights
+WHERE demo_id = $1;
+
 -- name: HighlightCreate :one
 INSERT INTO highlights (demo_id, file_id, title)
 VALUES ($1, $2, $3)
