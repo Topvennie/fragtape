@@ -48,12 +48,23 @@ func (h *Highlight) Create(ctx context.Context, highlight *model.Highlight) erro
 	return nil
 }
 
-func (h *Highlight) UpdateFile(ctx context.Context, highlight model.Highlight) error {
-	if err := h.repo.queries(ctx).HighlightUpdateFile(ctx, sqlc.HighlightUpdateFileParams{
-		ID:     int32(highlight.ID),
-		FileID: toString(highlight.FileID),
+func (h *Highlight) Update(ctx context.Context, highlight model.Highlight) error {
+	if err := h.repo.queries(ctx).HighlightUpdate(ctx, sqlc.HighlightUpdateParams{
+		ID:        int32(highlight.ID),
+		DemoID:    toInt(highlight.DemoID),
+		FileID:    toString(highlight.FileID),
+		FileWebID: toString(highlight.FileWebID),
+		Title:     toString(highlight.Title),
 	}); err != nil {
 		return fmt.Errorf("update highlight %+v | %w", highlight, err)
+	}
+
+	return nil
+}
+
+func (h *Highlight) DeleteFile(ctx context.Context, highlightID int) error {
+	if err := h.repo.queries(ctx).HighlightDeleteFile(ctx, int32(highlightID)); err != nil {
+		return fmt.Errorf("delete highlight file %d | %w", highlightID, err)
 	}
 
 	return nil

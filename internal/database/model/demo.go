@@ -17,13 +17,14 @@ const (
 type DemoStatus string
 
 const (
-	DemoStatusQueuedParse  DemoStatus = "queued_parse"
-	DemoStatusParsing      DemoStatus = "parsing"
-	DemoStatusQueuedRender DemoStatus = "queued_render"
-	DemoStatusRendering    DemoStatus = "rendering"
-	DemoStatusRendered     DemoStatus = "rendered"
-	DemoStatusCompleted    DemoStatus = "completed"
-	DemoStatusFailed       DemoStatus = "failed"
+	DemoStatusQueuedParse    DemoStatus = "queued_parse"
+	DemoStatusParsing        DemoStatus = "parsing"
+	DemoStatusQueuedRender   DemoStatus = "queued_render"
+	DemoStatusRendering      DemoStatus = "rendering"
+	DemoStatusQueuedFinalize DemoStatus = "queued_finalize"
+	DemoStatusFinalizing     DemoStatus = "finalizing"
+	DemoStatusFinished       DemoStatus = "finished"
+	DemoStatusFailed         DemoStatus = "failed"
 )
 
 type Demo struct {

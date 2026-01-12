@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TYPE demo_source AS ENUM ('manual', 'steam', 'faceit');
 
-CREATE TYPE demo_status AS ENUM ('queued_parse', 'parsing', 'queued_render', 'rendering', 'rendered', 'completed', 'failed');
+CREATE TYPE demo_status AS ENUM ('queued_parse', 'parsing', 'queued_render', 'rendering', 'queued_finalize', 'finalizing', 'finished', 'failed');
 
 CREATE TABLE demos (
   id SERIAL PRIMARY KEY,

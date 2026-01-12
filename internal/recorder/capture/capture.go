@@ -15,7 +15,7 @@ import (
 
 const dummyDir = "./dummydata/"
 
-func (c *client) Start(ctx context.Context, demo model.Demo) error {
+func (c *Capturer) Start(ctx context.Context, demo model.Demo) error {
 	highlights, err := c.highlight.GetByDemo(ctx, demo.ID)
 	if err != nil {
 		return err
@@ -34,7 +34,7 @@ func (c *client) Start(ctx context.Context, demo model.Demo) error {
 	return capture()
 }
 
-func (c *client) captureDummy(ctx context.Context, highlights []model.Highlight) error {
+func (c *Capturer) captureDummy(ctx context.Context, highlights []model.Highlight) error {
 	dummyVideos, err := os.ReadDir(dummyDir)
 	if err != nil {
 		return fmt.Errorf("read dummy data dir %w", err)
@@ -58,7 +58,7 @@ func (c *client) captureDummy(ctx context.Context, highlights []model.Highlight)
 				return fmt.Errorf("store file in storage %w", err)
 			}
 
-			if err := c.highlight.UpdateFile(ctx, h); err != nil {
+			if err := c.highlight.Update(ctx, h); err != nil {
 				return err
 			}
 
@@ -66,8 +66,7 @@ func (c *client) captureDummy(ctx context.Context, highlights []model.Highlight)
 		},
 		revert: func(h model.Highlight) {
 			if h.FileID != "" {
-				h.FileID = ""
-				_ = c.highlight.UpdateFile(ctx, h)
+				_ = c.highlight.DeleteFile(ctx, h.ID)
 				_ = storage.S.Delete(h.FileID)
 			}
 		},
