@@ -3,12 +3,14 @@ package parse
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/pkg/config"
+	"github.com/topvennie/fragtape/pkg/queue"
 	"go.uber.org/zap"
 )
 
@@ -19,18 +21,30 @@ type Parser struct {
 	highlight repository.Highlight
 	repo      repository.Repository
 
+	renderQueue queue.Queue[highlight]
+
 	interval   time.Duration
 	concurrent int
 }
 
-func New(repo repository.Repository) *Parser {
-	return &Parser{
-		demo:       *repo.NewDemo(),
-		highlight:  *repo.NewHighlight(),
-		repo:       repo,
-		interval:   config.GetDefaultDurationS("worker.interval", 60),
-		concurrent: config.GetDefaultInt("worker.concurrent", 8),
+func New(repo repository.Repository) (*Parser, error) {
+	queue, err := queue.NewRedis(queue.RedisCfg[highlight]{
+		Enc: queue.JSONCodec[highlight]{},
+		URL: config.GetDefaultString("worker.redis.url", "redis://default@redis:6379"),
+		Key: config.GetDefaultString("app.queue.render", "render"),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("connect to render queue %w", err)
 	}
+
+	return &Parser{
+		demo:        *repo.NewDemo(),
+		highlight:   *repo.NewHighlight(),
+		repo:        repo,
+		renderQueue: queue,
+		interval:    config.GetDefaultDurationS("worker.interval", 60),
+		concurrent:  config.GetDefaultInt("worker.concurrent", 8),
+	}, nil
 }
 
 // Start starts the loop to fetch and parse new demos
@@ -62,7 +76,7 @@ func (p *Parser) Start(ctx context.Context) error {
 }
 
 type loopResult struct {
-	highlights []model.Highlight
+	highlights []highlight
 	err        error
 }
 
@@ -142,9 +156,11 @@ func (p *Parser) loop(ctx context.Context) error {
 				}
 
 				for i := range result.highlights {
-					if err := p.highlight.Create(ctx, &result.highlights[i]); err != nil {
+					modelHighlight := result.highlights[i].toModel()
+					if err := p.highlight.Create(ctx, modelHighlight); err != nil {
 						return err
 					}
+					result.highlights[i].HighlightID = modelHighlight.ID
 				}
 
 				if err := submitHighlights(result.highlights); err != nil {

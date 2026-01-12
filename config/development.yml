@@ -1,5 +1,7 @@
 app:
   name:
+  queue:
+    render:
 
 server:
   api:
