@@ -10,21 +10,43 @@ import (
 )
 
 type redisQueue[T any] struct {
-	c   *redis.Client
-	enc Codec[T]
-	key string
+	c      *redis.Client
+	enc    Codec[T]
+	key    string
+	tmpKey string
 }
 
 // Interface compliance
 var _ Queue[any] = (*redisQueue[any])(nil)
 
+// Interface compliance
+var _ ReliableQueue[any] = (*redisQueue[any])(nil)
+
 type RedisCfg[T any] struct {
 	Enc Codec[T]
 	URL string
 	Key string
+	// TmpKey is the key of the temporary queue
+	// If one is given then dequeue will move an item from the main queue to the temporary queue
+	// Use the complete function to remove it from the temporary queue
+	TmpKey string
 }
 
 func NewRedis[T any](cfg RedisCfg[T]) (Queue[T], error) {
+	cfg.TmpKey = ""
+
+	return newRedis(cfg)
+}
+
+func NewRedisReliable[T any](cfg RedisCfg[T]) (ReliableQueue[T], error) {
+	if cfg.TmpKey == "" {
+		return nil, errors.New("no tmp key set")
+	}
+
+	return newRedis(cfg)
+}
+
+func newRedis[T any](cfg RedisCfg[T]) (ReliableQueue[T], error) {
 	options, err := redis.ParseURL(cfg.URL)
 	if err != nil {
 		return nil, err
@@ -44,9 +66,10 @@ func NewRedis[T any](cfg RedisCfg[T]) (Queue[T], error) {
 	}
 
 	return &redisQueue[T]{
-		c:   client,
-		enc: cfg.Enc,
-		key: cfg.Key,
+		c:      client,
+		enc:    cfg.Enc,
+		key:    cfg.Key,
+		tmpKey: cfg.TmpKey,
 	}, nil
 }
 
@@ -59,7 +82,7 @@ func (r *redisQueue[T]) Enqueue(ctx context.Context, t T) error {
 	return r.c.LPush(ctx, r.key, data).Err()
 }
 
-func (r *redisQueue[T]) Dequeue(ctx context.Context, opts ...DequeueOption) (T, error) {
+func (r *redisQueue[T]) Dequeue(ctx context.Context, opts ...DequeueOption) (T, Receipt, error) {
 	if len(opts) > 0 {
 		return r.dequeueBlocking(ctx, opts[0].timeout)
 	}
@@ -67,43 +90,94 @@ func (r *redisQueue[T]) Dequeue(ctx context.Context, opts ...DequeueOption) (T, 
 	return r.dequeue(ctx)
 }
 
-func (r *redisQueue[T]) dequeue(ctx context.Context) (T, error) {
-	var t T
+func (r *redisQueue[T]) Complete(ctx context.Context, receipt Receipt) error {
+	if r.tmpKey == "" {
+		return ErrNoop
+	}
 
-	data, err := r.c.RPop(ctx, r.key).Result()
+	if err := r.c.LRem(ctx, r.tmpKey, 1, receipt.Raw).Err(); err != nil {
+		return fmt.Errorf("mark item as complete %w", err)
+	}
+
+	return nil
+}
+
+func (r *redisQueue[T]) RequeueAll(ctx context.Context) error {
+	if r.tmpKey == "" {
+		return ErrNoop
+	}
+
+	var err error
+	for err == nil {
+		err = r.c.RPopLPush(ctx, r.tmpKey, r.key).Err()
+	}
+
+	if !errors.Is(err, redis.Nil) {
+		return fmt.Errorf("rpoplpush %w", err)
+	}
+
+	return nil
+}
+
+func (r *redisQueue[T]) dequeue(ctx context.Context) (T, Receipt, error) {
+	var t T
+	var receipt Receipt
+
+	var data string
+	var err error
+
+	if r.tmpKey == "" {
+		// Normal queue
+		data, err = r.c.RPop(ctx, r.key).Result()
+	} else {
+		// Reliable queue
+		data, err = r.c.RPopLPush(ctx, r.key, r.tmpKey).Result()
+	}
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return t, ErrEmpty
+			return t, receipt, ErrEmpty
 		}
-		return t, fmt.Errorf("getting queue data %w", err)
+		return t, receipt, fmt.Errorf("getting queue data %w", err)
 	}
 
 	t, err = r.enc.Unmarshal([]byte(data))
 	if err != nil {
-		return t, fmt.Errorf("unmarshal data %w", err)
+		return t, receipt, fmt.Errorf("unmarshal data %w", err)
 	}
 
-	return t, nil
+	return t, Receipt{Raw: data}, nil
 }
 
-func (r *redisQueue[T]) dequeueBlocking(ctx context.Context, timeout time.Duration) (T, error) {
+func (r *redisQueue[T]) dequeueBlocking(ctx context.Context, timeout time.Duration) (T, Receipt, error) {
 	var t T
+	var receipt Receipt
 
-	data, err := r.c.BRPop(ctx, timeout, r.key).Result()
+	var data string
+	var err error
+
+	if r.tmpKey == "" {
+		// Normal queue
+		datas, errData := r.c.BRPop(ctx, timeout, r.key).Result()
+		if len(datas) != 2 {
+			return t, receipt, fmt.Errorf("unexpected brpop response length: %d", len(datas))
+		}
+		data = datas[1]
+		err = errData
+	} else {
+		// Reliable queue
+		data, err = r.c.BRPopLPush(ctx, r.key, r.tmpKey, timeout).Result()
+	}
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return t, ErrEmpty
+			return t, receipt, ErrEmpty
 		}
-		return t, fmt.Errorf("getting queue data %w", err)
-	}
-	if len(data) != 2 {
-		return t, fmt.Errorf("unexpected brpop response length: %d", len(data))
+		return t, receipt, fmt.Errorf("getting queue data %w", err)
 	}
 
-	t, err = r.enc.Unmarshal([]byte(data[1]))
+	t, err = r.enc.Unmarshal([]byte(data))
 	if err != nil {
-		return t, fmt.Errorf("unmarshal data %w", err)
+		return t, receipt, fmt.Errorf("unmarshal data %w", err)
 	}
 
-	return t, nil
+	return t, Receipt{Raw: data}, nil
 }
