@@ -43,7 +43,7 @@ else
   fi
 fi
 
-if [ "$LINT_FRONTEND" ]; then
+if [ "$LINT_FRONTEND" = true ]; then
   cd ui || exit 1
   echo "Linting Frontend"
   pnpm --silent run lint || exit 1
