@@ -51,6 +51,7 @@ const highlightGetByDemo = `-- name: HighlightGetByDemo :many
 SELECT id, user_id, demo_id, file_id, file_web_id, title, created_at
 FROM highlights
 WHERE demo_id = $1
+ORDER BY created_at
 `
 
 func (q *Queries) HighlightGetByDemo(ctx context.Context, demoID int32) ([]Highlight, error) {
