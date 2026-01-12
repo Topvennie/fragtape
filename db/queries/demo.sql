@@ -4,15 +4,16 @@ FROM demos
 WHERE id = $1;
 
 -- name: DemoGetByUser :many
-SELECT *
-FROM demos
-WHERE user_id = $1 AND deleted_at IS NULL
-ORDER BY created_at DESC;
+SELECT d.*
+FROM demos d
+LEFT JOIN demo_users du ON du.demo_id = d.id
+WHERE du.user_id = $1 AND du.deleted_at IS NULL
+ORDER BY d.created_at DESC;
 
 -- name: DemoGetByStatus :many
 SELECT *
 FROM demos
-WHERE status = $1 AND deleted_at IS NULL
+WHERE status = $1
 ORDER BY created_at ASC;
 
 -- name: DemoGetByStatusUpdateAtomic :many
@@ -33,8 +34,8 @@ WHERE id in (SELECT id from cte)
 RETURNING *;
 
 -- name: DemoCreate :one
-INSERT INTO demos (user_id, source, source_id, status, file_id)
-VALUES ($1, $2, $3, 'queued_parse', $4)
+INSERT INTO demos (source, source_id, file_id)
+VALUES ($1, $2, $3)
 RETURNING id;
 
 -- name: DemoUpdateStatus :exec
@@ -58,7 +59,3 @@ SET
 WHERE
   status = sqlc.arg('old_status');
 
--- name: DemoDelete :exec
-UPDATE demos
-SET deleted_at = NOW()
-WHERE id = $1;

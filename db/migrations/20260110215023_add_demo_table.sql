@@ -6,21 +6,27 @@ CREATE TYPE demo_status AS ENUM ('queued_parse', 'parsing', 'queued_render', 're
 
 CREATE TABLE demos (
   id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
   source DEMO_SOURCE NOT NULL,
   source_id TEXT,
   file_id TEXT,
-  status DEMO_STATUS NOT NULL,
+  status DEMO_STATUS NOT NULL DEFAULT 'queued_parse',
   attempts INTEGER NOT NULL DEFAULT 0,
   error TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   status_updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE demo_users (
+  id SERIAL PRIMARY KEY,
+  demo_id INTEGER NOT NULL REFERENCES demos (id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
   deleted_at TIMESTAMPTZ DEFAULT NULL
 );
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP TABLE demo_users;
 DROP TABLE demos;
 DROP TYPE demo_status;
 DROP TYPE demo_source;
