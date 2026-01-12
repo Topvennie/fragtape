@@ -7,7 +7,7 @@ import (
 
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
-	"github.com/topvennie/fragtape/internal/recorder/render"
+	"github.com/topvennie/fragtape/internal/recorder/capture"
 	"github.com/topvennie/fragtape/pkg/config"
 	"go.uber.org/zap"
 )
@@ -22,7 +22,7 @@ type Recorder struct {
 }
 
 func New(repo repository.Repository) *Recorder {
-	render.Init(repo)
+	capture.Init(repo)
 
 	return &Recorder{
 		demo:      *repo.NewDemo(),
@@ -70,7 +70,7 @@ func (r *Recorder) loop(ctx context.Context) error {
 	for len(demos) > 0 {
 		demo := demos[0]
 
-		err = render.C.Render(ctx, *demo)
+		err = capture.C.Start(ctx, *demo)
 		if err != nil {
 			// Something failed
 			// Reset status
