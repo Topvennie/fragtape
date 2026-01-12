@@ -42,7 +42,7 @@ func New(repo repository.Repository) (*Parser, error) {
 		highlight:   *repo.NewHighlight(),
 		repo:        repo,
 		renderQueue: queue,
-		interval:    config.GetDefaultDurationS("worker.interval", 60),
+		interval:    config.GetDefaultDurationS("worker.interval_s", 60),
 		concurrent:  config.GetDefaultInt("worker.concurrent", 8),
 	}, nil
 }

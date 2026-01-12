@@ -1,10 +1,12 @@
 app:
-  name:
+  name: fragtape
+  queue:
+    render: render
 
 server:
   api:
-    host:
-    port:
+    host: 0.0.0.0
+    port: 8000
 
   auth:
     steam:
@@ -12,36 +14,36 @@ server:
       callback_url:
 
   db:
-    host:
-    port:
-    database:
-    user:
-    password:
+    host: db
+    port: 5432
+    database: fragtape
+    user: postgres
+    password: postgres
 
   minio:
-    bucket:
-    endpoint:
-    secure:
-    username:
-    password:
+    bucket: fragtape
+    endpoint: minio:9000
+    secure: false
+    username: minio
+    password: miniominio
 
 worker:
-  interval:
+  interval_s: 60
   concurrent: 8
 
   db:
-    host:
-    port:
-    database:
-    user:
-    password:
+    host: db
+    port: 5432
+    database: fragtape
+    user: postgres
+    password: postgres
 
   minio:
-    bucket:
-    endpoint:
-    secure:
-    username:
-    password:
+    bucket: fragtape
+    endpoint: minio:9000
+    secure: false
+    username: minio
+    password: miniominio
 
   redis:
-    url:
+    url: redis://default@redis:6379
