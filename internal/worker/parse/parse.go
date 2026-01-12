@@ -3,15 +3,12 @@ package parse
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
-	"github.com/topvennie/fragtape/internal/job"
 	"github.com/topvennie/fragtape/pkg/config"
-	"github.com/topvennie/fragtape/pkg/queue"
 	"go.uber.org/zap"
 )
 
@@ -22,30 +19,18 @@ type Parser struct {
 	highlight repository.Highlight
 	repo      repository.Repository
 
-	renderQueue queue.Queue[job.Render]
-
 	interval   time.Duration
 	concurrent int
 }
 
-func New(repo repository.Repository) (*Parser, error) {
-	queue, err := queue.NewRedis(queue.RedisCfg[job.Render]{
-		Enc: queue.JSONCodec[job.Render]{},
-		URL: config.GetDefaultString("worker.redis.url", "redis://default@redis:6379"),
-		Key: config.GetDefaultString("app.queue.render", "render"),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("connect to render queue %w", err)
-	}
-
+func New(repo repository.Repository) *Parser {
 	return &Parser{
-		demo:        *repo.NewDemo(),
-		highlight:   *repo.NewHighlight(),
-		repo:        repo,
-		renderQueue: queue,
-		interval:    config.GetDefaultDurationS("worker.interval_s", 60),
-		concurrent:  config.GetDefaultInt("worker.concurrent", 8),
-	}, nil
+		demo:       *repo.NewDemo(),
+		highlight:  *repo.NewHighlight(),
+		repo:       repo,
+		interval:   config.GetDefaultDurationS("worker.interval_s", 60),
+		concurrent: config.GetDefaultInt("worker.concurrent", 8),
+	}
 }
 
 // Start starts the loop to fetch and parse new demos
@@ -77,8 +62,8 @@ func (p *Parser) Start(ctx context.Context) error {
 }
 
 type loopResult struct {
-	render job.Render
-	err    error
+	highlights []model.Highlight
+	err        error
 }
 
 func (p *Parser) loop(ctx context.Context) error {
@@ -99,11 +84,11 @@ func (p *Parser) loop(ctx context.Context) error {
 			// Get highlights
 			d := demo
 			wg.Go(func() {
-				render, err := p.getHighlights(*d)
+				highlights, err := p.getHighlights(*d)
 
 				result := loopResult{
-					render: render,
-					err:    err,
+					highlights: highlights,
+					err:        err,
 				}
 
 				mu.Lock()
@@ -116,7 +101,7 @@ func (p *Parser) loop(ctx context.Context) error {
 		// Wait until we have all highlights
 		wg.Wait()
 
-		// Update demo status and submit job
+		// Update demo status
 		for _, demo := range demos {
 			result, ok := resultMap[demo.ID]
 			if !ok {
@@ -125,46 +110,34 @@ func (p *Parser) loop(ctx context.Context) error {
 				continue
 			}
 
-			if result.err != nil {
-				demo.Error = result.err.Error()
-				demo.Status = model.DemoStatusQueuedParse
-				if demo.Attempts > maxAttempts {
-					demo.Status = model.DemoStatusFailed
-				}
-
-				if err := p.demo.UpdateStatus(ctx, *demo); err != nil {
-					zap.S().Error(err)
-				}
-				continue
-			}
-
-			if len(result.render.Highlights) == 0 {
-				// No highlights found
-				demo.Status = model.DemoStatusCompleted
-				if err := p.demo.UpdateStatus(ctx, *demo); err != nil {
-					zap.S().Error(err)
-				}
-				continue
-			}
-
 			if err := p.repo.WithRollback(ctx, func(ctx context.Context) error {
-				// Prematurely update the status
-				// Will be rolled back if anything fails in this function
-				demo.Status = model.DemoStatusQueuedRender
-				demo.Attempts = 0
-				if err := p.demo.UpdateStatus(ctx, *demo); err != nil {
-					return err
-				}
-
-				for i := range result.render.Highlights {
-					modelHighlight := result.render.Highlights[i].ToModel()
-					if err := p.highlight.Create(ctx, modelHighlight); err != nil {
-						return err
+				// DB transactions so unlikely something will fail
+				// But nice safety just in case
+				// Create highlight db entries
+				if result.err == nil {
+					for i := range result.highlights {
+						if err := p.highlight.Create(ctx, &result.highlights[i]); err != nil {
+							return err
+						}
 					}
-					result.render.Highlights[i].ID = modelHighlight.ID
 				}
 
-				if err := p.submitHighlights(ctx, result.render); err != nil {
+				if result.err != nil {
+					// Something failed
+					// Reset status
+					demo.Error = result.err.Error()
+					demo.Status = model.DemoStatusQueuedParse
+					if demo.Attempts > maxAttempts {
+						demo.Status = model.DemoStatusFailed
+					}
+				} else {
+					// No errors
+					// Go to the next step
+					demo.Status = model.DemoStatusQueuedRender
+					demo.Attempts = 0
+				}
+
+				if err := p.demo.UpdateStatus(ctx, *demo); err != nil {
 					return err
 				}
 
