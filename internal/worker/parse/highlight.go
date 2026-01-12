@@ -1,35 +1,31 @@
 package parse
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"github.com/topvennie/fragtape/internal/database/model"
+	"github.com/topvennie/fragtape/internal/job"
 	"github.com/topvennie/fragtape/pkg/storage"
 )
 
-type highlight struct {
-	HighlightID int `json:"highlight_id"`
-	DemoID      int `json:"demo_id"`
-}
+// TODO: Take users into account
+func (p *Parser) getHighlights(demo model.Demo) (job.Render, error) {
+	var zero job.Render
 
-func (h highlight) toModel() *model.Highlight {
-	return &model.Highlight{}
-}
-
-func getHighlights(demo model.Demo) ([]highlight, error) {
 	if demo.FileID == "" {
-		return nil, errors.New("demo file deleted")
+		return zero, errors.New("demo file deleted")
 	}
 
 	_, err := storage.S.Get(demo.FileID)
 	if err != nil {
-		return nil, fmt.Errorf("get demo file %w", err)
+		return zero, fmt.Errorf("get demo file %w", err)
 	}
 
-	return nil, nil
+	return zero, nil
 }
 
-func submitHighlights(_ []highlight) error {
-	return nil
+func (p *Parser) submitHighlights(ctx context.Context, render job.Render) error {
+	return p.renderQueue.Enqueue(ctx, render)
 }
