@@ -59,7 +59,7 @@ func main() {
 	fmt.Println("┌──────────────────────────────────────────┐")
 	fmt.Println("│              Fragtape Worker             │")
 	fmt.Println("│                                          │")
-	fmt.Printf("│  Interval       %-24s │\n", config.GetDefaultDurationS("worker.interval", 60))
+	fmt.Printf("│  Interval       %-24s │\n", config.GetDefaultDurationS("worker.interval_s", 60))
 	fmt.Printf("│  Concurrency    %-24d │\n", config.GetDefaultInt("worker.concurrent", 8))
 	fmt.Println("└──────────────────────────────────────────┘")
 	fmt.Println()
