@@ -106,11 +106,21 @@ type Demo struct {
 	UserID          int32
 	Source          DemoSource
 	SourceID        pgtype.Text
+	FileID          pgtype.Text
 	Status          DemoStatus
-	DemoFileID      pgtype.Text
+	Attempts        int32
+	Error           pgtype.Text
 	CreatedAt       pgtype.Timestamptz
 	StatusUpdatedAt pgtype.Timestamptz
 	DeletedAt       pgtype.Timestamptz
+}
+
+type Highlight struct {
+	ID        int32
+	DemoID    int32
+	FileID    pgtype.Text
+	Title     string
+	CreatedAt pgtype.Timestamptz
 }
 
 type User struct {

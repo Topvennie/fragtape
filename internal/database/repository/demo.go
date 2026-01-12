@@ -45,12 +45,40 @@ func (d *Demo) GetByUser(ctx context.Context, userID int) ([]*model.Demo, error)
 	return utils.SliceMap(demos, model.DemoModel), nil
 }
 
+func (d *Demo) GetByStatus(ctx context.Context, status model.DemoStatus) ([]*model.Demo, error) {
+	demos, err := d.repo.queries(ctx).DemoGetByStatus(ctx, sqlc.DemoStatus(status))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get demos by status %s | %w", status, err)
+	}
+
+	return utils.SliceMap(demos, model.DemoModel), nil
+}
+
+func (d *Demo) GetByStatusUpdateAtomic(ctx context.Context, oldStatus, newStatus model.DemoStatus, amount int) ([]*model.Demo, error) {
+	demos, err := d.repo.queries(ctx).DemoGetByStatusUpdateAtomic(ctx, sqlc.DemoGetByStatusUpdateAtomicParams{
+		OldStatus: sqlc.DemoStatus(oldStatus),
+		NewStatus: sqlc.DemoStatus(newStatus),
+		Amount:    int32(amount),
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get demos by status and update atomically %s -> %s | %d | %w", oldStatus, newStatus, amount, err)
+	}
+
+	return utils.SliceMap(demos, model.DemoModel), nil
+}
+
 func (d *Demo) Create(ctx context.Context, demo *model.Demo) error {
 	id, err := d.repo.queries(ctx).DemoCreate(ctx, sqlc.DemoCreateParams{
-		UserID:     int32(demo.UserID),
-		Source:     sqlc.DemoSource(demo.Source),
-		SourceID:   toString(demo.SourceID),
-		DemoFileID: toString(demo.DemoFileID),
+		UserID:   int32(demo.UserID),
+		Source:   sqlc.DemoSource(demo.Source),
+		SourceID: toString(demo.SourceID),
+		FileID:   toString(demo.FileID),
 	})
 	if err != nil {
 		return fmt.Errorf("create demo %+v | %w", *demo, err)
@@ -61,10 +89,11 @@ func (d *Demo) Create(ctx context.Context, demo *model.Demo) error {
 	return nil
 }
 
-func (d *Demo) Update(ctx context.Context, demo model.Demo) error {
+func (d *Demo) UpdateStatus(ctx context.Context, demo model.Demo) error {
 	if err := d.repo.queries(ctx).DemoUpdateStatus(ctx, sqlc.DemoUpdateStatusParams{
 		ID:     int32(demo.ID),
 		Status: sqlc.DemoStatus(demo.Status),
+		Error:  toString(demo.Error),
 	}); err != nil {
 		return fmt.Errorf("update demo status %+v | %w", demo, err)
 	}
@@ -74,10 +103,21 @@ func (d *Demo) Update(ctx context.Context, demo model.Demo) error {
 
 func (d *Demo) UpdateFile(ctx context.Context, demo model.Demo) error {
 	if err := d.repo.queries(ctx).DemoUpdateFile(ctx, sqlc.DemoUpdateFileParams{
-		ID:         int32(demo.ID),
-		DemoFileID: toString(demo.DemoFileID),
+		ID:     int32(demo.ID),
+		FileID: toString(demo.FileID),
 	}); err != nil {
 		return fmt.Errorf("update demo file %+v | %w", demo, err)
+	}
+
+	return nil
+}
+
+func (d *Demo) ResetStatusAll(ctx context.Context, oldStatus, newStatus model.DemoStatus) error {
+	if err := d.repo.queries(ctx).DemoResetStatusAll(ctx, sqlc.DemoResetStatusAllParams{
+		OldStatus: sqlc.DemoStatus(oldStatus),
+		NewStatus: sqlc.DemoStatus(newStatus),
+	}); err != nil {
+		return fmt.Errorf("reset demo status from %s to %s | %w", oldStatus, newStatus, err)
 	}
 
 	return nil
