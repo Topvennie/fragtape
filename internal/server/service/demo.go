@@ -14,12 +14,15 @@ import (
 )
 
 type Demo struct {
+	service Service
+
 	demo repository.Demo
 }
 
 func (s *Service) NewDemo() *Demo {
 	return &Demo{
-		demo: *s.repo.NewDemo(),
+		service: *s,
+		demo:    *s.repo.NewDemo(),
 	}
 }
 
@@ -35,43 +38,47 @@ func (d *Demo) GetAll(ctx context.Context, userID int) ([]dto.Demo, error) {
 
 func (d *Demo) Upload(ctx context.Context, userID int, file []byte) error {
 	demo := &model.Demo{
-		UserID: userID,
 		Source: model.DemoSourceManual,
 		FileID: uuid.NewString(),
 	}
 
-	if err := storage.S.Set(demo.FileID, file, 0); err != nil {
-		zap.S().Error(err)
-		return fiber.ErrInternalServerError
-	}
-
-	if err := d.demo.Create(ctx, demo); err != nil {
-		zap.S().Error(err)
-
-		if err := storage.S.Delete(demo.FileID); err != nil {
+	return d.service.withRollback(ctx, func(c context.Context) error {
+		if err := d.demo.Create(ctx, demo); err != nil {
 			zap.S().Error(err)
+			return fiber.ErrInternalServerError
 		}
 
-		return fiber.ErrInternalServerError
-	}
+		if err := d.demo.CreateUser(ctx, &model.DemoUser{
+			DemoID: demo.ID,
+			UserID: userID,
+		}); err != nil {
+			zap.S().Error(err)
+			return fiber.ErrInternalServerError
+		}
 
-	return nil
+		if err := storage.S.Set(demo.FileID, file, 0); err != nil {
+			zap.S().Error(err)
+			return fiber.ErrInternalServerError
+		}
+
+		return nil
+	})
 }
 
 func (d *Demo) Delete(ctx context.Context, userID, demoID int) error {
-	demo, err := d.demo.Get(ctx, demoID)
+	user, err := d.demo.GetUserByDemoUser(ctx, demoID, userID)
 	if err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError
 	}
-	if demo.UserID != userID {
+	if user == nil {
 		return fiber.ErrForbidden
 	}
-	if !demo.DeletedAt.IsZero() {
+	if !user.DeletedAt.IsZero() {
 		return fiber.ErrBadRequest
 	}
 
-	if err := d.demo.Delete(ctx, demoID); err != nil {
+	if err := d.demo.DeleteUserByDemoUser(ctx, demoID, userID); err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError
 	}

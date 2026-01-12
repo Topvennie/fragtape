@@ -2,6 +2,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/topvennie/fragtape/internal/database/repository"
 )
 
@@ -15,7 +17,6 @@ func New(repo repository.Repository) *Service {
 	}
 }
 
-// Uncomment once used
-// func (s *Service) withRollback(ctx context.Context, fn func(context.Context) error) error {
-// 	return s.repo.WithRollback(ctx, fn)
-// }
+func (s *Service) withRollback(ctx context.Context, fn func(context.Context) error) error {
+	return s.repo.WithRollback(ctx, fn)
+}

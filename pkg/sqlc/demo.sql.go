@@ -12,43 +12,26 @@ import (
 )
 
 const demoCreate = `-- name: DemoCreate :one
-INSERT INTO demos (user_id, source, source_id, status, file_id)
-VALUES ($1, $2, $3, 'queued_parse', $4)
+INSERT INTO demos (source, source_id, file_id)
+VALUES ($1, $2, $3)
 RETURNING id
 `
 
 type DemoCreateParams struct {
-	UserID   int32
 	Source   DemoSource
 	SourceID pgtype.Text
 	FileID   pgtype.Text
 }
 
 func (q *Queries) DemoCreate(ctx context.Context, arg DemoCreateParams) (int32, error) {
-	row := q.db.QueryRow(ctx, demoCreate,
-		arg.UserID,
-		arg.Source,
-		arg.SourceID,
-		arg.FileID,
-	)
+	row := q.db.QueryRow(ctx, demoCreate, arg.Source, arg.SourceID, arg.FileID)
 	var id int32
 	err := row.Scan(&id)
 	return id, err
 }
 
-const demoDelete = `-- name: DemoDelete :exec
-UPDATE demos
-SET deleted_at = NOW()
-WHERE id = $1
-`
-
-func (q *Queries) DemoDelete(ctx context.Context, id int32) error {
-	_, err := q.db.Exec(ctx, demoDelete, id)
-	return err
-}
-
 const demoGet = `-- name: DemoGet :one
-SELECT id, user_id, source, source_id, file_id, status, attempts, error, created_at, status_updated_at, deleted_at
+SELECT id, source, source_id, file_id, status, attempts, error, status_updated_at, created_at
 FROM demos
 WHERE id = $1
 `
@@ -58,24 +41,22 @@ func (q *Queries) DemoGet(ctx context.Context, id int32) (Demo, error) {
 	var i Demo
 	err := row.Scan(
 		&i.ID,
-		&i.UserID,
 		&i.Source,
 		&i.SourceID,
 		&i.FileID,
 		&i.Status,
 		&i.Attempts,
 		&i.Error,
-		&i.CreatedAt,
 		&i.StatusUpdatedAt,
-		&i.DeletedAt,
+		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const demoGetByStatus = `-- name: DemoGetByStatus :many
-SELECT id, user_id, source, source_id, file_id, status, attempts, error, created_at, status_updated_at, deleted_at
+SELECT id, source, source_id, file_id, status, attempts, error, status_updated_at, created_at
 FROM demos
-WHERE status = $1 AND deleted_at IS NULL
+WHERE status = $1
 ORDER BY created_at ASC
 `
 
@@ -90,16 +71,14 @@ func (q *Queries) DemoGetByStatus(ctx context.Context, status DemoStatus) ([]Dem
 		var i Demo
 		if err := rows.Scan(
 			&i.ID,
-			&i.UserID,
 			&i.Source,
 			&i.SourceID,
 			&i.FileID,
 			&i.Status,
 			&i.Attempts,
 			&i.Error,
-			&i.CreatedAt,
 			&i.StatusUpdatedAt,
-			&i.DeletedAt,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -126,7 +105,7 @@ SET
   attempts = attempts + 1,
   status_updated_at = NOW()
 WHERE id in (SELECT id from cte)
-RETURNING id, user_id, source, source_id, file_id, status, attempts, error, created_at, status_updated_at, deleted_at
+RETURNING id, source, source_id, file_id, status, attempts, error, status_updated_at, created_at
 `
 
 type DemoGetByStatusUpdateAtomicParams struct {
@@ -146,16 +125,14 @@ func (q *Queries) DemoGetByStatusUpdateAtomic(ctx context.Context, arg DemoGetBy
 		var i Demo
 		if err := rows.Scan(
 			&i.ID,
-			&i.UserID,
 			&i.Source,
 			&i.SourceID,
 			&i.FileID,
 			&i.Status,
 			&i.Attempts,
 			&i.Error,
-			&i.CreatedAt,
 			&i.StatusUpdatedAt,
-			&i.DeletedAt,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -168,10 +145,11 @@ func (q *Queries) DemoGetByStatusUpdateAtomic(ctx context.Context, arg DemoGetBy
 }
 
 const demoGetByUser = `-- name: DemoGetByUser :many
-SELECT id, user_id, source, source_id, file_id, status, attempts, error, created_at, status_updated_at, deleted_at
-FROM demos
-WHERE user_id = $1 AND deleted_at IS NULL
-ORDER BY created_at DESC
+SELECT d.id, d.source, d.source_id, d.file_id, d.status, d.attempts, d.error, d.status_updated_at, d.created_at
+FROM demos d
+LEFT JOIN demo_users du ON du.demo_id = d.id
+WHERE du.user_id = $1 AND du.deleted_at IS NULL
+ORDER BY d.created_at DESC
 `
 
 func (q *Queries) DemoGetByUser(ctx context.Context, userID int32) ([]Demo, error) {
@@ -185,16 +163,14 @@ func (q *Queries) DemoGetByUser(ctx context.Context, userID int32) ([]Demo, erro
 		var i Demo
 		if err := rows.Scan(
 			&i.ID,
-			&i.UserID,
 			&i.Source,
 			&i.SourceID,
 			&i.FileID,
 			&i.Status,
 			&i.Attempts,
 			&i.Error,
-			&i.CreatedAt,
 			&i.StatusUpdatedAt,
-			&i.DeletedAt,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}

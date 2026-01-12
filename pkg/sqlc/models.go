@@ -103,20 +103,26 @@ func (ns NullDemoStatus) Value() (driver.Value, error) {
 
 type Demo struct {
 	ID              int32
-	UserID          int32
 	Source          DemoSource
 	SourceID        pgtype.Text
 	FileID          pgtype.Text
 	Status          DemoStatus
 	Attempts        int32
 	Error           pgtype.Text
-	CreatedAt       pgtype.Timestamptz
 	StatusUpdatedAt pgtype.Timestamptz
-	DeletedAt       pgtype.Timestamptz
+	CreatedAt       pgtype.Timestamptz
+}
+
+type DemoUser struct {
+	ID        int32
+	DemoID    int32
+	UserID    int32
+	DeletedAt pgtype.Timestamptz
 }
 
 type Highlight struct {
 	ID        int32
+	UserID    int32
 	DemoID    int32
 	FileID    pgtype.Text
 	Title     string
