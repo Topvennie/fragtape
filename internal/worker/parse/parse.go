@@ -9,6 +9,7 @@ import (
 
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
+	"github.com/topvennie/fragtape/internal/job"
 	"github.com/topvennie/fragtape/pkg/config"
 	"github.com/topvennie/fragtape/pkg/queue"
 	"go.uber.org/zap"
@@ -21,15 +22,15 @@ type Parser struct {
 	highlight repository.Highlight
 	repo      repository.Repository
 
-	renderQueue queue.Queue[highlight]
+	renderQueue queue.Queue[job.Render]
 
 	interval   time.Duration
 	concurrent int
 }
 
 func New(repo repository.Repository) (*Parser, error) {
-	queue, err := queue.NewRedis(queue.RedisCfg[highlight]{
-		Enc: queue.JSONCodec[highlight]{},
+	queue, err := queue.NewRedis(queue.RedisCfg[job.Render]{
+		Enc: queue.JSONCodec[job.Render]{},
 		URL: config.GetDefaultString("worker.redis.url", "redis://default@redis:6379"),
 		Key: config.GetDefaultString("app.queue.render", "render"),
 	})
@@ -76,8 +77,8 @@ func (p *Parser) Start(ctx context.Context) error {
 }
 
 type loopResult struct {
-	highlights []highlight
-	err        error
+	render job.Render
+	err    error
 }
 
 func (p *Parser) loop(ctx context.Context) error {
@@ -98,11 +99,11 @@ func (p *Parser) loop(ctx context.Context) error {
 			// Get highlights
 			d := demo
 			wg.Go(func() {
-				highlights, err := getHighlights(*d)
+				render, err := p.getHighlights(*d)
 
 				result := loopResult{
-					highlights: highlights,
-					err:        err,
+					render: render,
+					err:    err,
 				}
 
 				mu.Lock()
@@ -137,7 +138,7 @@ func (p *Parser) loop(ctx context.Context) error {
 				continue
 			}
 
-			if len(result.highlights) == 0 {
+			if len(result.render.Highlights) == 0 {
 				// No highlights found
 				demo.Status = model.DemoStatusCompleted
 				if err := p.demo.UpdateStatus(ctx, *demo); err != nil {
@@ -155,15 +156,15 @@ func (p *Parser) loop(ctx context.Context) error {
 					return err
 				}
 
-				for i := range result.highlights {
-					modelHighlight := result.highlights[i].toModel()
+				for i := range result.render.Highlights {
+					modelHighlight := result.render.Highlights[i].ToModel()
 					if err := p.highlight.Create(ctx, modelHighlight); err != nil {
 						return err
 					}
-					result.highlights[i].HighlightID = modelHighlight.ID
+					result.render.Highlights[i].ID = modelHighlight.ID
 				}
 
-				if err := submitHighlights(result.highlights); err != nil {
+				if err := p.submitHighlights(ctx, result.render); err != nil {
 					return err
 				}
 
