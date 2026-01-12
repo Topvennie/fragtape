@@ -35,12 +35,12 @@ func (d *Demo) GetAll(ctx context.Context, userID int) ([]dto.Demo, error) {
 
 func (d *Demo) Upload(ctx context.Context, userID int, file []byte) error {
 	demo := &model.Demo{
-		UserID:     userID,
-		Source:     model.DemoSourceManual,
-		DemoFileID: uuid.NewString(),
+		UserID: userID,
+		Source: model.DemoSourceManual,
+		FileID: uuid.NewString(),
 	}
 
-	if err := storage.S.Set(demo.DemoFileID, file, 0); err != nil {
+	if err := storage.S.Set(demo.FileID, file, 0); err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError
 	}
@@ -48,7 +48,7 @@ func (d *Demo) Upload(ctx context.Context, userID int, file []byte) error {
 	if err := d.demo.Create(ctx, demo); err != nil {
 		zap.S().Error(err)
 
-		if err := storage.S.Delete(demo.DemoFileID); err != nil {
+		if err := storage.S.Delete(demo.FileID); err != nil {
 			zap.S().Error(err)
 		}
 

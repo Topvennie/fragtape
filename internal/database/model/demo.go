@@ -32,7 +32,9 @@ type Demo struct {
 	Source          DemoSource
 	SourceID        string
 	Status          DemoStatus
-	DemoFileID      string
+	FileID          string
+	Attempts        int
+	Error           string
 	CreatedAt       time.Time
 	StatusUpdatedAt time.Time
 	DeletedAt       time.Time
@@ -45,7 +47,9 @@ func DemoModel(d sqlc.Demo) *Demo {
 		Source:          DemoSource(d.Source),
 		SourceID:        fromString(d.SourceID),
 		Status:          DemoStatus(d.Status),
-		DemoFileID:      fromString(d.DemoFileID),
+		FileID:          fromString(d.FileID),
+		Attempts:        int(d.Attempts),
+		Error:           fromString(d.Error),
 		CreatedAt:       d.CreatedAt.Time,
 		StatusUpdatedAt: d.StatusUpdatedAt.Time,
 		DeletedAt:       fromTime(d.DeletedAt),

@@ -9,7 +9,6 @@ import (
 	"github.com/topvennie/fragtape/pkg/config"
 	"github.com/topvennie/fragtape/pkg/db"
 	"github.com/topvennie/fragtape/pkg/logger"
-	"github.com/topvennie/fragtape/pkg/redis"
 	"github.com/topvennie/fragtape/pkg/storage"
 	"go.uber.org/zap"
 )
@@ -43,12 +42,6 @@ func main() {
 		AccessKey: config.GetDefaultString("server.minio.username", "minio"),
 		Secret:    config.GetDefaultString("server.minio.password", "miniominio"),
 	})
-
-	if err = redis.New(redis.RedisCfg{
-		URL: config.GetDefaultString("server.redis.url", "redis://default@redis:6379"),
-	}); err != nil {
-		zap.S().Fatalf("Failed to connect to redis %v", err)
-	}
 
 	repo := repository.New(db)
 	service := service.New(*repo)

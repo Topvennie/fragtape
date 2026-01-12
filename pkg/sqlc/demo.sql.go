@@ -12,16 +12,16 @@ import (
 )
 
 const demoCreate = `-- name: DemoCreate :one
-INSERT INTO demos (user_id, source, source_id, status, demo_file_id)
+INSERT INTO demos (user_id, source, source_id, status, file_id)
 VALUES ($1, $2, $3, 'queued_parse', $4)
 RETURNING id
 `
 
 type DemoCreateParams struct {
-	UserID     int32
-	Source     DemoSource
-	SourceID   pgtype.Text
-	DemoFileID pgtype.Text
+	UserID   int32
+	Source   DemoSource
+	SourceID pgtype.Text
+	FileID   pgtype.Text
 }
 
 func (q *Queries) DemoCreate(ctx context.Context, arg DemoCreateParams) (int32, error) {
@@ -29,7 +29,7 @@ func (q *Queries) DemoCreate(ctx context.Context, arg DemoCreateParams) (int32, 
 		arg.UserID,
 		arg.Source,
 		arg.SourceID,
-		arg.DemoFileID,
+		arg.FileID,
 	)
 	var id int32
 	err := row.Scan(&id)
@@ -48,7 +48,7 @@ func (q *Queries) DemoDelete(ctx context.Context, id int32) error {
 }
 
 const demoGet = `-- name: DemoGet :one
-SELECT id, user_id, source, source_id, status, demo_file_id, created_at, status_updated_at, deleted_at
+SELECT id, user_id, source, source_id, file_id, status, attempts, error, created_at, status_updated_at, deleted_at
 FROM demos
 WHERE id = $1
 `
@@ -61,8 +61,10 @@ func (q *Queries) DemoGet(ctx context.Context, id int32) (Demo, error) {
 		&i.UserID,
 		&i.Source,
 		&i.SourceID,
+		&i.FileID,
 		&i.Status,
-		&i.DemoFileID,
+		&i.Attempts,
+		&i.Error,
 		&i.CreatedAt,
 		&i.StatusUpdatedAt,
 		&i.DeletedAt,
@@ -70,8 +72,103 @@ func (q *Queries) DemoGet(ctx context.Context, id int32) (Demo, error) {
 	return i, err
 }
 
+const demoGetByStatus = `-- name: DemoGetByStatus :many
+SELECT id, user_id, source, source_id, file_id, status, attempts, error, created_at, status_updated_at, deleted_at
+FROM demos
+WHERE status = $1 AND deleted_at IS NULL
+ORDER BY created_at ASC
+`
+
+func (q *Queries) DemoGetByStatus(ctx context.Context, status DemoStatus) ([]Demo, error) {
+	rows, err := q.db.Query(ctx, demoGetByStatus, status)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Demo
+	for rows.Next() {
+		var i Demo
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Source,
+			&i.SourceID,
+			&i.FileID,
+			&i.Status,
+			&i.Attempts,
+			&i.Error,
+			&i.CreatedAt,
+			&i.StatusUpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const demoGetByStatusUpdateAtomic = `-- name: DemoGetByStatusUpdateAtomic :many
+WITH cte AS (
+  SELECT d.id
+  FROM demos d
+  WHERE d.status = $2
+  ORDER BY d.attempts, d.created_at
+  FOR UPDATE SKIP LOCKED
+  LIMIT $3
+)
+UPDATE demos
+SET
+  status = $1,
+  attempts = attempts + 1,
+  status_updated_at = NOW()
+WHERE id in (SELECT id from cte)
+RETURNING id, user_id, source, source_id, file_id, status, attempts, error, created_at, status_updated_at, deleted_at
+`
+
+type DemoGetByStatusUpdateAtomicParams struct {
+	NewStatus DemoStatus
+	OldStatus DemoStatus
+	Amount    int32
+}
+
+func (q *Queries) DemoGetByStatusUpdateAtomic(ctx context.Context, arg DemoGetByStatusUpdateAtomicParams) ([]Demo, error) {
+	rows, err := q.db.Query(ctx, demoGetByStatusUpdateAtomic, arg.NewStatus, arg.OldStatus, arg.Amount)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Demo
+	for rows.Next() {
+		var i Demo
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Source,
+			&i.SourceID,
+			&i.FileID,
+			&i.Status,
+			&i.Attempts,
+			&i.Error,
+			&i.CreatedAt,
+			&i.StatusUpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const demoGetByUser = `-- name: DemoGetByUser :many
-SELECT id, user_id, source, source_id, status, demo_file_id, created_at, status_updated_at, deleted_at
+SELECT id, user_id, source, source_id, file_id, status, attempts, error, created_at, status_updated_at, deleted_at
 FROM demos
 WHERE user_id = $1 AND deleted_at IS NULL
 ORDER BY created_at DESC
@@ -91,8 +188,10 @@ func (q *Queries) DemoGetByUser(ctx context.Context, userID int32) ([]Demo, erro
 			&i.UserID,
 			&i.Source,
 			&i.SourceID,
+			&i.FileID,
 			&i.Status,
-			&i.DemoFileID,
+			&i.Attempts,
+			&i.Error,
 			&i.CreatedAt,
 			&i.StatusUpdatedAt,
 			&i.DeletedAt,
@@ -107,34 +206,57 @@ func (q *Queries) DemoGetByUser(ctx context.Context, userID int32) ([]Demo, erro
 	return items, nil
 }
 
+const demoResetStatusAll = `-- name: DemoResetStatusAll :exec
+UPDATE demos
+SET 
+  status = $1,
+  status_updated_at = NOW()
+WHERE
+  status = $2
+`
+
+type DemoResetStatusAllParams struct {
+	NewStatus DemoStatus
+	OldStatus DemoStatus
+}
+
+func (q *Queries) DemoResetStatusAll(ctx context.Context, arg DemoResetStatusAllParams) error {
+	_, err := q.db.Exec(ctx, demoResetStatusAll, arg.NewStatus, arg.OldStatus)
+	return err
+}
+
 const demoUpdateFile = `-- name: DemoUpdateFile :exec
 UPDATE demos
-SET demo_file_id = $2
+SET file_id = $2
 WHERE id = $1
 `
 
 type DemoUpdateFileParams struct {
-	ID         int32
-	DemoFileID pgtype.Text
+	ID     int32
+	FileID pgtype.Text
 }
 
 func (q *Queries) DemoUpdateFile(ctx context.Context, arg DemoUpdateFileParams) error {
-	_, err := q.db.Exec(ctx, demoUpdateFile, arg.ID, arg.DemoFileID)
+	_, err := q.db.Exec(ctx, demoUpdateFile, arg.ID, arg.FileID)
 	return err
 }
 
 const demoUpdateStatus = `-- name: DemoUpdateStatus :exec
 UPDATE demos
-SET status = $2, status_updated_at = NOW()
+SET
+  status = $2,
+  error = $3,
+  status_updated_at = NOW()
 WHERE id = $1
 `
 
 type DemoUpdateStatusParams struct {
 	ID     int32
 	Status DemoStatus
+	Error  pgtype.Text
 }
 
 func (q *Queries) DemoUpdateStatus(ctx context.Context, arg DemoUpdateStatusParams) error {
-	_, err := q.db.Exec(ctx, demoUpdateStatus, arg.ID, arg.Status)
+	_, err := q.db.Exec(ctx, demoUpdateStatus, arg.ID, arg.Status, arg.Error)
 	return err
 }
