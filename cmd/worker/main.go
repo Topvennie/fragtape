@@ -45,15 +45,12 @@ func main() {
 
 	repo := repository.New(db)
 
-	parser, err := parse.New(*repo)
-	if err != nil {
-		zap.S().Fatalf("Initialize parser %w", err)
-	}
+	parser := parse.New(*repo)
 	if err := parser.Start(context.Background()); err != nil {
 		zap.S().Fatalf("Starting parser failed %v", err)
 	}
 
-	zap.S().Info("Worker  is running")
+	zap.S().Info("Worker is running")
 
 	fmt.Println()
 	fmt.Println("┌──────────────────────────────────────────┐")
