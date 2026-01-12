@@ -61,8 +61,8 @@ services:
       minio:
         condition: service_healthy
 
-  renderer:
-    image: ghcr.io/topvennie/fragtape/renderer:latest
+  recorder:
+    image: ghcr.io/topvennie/fragtape/recorder:latest
     env_file: .env
     depends_on:
       redis:

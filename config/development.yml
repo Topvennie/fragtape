@@ -44,7 +44,7 @@ worker:
     username:
     password:
 
-renderer:
+recorder:
   interval_s:
   dummy_data: true
 

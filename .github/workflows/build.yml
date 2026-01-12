@@ -20,8 +20,8 @@ jobs:
             file: docker/server.Dockerfile
           - service: worker
             file: docker/worker.Dockerfile
-          - service: renderer
-            file: docker/renderer.Dockerfile
+          - service: recorder
+            file: docker/recorder.Dockerfile
 
     steps:
       - name: Checkout code

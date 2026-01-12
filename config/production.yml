@@ -43,7 +43,7 @@ worker:
     username: minio
     password: miniominio
 
-renderer:
+recorder:
   interval_s: 60
   dummy_data: false
 

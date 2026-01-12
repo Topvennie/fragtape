@@ -4,7 +4,7 @@ CHANGED_FILES=$(git diff --cached --name-only)
 
 LINT_SERVER=false
 LINT_WORKER=false
-LINT_RENDERER=false
+LINT_RECORDER=false
 LINT_FRONTEND=false
 LINT_ALL=false
 
@@ -13,8 +13,8 @@ for file in $CHANGED_FILES; do
     LINT_SERVER=true
   elif [[ $file == cmd/worker/* ]] || [[ $file == internal/worker/* ]]; then
     LINT_WORKER=true
-  elif [[ $file == cmd/renderer/* ]] || [[ $file == internal/renderer/* ]]; then
-    LINT_RENDERER=true
+  elif [[ $file == cmd/recorder/* ]] || [[ $file == internal/recorder/* ]]; then
+    LINT_RECORDER=true
   elif [[ $file == ui/* ]]; then
     LINT_FRONTEND=true
   else
@@ -37,9 +37,9 @@ else
     golangci-lint run ./cmd/worker/... ./internal/worker/... || exit 1
   fi
 
-  if [ "$LINT_RENDERER" = true ]; then
+  if [ "$LINT_RECORDER" = true ]; then
     echo "Linting Renderer"
-    golangci-lint run ./cmd/renderer/... ./internal/renderer/... || exit 1
+    golangci-lint run ./cmd/recorder/... ./internal/recorder/... || exit 1
   fi
 fi
 

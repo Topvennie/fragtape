@@ -90,11 +90,11 @@ services:
       minio:
         condition: service_healthy
 
-  renderer:
+  recorder:
     build:
       context: .
-      dockerfile: docker/renderer.dev.Dockerfile
-    command: sh -c "go mod download && air -c .air.renderer.toml"
+      dockerfile: docker/recorder.dev.Dockerfile
+    command: sh -c "go mod download && air -c .air.recorder.toml"
     volumes:
       - .:/app
       - /app/ui

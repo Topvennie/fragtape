@@ -8,11 +8,11 @@ delay = 1000
 exclude_dir = [
   "cmd/worker",
   "internal/worker",
-  "cmd/renderer",
-  "internal/renderer",
+  "cmd/recorder",
+  "internal/recorder",
   "ui",
   "tmp_worker",
-  "tmp_renderer",
+  "tmp_recorder",
   "screenshots",
 ]
 include_ext = ["go"]

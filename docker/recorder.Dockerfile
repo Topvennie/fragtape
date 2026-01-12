@@ -6,12 +6,12 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o renderer ./cmd/renderer/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o recorder ./cmd/recorder/main.go
 
 FROM alpine:3.22
 WORKDIR /app
 
-COPY --from=builder /app/renderer .
+COPY --from=builder /app/recorder .
 COPY --from=builder /app/config/production.yml ./config/production.yml
 
-ENTRYPOINT ["./renderer"]
+ENTRYPOINT ["./recorder"]

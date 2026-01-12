@@ -10,11 +10,11 @@ build-server:
 build-worker:
 	@go build -o worker cmd/worker/main.go
 
-build-renderer:
-	@go build -o renderer cmd/renderer/main.go
+build-recorder:
+	@go build -o recorder cmd/recorder/main.go
 
 watch:
-	@docker compose up backend frontend worker renderer
+	@docker compose up backend frontend worker recorder
 	@docker compose down
 
 goose:
@@ -42,4 +42,4 @@ query:
 dead:
 	@go tool deadcode ./...
 
-.PHONY: all setup build-server build-worker build-renderer goose migrate create-migration query dead
+.PHONY: all setup build-server build-worker build-recorder goose migrate create-migration query dead

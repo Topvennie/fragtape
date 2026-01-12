@@ -3,7 +3,7 @@
 .github/
 server
 worker
-renderer
+recorder
 migrate
 screenshots/
 tmp/

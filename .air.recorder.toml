@@ -1,9 +1,9 @@
 root = "."
-tmp_dir = "tmp_renderer"
+tmp_dir = "tmp_recorder"
 
 [build]
-entrypoint = "renderer"
-cmd = "make build-renderer"
+entrypoint = "recorder"
+cmd = "make build-recorder"
 delay = 1000
 exclude_dir = [
   "cmd/server",
@@ -17,7 +17,7 @@ exclude_dir = [
 ]
 include_ext = ["go"]
 kill_delay = "0s"
-log = "build-renderer-errors.log"
+log = "build-recorder-errors.log"
 
 [color]
 main = "cyan"
