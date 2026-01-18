@@ -132,7 +132,7 @@ func (d *Demo) handleNadePlayerFlashed(p demoinfocs.Parser, e events.PlayerFlash
 			if f.uniqueID2 == e.Projectile.WeaponInstance.UniqueID2() {
 				f.Victims = append(f.Victims, FlashVictim{
 					Tick:     Tick(state.IngameTick()),
-					Position: Vector(player.Position()),
+					Position: toVector(player.Position()),
 					Victim:   PlayerID(player.SteamID64),
 					Duration: player.FlashDurationTimeRemaining(),
 				})
@@ -182,11 +182,11 @@ func (d *Demo) handleNadePlayerHurt(p demoinfocs.Parser, e events.PlayerHurt) {
 		VictimHealthDamage:      e.HealthDamageTaken,
 		VictimArmorDamage:       e.ArmorDamageTaken,
 		VictimFlashedDuration:   victim.FlashDurationTimeRemaining(),
-		Distance:                float32(Vector(victim.Position()).Distance(Vector(attacker.Position()))),
+		Distance:                float32(toVector(victim.Position()).Distance(toVector(attacker.Position()))),
 		Weapon:                  EquipmentType(e.Weapon.Type),
 		HitGroup:                HitGroup(e.HitGroup),
-		AttackerPosition:        Vector(attacker.Position()),
-		VictimPosition:          Vector(victim.Position()),
+		AttackerPosition:        toVector(attacker.Position()),
+		VictimPosition:          toVector(victim.Position()),
 	}
 
 	uniqueID2 := e.Weapon.UniqueID2()

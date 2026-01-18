@@ -15,7 +15,7 @@ func wrap[E any](p demoinfocs.Parser, fn func(demoinfocs.Parser, E)) func(E) {
 // Net messages
 
 func (d *Demo) onNetMessage(_ demoinfocs.Parser, msg *msg.CSVCMsg_ServerInfo) {
-	d.Match.Map = msg.GetMapName()
+	d.match.Map = msg.GetMapName()
 }
 
 // Events

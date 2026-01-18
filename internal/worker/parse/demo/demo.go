@@ -11,7 +11,7 @@ import (
 )
 
 type Demo struct {
-	Match   *Match
+	match   *Match
 	started bool
 
 	samplesPerSecond int
@@ -28,7 +28,7 @@ type Demo struct {
 
 func New(samplesPerSecond int) *Demo {
 	return &Demo{
-		Match: &Match{
+		match: &Match{
 			Players: []*Player{},
 			Rounds:  []*Round{},
 		},
@@ -44,7 +44,7 @@ func New(samplesPerSecond int) *Demo {
 	}
 }
 
-func (d *Demo) Parse(file []byte) error {
+func (d *Demo) Parse(file []byte) (*Match, error) {
 	if err := demoinfocs.Parse(bytes.NewReader(file), func(p demoinfocs.Parser) error {
 		// Net messages
 		p.RegisterNetMessageHandler(wrap(p, d.onNetMessage))
@@ -107,8 +107,8 @@ func (d *Demo) Parse(file []byte) error {
 
 		return nil
 	}); err != nil {
-		return fmt.Errorf("parse file %w", err)
+		return nil, fmt.Errorf("parse file %w", err)
 	}
 
-	return nil
+	return d.match, nil
 }

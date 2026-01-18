@@ -9,12 +9,12 @@ func (d *Demo) handleRoundStart(p demoinfocs.Parser, _ events.RoundStart) {
 	state := p.GameState()
 
 	r := &Round{
-		Number:      len(d.Match.Rounds) + 1,
+		Number:      len(d.match.Rounds) + 1,
 		Start:       Tick(state.IngameTick()),
 		PlayerStats: map[PlayerID]*Stat{},
 	}
 
-	d.Match.Rounds = append(d.Match.Rounds, r)
+	d.match.Rounds = append(d.match.Rounds, r)
 }
 
 func (d *Demo) handleRoundFreezeEnd(p demoinfocs.Parser, _ events.RoundFreezetimeEnd) {
