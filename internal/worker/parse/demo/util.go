@@ -70,6 +70,14 @@ func (r *Round) getHostage(id int) *Hostage {
 
 // Vector
 
+func toVector(v r3.Vector) Vector {
+	return Vector{
+		X: float32(v.X),
+		Y: float32(v.Y),
+		Z: float32(v.Z),
+	}
+}
+
 func (v Vector) Distance(v2 Vector) float32 {
 	return float32(math.Sqrt(float64((v.X-v2.X)*(v.X-v2.X) + (v.Y-v2.Y)*(v.Y-v2.Y) + (v.Z-v2.Z)*(v.Z-v2.Z))))
 }
@@ -180,16 +188,6 @@ func (s *Stat) closeSpottedBy(end Tick, spotter PlayerID) {
 			spot.End = end
 			return
 		}
-	}
-}
-
-// Vector
-
-func toVector(v r3.Vector) Vector {
-	return Vector{
-		X: float32(v.X),
-		Y: float32(v.Y),
-		Z: float32(v.Z),
 	}
 }
 

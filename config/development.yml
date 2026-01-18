@@ -30,7 +30,8 @@ worker:
   parser:
     interval_s:
     concurrent:
-    samples_per_second:
+    positions_per_second:
+    positions_min_distance:
 
   finalizer:
     interval_s:
