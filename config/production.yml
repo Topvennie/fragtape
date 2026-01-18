@@ -26,12 +26,14 @@ server:
     password: miniominio
 
 worker:
-  interval_s:
-    parser: 60
-    finalizer: 60
-  concurrent:
-    parser: 8
-    finalizer: 8
+  parser:
+    interval_s: 60
+    concurrent: 8
+    samples_per_second: 4
+
+  finalizer:
+    interval_s: 60
+    concurrent: 8
 
   db:
     host: db

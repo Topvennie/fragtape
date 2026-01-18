@@ -147,3 +147,31 @@ func SliceSanitize[T comparable](slice []T) []T {
 
 	return sanitized
 }
+
+// SliceLast returns the last item of a slice
+// or the zero value if the slice is empty
+func SliceLast[T any](slice []T) T {
+	var zero T
+	if len(slice) == 0 {
+		return zero
+	}
+
+	return slice[len(slice)-1]
+}
+
+// SliceRemove removes the item at a given index
+// It does not keep order
+func SliceRemove[T any](slice []T, idx int) []T {
+	if len(slice) == 0 {
+		return slice
+	}
+
+	if idx >= len(slice) {
+		return slice
+	}
+
+	slice[idx] = SliceLast(slice)
+	slice = slice[:len(slice)-1]
+
+	return slice
+}

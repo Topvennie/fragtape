@@ -8,8 +8,7 @@ import (
 	"github.com/topvennie/fragtape/pkg/storage"
 )
 
-// TODO: Take users into account
-func (p *Parser) getHighlights(demo model.Demo) ([]model.Highlight, error) {
+func (p *Parser) parse(demo model.Demo) ([]model.Highlight, error) {
 	if demo.FileID == "" {
 		return nil, errors.New("demo file deleted")
 	}
