@@ -29,7 +29,8 @@ worker:
   parser:
     interval_s: 60
     concurrent: 8
-    samples_per_second: 4
+    positions_per_second: 4
+    positions_min_distance: 10
 
   finalizer:
     interval_s: 60

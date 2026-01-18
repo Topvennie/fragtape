@@ -14,7 +14,7 @@ type Demo struct {
 	match   *Match
 	started bool
 
-	samplesPerSecond int
+	positionsPerSecond int
 
 	// Caches for parsing
 	weaponOwner      map[ulid.ULID]PlayerID
@@ -26,21 +26,22 @@ type Demo struct {
 	playerMvps       map[PlayerID]int
 }
 
-func New(samplesPerSecond int) *Demo {
+func New(positionsPerSecond, positionsMinDistance int) *Demo {
 	return &Demo{
 		match: &Match{
-			Players: []*Player{},
-			Rounds:  []*Round{},
+			Players:             []*Player{},
+			Rounds:              []*Round{},
+			PositionMinDistance: float32(positionsMinDistance),
 		},
-		started:          false,
-		samplesPerSecond: samplesPerSecond,
-		weaponOwner:      map[ulid.ULID]PlayerID{},
-		droppedWeapons:   map[ulid.ULID]PlayerID{},
-		playerSpots:      map[PlayerID]map[PlayerID]bool{},
-		playerDeathTick:  map[PlayerID]Tick{},
-		playerButtonMask: map[PlayerID]common.ButtonBitMask{},
-		playerScoped:     map[PlayerID]bool{},
-		playerMvps:       map[PlayerID]int{},
+		started:            false,
+		positionsPerSecond: positionsPerSecond,
+		weaponOwner:        map[ulid.ULID]PlayerID{},
+		droppedWeapons:     map[ulid.ULID]PlayerID{},
+		playerSpots:        map[PlayerID]map[PlayerID]bool{},
+		playerDeathTick:    map[PlayerID]Tick{},
+		playerButtonMask:   map[PlayerID]common.ButtonBitMask{},
+		playerScoped:       map[PlayerID]bool{},
+		playerMvps:         map[PlayerID]int{},
 	}
 }
 

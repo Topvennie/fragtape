@@ -86,15 +86,30 @@ func (d *Demo) handleStatFrameDone(p demoinfocs.Parser, _ events.FrameDone) {
 		// Positions
 
 		if d.match.PositionTickInterval != 0 {
-			lastPos := stat.getLastPosition()
-			ticksBetween := Tick(state.IngameTick()) - lastPos.Tick
 
-			// Only add a position once every configured interval
-			if ticksBetween >= d.match.PositionTickInterval {
+			currentPos := toVector(player.Position())
+
+			if len(stat.Positions) == 0 {
 				stat.Positions = append(stat.Positions, Position{
 					Tick:   Tick(state.IngameTick()),
-					Vector: toVector(player.Position()),
+					Vector: currentPos,
 				})
+			} else {
+				lastPos := stat.getLastPosition()
+				ticksBetween := Tick(state.IngameTick()) - lastPos.Tick
+
+				// Has enough time passed
+				if ticksBetween >= d.match.PositionTickInterval {
+					dist := lastPos.Distance(currentPos)
+
+					// Did the player move enough
+					if dist >= d.match.PositionMinDistance {
+						stat.Positions = append(stat.Positions, Position{
+							Tick:   Tick(state.IngameTick()),
+							Vector: currentPos,
+						})
+					}
+				}
 			}
 		}
 
