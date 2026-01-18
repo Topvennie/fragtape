@@ -35,7 +35,7 @@ func (d *Demo) onAnnouncementWinPanelMatch(p demoinfocs.Parser, e events.Announc
 func (d *Demo) onRoundStart(p demoinfocs.Parser, e events.RoundStart) {
 	d.handleMatchRoundStarted(p, e)
 
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -48,7 +48,7 @@ func (d *Demo) onRoundStart(p demoinfocs.Parser, e events.RoundStart) {
 }
 
 func (d *Demo) onRoundFreezeEnd(p demoinfocs.Parser, e events.RoundFreezetimeEnd) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -56,7 +56,7 @@ func (d *Demo) onRoundFreezeEnd(p demoinfocs.Parser, e events.RoundFreezetimeEnd
 }
 
 func (d *Demo) onRoundEnd(p demoinfocs.Parser, e events.RoundEnd) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -65,7 +65,7 @@ func (d *Demo) onRoundEnd(p demoinfocs.Parser, e events.RoundEnd) {
 }
 
 func (d *Demo) onRoundEndOfficial(p demoinfocs.Parser, e events.RoundEndOfficial) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -101,7 +101,7 @@ func (d *Demo) onPlayerRankUpdate(p demoinfocs.Parser, e events.RankUpdate) {
 }
 
 func (d *Demo) onPlayerHurt(p demoinfocs.Parser, e events.PlayerHurt) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -110,7 +110,7 @@ func (d *Demo) onPlayerHurt(p demoinfocs.Parser, e events.PlayerHurt) {
 }
 
 func (d *Demo) onPlayerSpottersChanged(p demoinfocs.Parser, e events.PlayerSpottersChanged) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -118,7 +118,7 @@ func (d *Demo) onPlayerSpottersChanged(p demoinfocs.Parser, e events.PlayerSpott
 }
 
 func (d *Demo) onPlayerButtonsStateUpdate(p demoinfocs.Parser, e events.PlayerButtonsStateUpdate) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -130,7 +130,7 @@ func (d *Demo) onPlayerButtonsStateUpdate(p demoinfocs.Parser, e events.PlayerBu
 //
 
 func (d *Demo) onBombDefuseStart(p demoinfocs.Parser, e events.BombDefuseStart) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -138,7 +138,7 @@ func (d *Demo) onBombDefuseStart(p demoinfocs.Parser, e events.BombDefuseStart) 
 }
 
 func (d *Demo) onBombDefuseAborted(p demoinfocs.Parser, e events.BombDefuseAborted) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -146,7 +146,7 @@ func (d *Demo) onBombDefuseAborted(p demoinfocs.Parser, e events.BombDefuseAbort
 }
 
 func (d *Demo) onBombDefused(p demoinfocs.Parser, e events.BombDefused) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -154,7 +154,7 @@ func (d *Demo) onBombDefused(p demoinfocs.Parser, e events.BombDefused) {
 }
 
 func (d *Demo) onBombPlantBegin(p demoinfocs.Parser, e events.BombPlantBegin) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -162,7 +162,7 @@ func (d *Demo) onBombPlantBegin(p demoinfocs.Parser, e events.BombPlantBegin) {
 }
 
 func (d *Demo) onBombPlantAborted(p demoinfocs.Parser, e events.BombPlantAborted) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -170,7 +170,7 @@ func (d *Demo) onBombPlantAborted(p demoinfocs.Parser, e events.BombPlantAborted
 }
 
 func (d *Demo) onBombPlanted(p demoinfocs.Parser, e events.BombPlanted) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -178,7 +178,7 @@ func (d *Demo) onBombPlanted(p demoinfocs.Parser, e events.BombPlanted) {
 }
 
 func (d *Demo) onBombDrop(p demoinfocs.Parser, e events.BombDropped) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -186,7 +186,7 @@ func (d *Demo) onBombDrop(p demoinfocs.Parser, e events.BombDropped) {
 }
 
 func (d *Demo) onBombPickup(p demoinfocs.Parser, e events.BombPickup) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -198,7 +198,7 @@ func (d *Demo) onBombPickup(p demoinfocs.Parser, e events.BombPickup) {
 //
 
 func (d *Demo) onHostageStateChanged(p demoinfocs.Parser, e events.HostageStateChanged) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -210,7 +210,7 @@ func (d *Demo) onHostageStateChanged(p demoinfocs.Parser, e events.HostageStateC
 //
 
 func (d *Demo) onGrenadeProjectileThrow(p demoinfocs.Parser, e events.GrenadeProjectileThrow) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -218,7 +218,7 @@ func (d *Demo) onGrenadeProjectileThrow(p demoinfocs.Parser, e events.GrenadePro
 }
 
 func (d *Demo) onGrenadeProjectileBounce(p demoinfocs.Parser, e events.GrenadeProjectileBounce) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -226,7 +226,7 @@ func (d *Demo) onGrenadeProjectileBounce(p demoinfocs.Parser, e events.GrenadePr
 }
 
 func (d *Demo) onGrenadeProjectileDestroy(p demoinfocs.Parser, e events.GrenadeProjectileDestroy) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -234,7 +234,7 @@ func (d *Demo) onGrenadeProjectileDestroy(p demoinfocs.Parser, e events.GrenadeP
 }
 
 func (d *Demo) onPlayerFlashed(p demoinfocs.Parser, e events.PlayerFlashed) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -242,7 +242,7 @@ func (d *Demo) onPlayerFlashed(p demoinfocs.Parser, e events.PlayerFlashed) {
 }
 
 func (d *Demo) onSmokeStart(p demoinfocs.Parser, e events.SmokeStart) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -250,7 +250,7 @@ func (d *Demo) onSmokeStart(p demoinfocs.Parser, e events.SmokeStart) {
 }
 
 func (d *Demo) onInfernoStart(p demoinfocs.Parser, e events.InfernoStart) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -258,7 +258,7 @@ func (d *Demo) onInfernoStart(p demoinfocs.Parser, e events.InfernoStart) {
 }
 
 func (d *Demo) onHeExplode(p demoinfocs.Parser, e events.HeExplode) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -270,7 +270,7 @@ func (d *Demo) onHeExplode(p demoinfocs.Parser, e events.HeExplode) {
 //
 
 func (d *Demo) onItemPickup(p demoinfocs.Parser, e events.ItemPickup) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -278,7 +278,7 @@ func (d *Demo) onItemPickup(p demoinfocs.Parser, e events.ItemPickup) {
 }
 
 func (d *Demo) onItemRefund(p demoinfocs.Parser, e events.ItemRefund) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -290,7 +290,7 @@ func (d *Demo) onItemRefund(p demoinfocs.Parser, e events.ItemRefund) {
 //
 
 func (d *Demo) onWeaponFire(p demoinfocs.Parser, e events.WeaponFire) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -298,7 +298,7 @@ func (d *Demo) onWeaponFire(p demoinfocs.Parser, e events.WeaponFire) {
 }
 
 func (d *Demo) onWeaponReload(p demoinfocs.Parser, e events.WeaponReload) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -310,7 +310,7 @@ func (d *Demo) onWeaponReload(p demoinfocs.Parser, e events.WeaponReload) {
 //
 
 func (d *Demo) onFrameDone(p demoinfocs.Parser, e events.FrameDone) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -319,7 +319,7 @@ func (d *Demo) onFrameDone(p demoinfocs.Parser, e events.FrameDone) {
 }
 
 func (d *Demo) onKill(p demoinfocs.Parser, e events.Kill) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -332,7 +332,7 @@ func (d *Demo) onTickRateInfoAvailable(p demoinfocs.Parser, e events.TickRateInf
 }
 
 func (d *Demo) onChatMessage(p demoinfocs.Parser, e events.ChatMessage) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 
@@ -340,7 +340,7 @@ func (d *Demo) onChatMessage(p demoinfocs.Parser, e events.ChatMessage) {
 }
 
 func (d *Demo) onOtherDeath(p demoinfocs.Parser, e events.OtherDeath) {
-	if !d.Match.started {
+	if !d.started {
 		return
 	}
 

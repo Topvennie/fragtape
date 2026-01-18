@@ -61,7 +61,6 @@ type DamageDealt struct {
 type Match struct {
 	Map      string
 	TickRate int
-	started  bool
 
 	Players []*Player
 	Rounds  []*Round
