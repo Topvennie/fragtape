@@ -11,7 +11,8 @@ import (
 )
 
 type Demo struct {
-	Match *Match
+	Match   *Match
+	started bool
 
 	samplesPerSecond int
 
@@ -31,6 +32,7 @@ func New(samplesPerSecond int) *Demo {
 			Players: []*Player{},
 			Rounds:  []*Round{},
 		},
+		started:          false,
 		samplesPerSecond: samplesPerSecond,
 		weaponOwner:      map[ulid.ULID]PlayerID{},
 		droppedWeapons:   map[ulid.ULID]PlayerID{},

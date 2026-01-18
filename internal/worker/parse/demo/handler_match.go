@@ -7,7 +7,7 @@ import (
 )
 
 func (d *Demo) handleMatchRoundStarted(p demoinfocs.Parser, _ events.RoundStart) {
-	if d.Match.started {
+	if d.started {
 		// Already started
 		return
 	}
@@ -16,7 +16,7 @@ func (d *Demo) handleMatchRoundStarted(p demoinfocs.Parser, _ events.RoundStart)
 		return
 	}
 
-	d.Match.started = true
+	d.started = true
 }
 
 func (d *Demo) handleMatchTickRateInfoAvailable(_ demoinfocs.Parser, e events.TickRateInfoAvailable) {
