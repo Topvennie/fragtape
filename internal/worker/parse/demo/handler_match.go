@@ -1,0 +1,61 @@
+package demo
+
+import (
+	"github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs"
+	"github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs/common"
+	"github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs/events"
+)
+
+func (d *Demo) handleMatchRoundStarted(p demoinfocs.Parser, _ events.RoundStart) {
+	if d.Match.started {
+		// Already started
+		return
+	}
+
+	if !p.GameState().IsMatchStarted() {
+		return
+	}
+
+	d.Match.started = true
+}
+
+func (d *Demo) handleMatchTickRateInfoAvailable(_ demoinfocs.Parser, e events.TickRateInfoAvailable) {
+	d.Match.TickRate = int(e.TickRate)
+	d.Match.PositionTickInterval = Tick(d.Match.TickRate / d.samplesPerSecond)
+}
+
+func (d *Demo) handleMatchAnnouncementWinPanel(p demoinfocs.Parser, _ events.AnnouncementWinPanelMatch) {
+	state := p.GameState()
+
+	participants := state.Participants().All()
+
+	ctScore := state.TeamCounterTerrorists().Score()
+	tScore := state.TeamTerrorists().Score()
+
+	winner := common.TeamUnassigned
+	if ctScore > tScore {
+		winner = common.TeamCounterTerrorists
+	} else if ctScore < tScore {
+		winner = common.TeamTerrorists
+	}
+
+	if winner == common.TeamUnassigned {
+		// Tie
+		return
+	}
+
+	trueTmp := true
+	falseTmp := false
+
+	for _, player := range participants {
+		player := getPlayer(player)
+
+		if idx := d.playerIndex(PlayerID(player.SteamID64)); idx != -1 {
+			if player.Team == winner {
+				d.Match.Players[idx].Won = &trueTmp
+			} else {
+				d.Match.Players[idx].Won = &falseTmp
+			}
+		}
+	}
+}

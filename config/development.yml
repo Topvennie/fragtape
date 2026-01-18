@@ -27,12 +27,14 @@ server:
     password:
 
 worker:
-  interval_s:
-    parser:
-    finalizer:
-  concurrent:
-    parser:
-    finalizer:
+  parser:
+    interval_s:
+    concurrent:
+    samples_per_second:
+
+  finalizer:
+    interval_s:
+    concurrent:
 
   db:
     host:

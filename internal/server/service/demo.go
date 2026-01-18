@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -38,20 +39,13 @@ func (d *Demo) GetAll(ctx context.Context, userID int) ([]dto.Demo, error) {
 
 func (d *Demo) Upload(ctx context.Context, userID int, file []byte) error {
 	demo := &model.Demo{
-		Source: model.DemoSourceManual,
-		FileID: uuid.NewString(),
+		Source:   model.DemoSourceManual,
+		SourceID: strconv.Itoa(userID),
+		FileID:   uuid.NewString(),
 	}
 
 	return d.service.withRollback(ctx, func(c context.Context) error {
 		if err := d.demo.Create(ctx, demo); err != nil {
-			zap.S().Error(err)
-			return fiber.ErrInternalServerError
-		}
-
-		if err := d.demo.CreateUser(ctx, &model.DemoUser{
-			DemoID: demo.ID,
-			UserID: userID,
-		}); err != nil {
 			zap.S().Error(err)
 			return fiber.ErrInternalServerError
 		}
