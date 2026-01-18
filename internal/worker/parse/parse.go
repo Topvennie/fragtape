@@ -28,8 +28,8 @@ func New(repo repository.Repository) *Parser {
 		demo:       *repo.NewDemo(),
 		highlight:  *repo.NewHighlight(),
 		repo:       repo,
-		interval:   config.GetDefaultDurationS("worker.interval_s.parser", 60),
-		concurrent: config.GetDefaultInt("worker.concurrent.parser", 8),
+		interval:   config.GetDefaultDurationS("worker.parser.interval_s", 60),
+		concurrent: config.GetDefaultInt("worker.parser.concurrent", 8),
 	}
 }
 
@@ -84,7 +84,7 @@ func (p *Parser) loop(ctx context.Context) error {
 			// Get highlights
 			d := demo
 			wg.Go(func() {
-				highlights, err := p.getHighlights(*d)
+				highlights, err := p.parse(*d)
 
 				result := loopResult{
 					highlights: highlights,
