@@ -4,6 +4,7 @@ import (
 	"math"
 	"slices"
 
+	"github.com/golang/geo/r3"
 	"github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs/common"
 	"github.com/oklog/ulid/v2"
 	"github.com/topvennie/fragtape/pkg/utils"
@@ -12,7 +13,7 @@ import (
 // Generic
 
 func closest[T any](center Vector, items []T, fn func(t T) Vector) T {
-	var minDist float64 = -1
+	var minDist float32 = -1
 	var minItem T
 
 	for _, item := range items {
@@ -29,11 +30,11 @@ func closest[T any](center Vector, items []T, fn func(t T) Vector) T {
 // Demo
 
 func (d *Demo) playerIndex(id PlayerID) int {
-	return slices.IndexFunc(d.Match.Players, func(p *Player) bool { return p.SteamID == id })
+	return slices.IndexFunc(d.match.Players, func(p *Player) bool { return p.SteamID == id })
 }
 
 func (d *Demo) getLastRound() *Round {
-	return utils.SliceLast(d.Match.Rounds)
+	return utils.SliceLast(d.match.Rounds)
 }
 
 func (d *Demo) getPlayerSpots(id PlayerID) map[PlayerID]bool {
@@ -69,8 +70,8 @@ func (r *Round) getHostage(id int) *Hostage {
 
 // Vector
 
-func (v Vector) Distance(v2 Vector) float64 {
-	return math.Sqrt((v.X-v2.X)*(v.X-v2.X) + (v.Y-v2.Y)*(v.Y-v2.Y) + (v.Z-v2.Z)*(v.Z-v2.Z))
+func (v Vector) Distance(v2 Vector) float32 {
+	return float32(math.Sqrt(float64((v.X-v2.X)*(v.X-v2.X) + (v.Y-v2.Y)*(v.Y-v2.Y) + (v.Z-v2.Z)*(v.Z-v2.Z))))
 }
 
 func (v Vector) IsZero() bool {
@@ -182,13 +183,23 @@ func (s *Stat) closeSpottedBy(end Tick, spotter PlayerID) {
 	}
 }
 
+// Vector
+
+func toVector(v r3.Vector) Vector {
+	return Vector{
+		X: float32(v.X),
+		Y: float32(v.Y),
+		Z: float32(v.Z),
+	}
+}
+
 // TrajectoryEntry
 
 func toTrajectoryEntrySlice(entries []common.TrajectoryEntry) []TrajectoryEntry {
 	return utils.SliceMap(entries, func(e common.TrajectoryEntry) TrajectoryEntry {
 		return TrajectoryEntry{
 			Tick:     Tick(e.Tick),
-			Position: Vector(e.Position),
+			Position: toVector(e.Position),
 		}
 	})
 }

@@ -60,7 +60,7 @@ func (d *Demo) handleBombPlantBegin(p demoinfocs.Parser, e events.BombPlantBegin
 	r.Bomb.Plants = append(r.Bomb.Plants, &BombPlant{
 		Planter:  PlayerID(player.SteamID64),
 		Start:    Tick(state.IngameTick()),
-		Position: Vector(player.Position()),
+		Position: toVector(player.Position()),
 		Site:     Bombsite(e.Site),
 	})
 }
@@ -89,7 +89,7 @@ func (d *Demo) handleBombDrop(p demoinfocs.Parser, e events.BombDropped) {
 	r.Bomb.Drops = append(r.Bomb.Drops, &BombDrop{
 		DropTick: Tick(state.IngameTick()),
 		Dropper:  PlayerID(e.Player.SteamID64),
-		Position: Vector(e.Player.Position()),
+		Position: toVector(e.Player.Position()),
 	})
 }
 

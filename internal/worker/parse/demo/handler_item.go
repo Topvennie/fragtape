@@ -39,7 +39,7 @@ func (d *Demo) handleItemPickup(p demoinfocs.Parser, e events.ItemPickup) {
 		if stat, ok := r.PlayerStats[PlayerID(e.Player.SteamID64)]; ok {
 			stat.Pickups = append(stat.Pickups, &ItemPickup{
 				Item:     item,
-				Position: Vector(e.Player.Position()),
+				Position: toVector(e.Player.Position()),
 				From:     prevOwner,
 			})
 		}
@@ -98,7 +98,7 @@ func (d *Demo) handleItemFrameDone(p demoinfocs.Parser, _ events.FrameDone) {
 
 		for _, p := range players {
 			if PlayerID(p.SteamID64) == prevOwner {
-				playerPos = Vector(p.Position())
+				playerPos = toVector(p.Position())
 				break
 			}
 		}

@@ -85,15 +85,17 @@ func (d *Demo) handleStatFrameDone(p demoinfocs.Parser, _ events.FrameDone) {
 
 		// Positions
 
-		lastPos := stat.getLastPosition()
-		ticksBetween := Tick(state.IngameTick()) - lastPos.Tick
+		if d.match.PositionTickInterval != 0 {
+			lastPos := stat.getLastPosition()
+			ticksBetween := Tick(state.IngameTick()) - lastPos.Tick
 
-		// Only add a position once every configured interval
-		if ticksBetween >= d.Match.PositionTickInterval {
-			stat.Positions = append(stat.Positions, Position{
-				Tick:   Tick(state.IngameTick()),
-				Vector: Vector(player.Position()),
-			})
+			// Only add a position once every configured interval
+			if ticksBetween >= d.match.PositionTickInterval {
+				stat.Positions = append(stat.Positions, Position{
+					Tick:   Tick(state.IngameTick()),
+					Vector: toVector(player.Position()),
+				})
+			}
 		}
 
 		// Zooms
@@ -128,8 +130,8 @@ func (d *Demo) handleStatKill(p demoinfocs.Parser, e events.Kill) {
 			Distance:       e.Distance,
 			Weapon:         EquipmentType(e.Weapon.Type),
 			Victim:         PlayerID(victim.SteamID64),
-			KillerPosition: Vector(killer.Position()),
-			VictimPosition: Vector(victim.Position()),
+			KillerPosition: toVector(killer.Position()),
+			VictimPosition: toVector(victim.Position()),
 		})
 	}
 
@@ -149,8 +151,8 @@ func (d *Demo) handleStatKill(p demoinfocs.Parser, e events.Kill) {
 			Tick:           Tick(state.IngameTick()),
 			Weapon:         EquipmentType(e.Weapon.Type),
 			Killer:         PlayerID(killer.SteamID64),
-			KillerPosition: Vector(killer.Position()),
-			VictimPosition: Vector(victim.Position()),
+			KillerPosition: toVector(killer.Position()),
+			VictimPosition: toVector(victim.Position()),
 		}
 	}
 }
@@ -178,11 +180,11 @@ func (d *Demo) handleStatPlayerHurt(p demoinfocs.Parser, e events.PlayerHurt) {
 		VictimHealthDamage:      e.HealthDamageTaken,
 		VictimArmorDamage:       e.ArmorDamageTaken,
 		VictimFlashedDuration:   victim.FlashDurationTimeRemaining(),
-		Distance:                float32(Vector(e.Player.Position()).Distance(Vector(e.Attacker.Position()))),
+		Distance:                float32(toVector(e.Player.Position()).Distance(toVector(e.Attacker.Position()))),
 		Weapon:                  EquipmentType(e.Weapon.Type),
 		HitGroup:                HitGroup(e.HitGroup),
-		AttackerPosition:        Vector(attacker.Position()),
-		VictimPosition:          Vector(victim.Position()),
+		AttackerPosition:        toVector(attacker.Position()),
+		VictimPosition:          toVector(victim.Position()),
 	}
 
 	if statAttacker, ok := r.PlayerStats[PlayerID(attacker.SteamID64)]; ok {
@@ -255,7 +257,7 @@ func (d *Demo) handleStatWeaponReload(p demoinfocs.Parser, e events.WeaponReload
 	if stat, ok := r.PlayerStats[PlayerID(player.SteamID64)]; ok {
 		stat.Reloads = append(stat.Reloads, Reload{
 			Tick:             Tick(state.IngameTick()),
-			Position:         Vector(e.Player.Position()),
+			Position:         toVector(e.Player.Position()),
 			Weapon:           EquipmentType(player.ActiveWeapon().Type),
 			BulletsRemaining: player.ActiveWeapon().AmmoInMagazine(),
 		})
@@ -275,7 +277,7 @@ func (d *Demo) handleStatWeaponFire(p demoinfocs.Parser, e events.WeaponFire) {
 	if stat, ok := r.PlayerStats[PlayerID(player.SteamID64)]; ok {
 		stat.Shots = append(stat.Shots, Shot{
 			Tick:     Tick(state.IngameTick()),
-			Position: Vector(player.Position()),
+			Position: toVector(player.Position()),
 			Weapon:   EquipmentType(e.Weapon.Type),
 		})
 	}
@@ -304,6 +306,8 @@ func (d *Demo) handleStatOtherDeath(p demoinfocs.Parser, e events.OtherDeath) {
 	r := d.getLastRound()
 
 	attacker := getPlayer(e.Killer)
+	attackerPos := toVector(attacker.Position())
+	otherPos := toVector(e.OtherPosition)
 
 	if stat, ok := r.PlayerStats[PlayerID(attacker.SteamID64)]; ok {
 		stat.Chickens = append(stat.Chickens, Chicken{
@@ -317,11 +321,11 @@ func (d *Demo) handleStatOtherDeath(p demoinfocs.Parser, e events.OtherDeath) {
 				VictimHealthDamage:      1,
 				VictimArmorDamage:       0,
 				VictimFlashedDuration:   0,
-				Distance:                float32(Vector(e.OtherPosition).Distance(Vector(attacker.Position()))),
+				Distance:                float32(otherPos.Distance(attackerPos)),
 				Weapon:                  EquipmentType(e.Weapon.Type),
 				HitGroup:                0,
-				AttackerPosition:        Vector(attacker.Position()),
-				VictimPosition:          Vector(e.OtherPosition),
+				AttackerPosition:        attackerPos,
+				VictimPosition:          otherPos,
 			},
 		})
 	}

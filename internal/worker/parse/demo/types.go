@@ -15,9 +15,9 @@ type PlayerID uint64
 type Tick int
 
 type Vector struct {
-	X float64
-	Y float64
-	Z float64
+	X float32
+	Y float32
+	Z float32
 }
 
 type Damage struct {
@@ -65,7 +65,7 @@ type Match struct {
 	Players []*Player
 	Rounds  []*Round
 
-	PositionTickInterval Tick
+	PositionTickInterval Tick // Amount of ticks between position updates. If set to 0 then no positions have been saved
 }
 
 //

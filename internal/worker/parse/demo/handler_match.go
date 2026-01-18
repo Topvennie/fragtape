@@ -20,8 +20,10 @@ func (d *Demo) handleMatchRoundStarted(p demoinfocs.Parser, _ events.RoundStart)
 }
 
 func (d *Demo) handleMatchTickRateInfoAvailable(_ demoinfocs.Parser, e events.TickRateInfoAvailable) {
-	d.Match.TickRate = int(e.TickRate)
-	d.Match.PositionTickInterval = Tick(d.Match.TickRate / d.samplesPerSecond)
+	d.match.TickRate = int(e.TickRate)
+	if d.samplesPerSecond > 0 {
+		d.match.PositionTickInterval = Tick(d.match.TickRate / d.samplesPerSecond)
+	}
 }
 
 func (d *Demo) handleMatchAnnouncementWinPanel(p demoinfocs.Parser, _ events.AnnouncementWinPanelMatch) {
@@ -52,9 +54,9 @@ func (d *Demo) handleMatchAnnouncementWinPanel(p demoinfocs.Parser, _ events.Ann
 
 		if idx := d.playerIndex(PlayerID(player.SteamID64)); idx != -1 {
 			if player.Team == winner {
-				d.Match.Players[idx].Won = &trueTmp
+				d.match.Players[idx].Won = &trueTmp
 			} else {
-				d.Match.Players[idx].Won = &falseTmp
+				d.match.Players[idx].Won = &falseTmp
 			}
 		}
 	}

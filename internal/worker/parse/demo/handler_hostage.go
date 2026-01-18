@@ -17,7 +17,7 @@ func (d *Demo) handleHostageRoundStart(p demoinfocs.Parser, _ events.RoundStart)
 		for _, h := range hostages {
 			r.Hostages = append(r.Hostages, &Hostage{
 				EntityID:      h.Entity.ID(),
-				SpawnPosition: Vector(h.Entity.Position()),
+				SpawnPosition: toVector(h.Entity.Position()),
 				Carries:       []*HostageCarry{},
 			})
 		}
@@ -35,26 +35,26 @@ func (d *Demo) handleHostageStateChanged(p demoinfocs.Parser, e events.HostageSt
 
 	// Find who is interacting with the hostage
 	// Is probably the CT the closest to the hostage
-	ct := closest(Vector(e.Hostage.Position()), state.TeamCounterTerrorists().Members(), func(p *common.Player) Vector { return Vector(p.Position()) })
+	ct := closest(toVector(e.Hostage.Position()), state.TeamCounterTerrorists().Members(), func(p *common.Player) Vector { return toVector(p.Position()) })
 
 	switch e.NewState {
 	case common.HostageStateBeingCarried:
 		// Player picked hostage up
 		h.Carries = append(h.Carries, &HostageCarry{
 			Start:         Tick(state.IngameTick()),
-			StartPosition: Vector(e.Hostage.Position()),
+			StartPosition: toVector(e.Hostage.Position()),
 			Carryer:       PlayerID(ct.SteamID64),
 		})
 	case common.HostageStateGettingDropped:
 		// Player dropped hostage
 		carry := utils.SliceLast(h.Carries)
 		carry.End = Tick(state.IngameTick())
-		carry.EndPosition = Vector(e.Hostage.Position())
+		carry.EndPosition = toVector(e.Hostage.Position())
 	case common.HostageStateRescued:
 		// Player rescued hostage
 		h.Rescue = &HostageRescue{
 			Tick:     Tick(state.IngameTick()),
-			Position: Vector(e.Hostage.Position()),
+			Position: toVector(e.Hostage.Position()),
 			Rescuer:  PlayerID(ct.SteamID64),
 		}
 	}
