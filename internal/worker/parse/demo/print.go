@@ -3,7 +3,6 @@ package demo
 import (
 	"fmt"
 	"maps"
-	"reflect"
 	"slices"
 	"time"
 )
@@ -85,8 +84,6 @@ func (m Match) printRounds(playerMap map[PlayerID]Player, rounds []int) {
 		m.printChat(playerMap, r)
 		fmt.Println()
 	}
-
-	m.printSize()
 }
 
 func (m Match) printBomb(playerMap map[PlayerID]Player, r *Round) {
@@ -427,16 +424,6 @@ func (m Match) printChat(playerMap map[PlayerID]Player, r *Round) {
 
 		fmt.Printf("\t\t[%s] %s: %s\n", m.formatRelative(r.Start, v.tick), v.author.Name, v.text)
 	}
-}
-
-func (m Match) printSize() {
-	bytes := getDeepSize(reflect.ValueOf(m))
-	mbDeep := float64(bytes) / (1024 * 1024)
-
-	bytes = getJSONSize(m)
-	mbJSON := float64(bytes) / (1024 * 1024)
-
-	fmt.Printf("Size: Deep %.2f MB | JSON %.2f MB\n", mbDeep, mbJSON)
 }
 
 // String representations of some types
