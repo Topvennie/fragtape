@@ -16,6 +16,9 @@ func (d *Demo) handleSpotPlayerSpottersChanged(p demoinfocs.Parser, _ events.Pla
 
 	for _, t := range ts {
 		for _, ct := range cts {
+			t = getPlayer(t)
+			ct = getPlayer(ct)
+
 			d.processSpot(tick, r, t, ct)
 			d.processSpot(tick, r, ct, t)
 		}
@@ -23,14 +26,10 @@ func (d *Demo) handleSpotPlayerSpottersChanged(p demoinfocs.Parser, _ events.Pla
 }
 
 func (d *Demo) processSpot(tick Tick, r *Round, spotter, spotted *common.Player) {
-	if spotter == nil {
-		return
-	}
-
 	spotterID := PlayerID(spotter.SteamID64)
 	spottedID := PlayerID(spotted.SteamID64)
 
-	if spotterID == 0 {
+	if spotterID == 0 || spottedID == 0 {
 		return
 	}
 

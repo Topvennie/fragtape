@@ -33,8 +33,8 @@ func (d *Demo) Get(ctx context.Context, demoID int) (*model.Demo, error) {
 	return model.DemoModel(demo), nil
 }
 
-func (d *Demo) GetByUser(ctx context.Context, userID int) ([]*model.Demo, error) {
-	demos, err := d.repo.queries(ctx).DemoGetByUser(ctx, int32(userID))
+func (d *Demo) GetByUserPopulated(ctx context.Context, userID int) ([]*model.Demo, error) {
+	demos, err := d.repo.queries(ctx).DemoGetByUserPopulated(ctx, int32(userID))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -42,7 +42,12 @@ func (d *Demo) GetByUser(ctx context.Context, userID int) ([]*model.Demo, error)
 		return nil, fmt.Errorf("get demos by user %d | %w", userID, err)
 	}
 
-	return utils.SliceMap(demos, model.DemoModel), nil
+	return utils.SliceMap(demos, func(d sqlc.DemoGetByUserPopulatedRow) *model.Demo {
+		demo := model.DemoModel(d.Demo)
+		demo.Stat = *model.StatsDemoModel(d.StatsDemo)
+
+		return demo
+	}), nil
 }
 
 func (d *Demo) GetByStatus(ctx context.Context, status model.DemoStatus) ([]*model.Demo, error) {
@@ -117,17 +122,6 @@ func (d *Demo) UpdateData(ctx context.Context, demo model.Demo) error {
 		DataID: toString(demo.DataID),
 	}); err != nil {
 		return fmt.Errorf("update demo data %+v | %w", demo, err)
-	}
-
-	return nil
-}
-
-func (d *Demo) UpdateMap(ctx context.Context, demo model.Demo) error {
-	if err := d.repo.queries(ctx).DemoUpdateMap(ctx, sqlc.DemoUpdateMapParams{
-		ID:  int32(demo.ID),
-		Map: toString(demo.Map),
-	}); err != nil {
-		return fmt.Errorf("update demo map %+v | %w", demo, err)
 	}
 
 	return nil

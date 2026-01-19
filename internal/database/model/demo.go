@@ -34,11 +34,13 @@ type Demo struct {
 	Status          DemoStatus
 	FileID          string
 	DataID          string
-	Map             string
 	Attempts        int
 	Error           string
 	StatusUpdatedAt time.Time
 	CreatedAt       time.Time
+
+	// Non db fields
+	Stat StatsDemo
 }
 
 func DemoModel(d sqlc.Demo) *Demo {
@@ -49,7 +51,6 @@ func DemoModel(d sqlc.Demo) *Demo {
 		Status:          DemoStatus(d.Status),
 		FileID:          fromString(d.FileID),
 		DataID:          fromString(d.DataID),
-		Map:             fromString(d.Map),
 		Attempts:        int(d.Attempts),
 		Error:           fromString(d.Error),
 		StatusUpdatedAt: d.StatusUpdatedAt.Time,

@@ -10,8 +10,8 @@ type Demo struct {
 	ID              int              `json:"id"`
 	Source          model.DemoSource `json:"source"`
 	Status          model.DemoStatus `json:"status"`
-	Map             string           `json:"map"`
 	Players         []DemoPlayer     `json:"players"`
+	Stats           StatsDemo        `json:"stats"`
 	CreatedAt       time.Time        `json:"created_at"`
 	StatusUpdatedAt time.Time        `json:"status_updated_at"`
 }
@@ -20,7 +20,6 @@ func DemoDTO(d *model.Demo) Demo {
 	return Demo{
 		ID:              d.ID,
 		Source:          d.Source,
-		Map:             d.Map,
 		Players:         []DemoPlayer{},
 		Status:          d.Status,
 		CreatedAt:       d.CreatedAt,

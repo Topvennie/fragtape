@@ -3,10 +3,11 @@ SELECT *
 FROM demos
 WHERE id = $1;
 
--- name: DemoGetByUser :many
-SELECT d.*
+-- name: DemoGetByUserPopulated :many
+SELECT sqlc.embed(d), sqlc.embed(sd)
 FROM demos d
 LEFT JOIN stats s ON s.demo_id = d.id
+LEFT JOIN stats_demos sd ON sd.demo_id = d.id
 WHERE s.user_id = $1
 ORDER BY d.created_at DESC;
 
@@ -49,11 +50,6 @@ WHERE id = $1;
 -- name: DemoUpdateFile :exec
 UPDATE demos
 SET file_id = $2
-WHERE id = $1;
-
--- name: DemoUpdateMap :exec
-UPDATE demos
-SET map = $2
 WHERE id = $1;
 
 -- name: DemoUpdateData :exec

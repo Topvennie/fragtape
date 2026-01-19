@@ -34,6 +34,9 @@ func (d *Demo) handleMatchAnnouncementWinPanel(p demoinfocs.Parser, _ events.Ann
 	ctScore := state.TeamCounterTerrorists().Score()
 	tScore := state.TeamTerrorists().Score()
 
+	d.match.RoundsCT = ctScore
+	d.match.RoundsT = tScore
+
 	winner := common.TeamUnassigned
 	if ctScore > tScore {
 		winner = common.TeamCounterTerrorists

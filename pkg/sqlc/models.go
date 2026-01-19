@@ -102,13 +102,97 @@ func (ns NullDemoStatus) Value() (driver.Value, error) {
 	return string(ns.DemoStatus), nil
 }
 
+type Result string
+
+const (
+	ResultWin  Result = "win"
+	ResultLoss Result = "loss"
+	ResultTie  Result = "tie"
+)
+
+func (e *Result) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Result(s)
+	case string:
+		*e = Result(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Result: %T", src)
+	}
+	return nil
+}
+
+type NullResult struct {
+	Result Result
+	Valid  bool // Valid is true if Result is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullResult) Scan(value interface{}) error {
+	if value == nil {
+		ns.Result, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Result.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullResult) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Result), nil
+}
+
+type Team string
+
+const (
+	TeamCt Team = "ct"
+	TeamT  Team = "t"
+)
+
+func (e *Team) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Team(s)
+	case string:
+		*e = Team(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Team: %T", src)
+	}
+	return nil
+}
+
+type NullTeam struct {
+	Team  Team
+	Valid bool // Valid is true if Team is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullTeam) Scan(value interface{}) error {
+	if value == nil {
+		ns.Team, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Team.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullTeam) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Team), nil
+}
+
 type Demo struct {
 	ID              int32
 	Source          DemoSource
 	SourceID        pgtype.Text
 	FileID          pgtype.Text
 	DataID          pgtype.Text
-	Map             pgtype.Text
 	Status          DemoStatus
 	Attempts        int32
 	Error           pgtype.Text
@@ -134,12 +218,22 @@ type HighlightSegment struct {
 }
 
 type Stat struct {
-	ID      int32
-	DemoID  int32
-	UserID  int32
-	Kills   int32
-	Assists int32
-	Deaths  int32
+	ID        int32
+	DemoID    int32
+	UserID    int32
+	Result    Result
+	StartTeam Team
+	Kills     int32
+	Assists   int32
+	Deaths    int32
+}
+
+type StatsDemo struct {
+	ID       int32
+	DemoID   int32
+	Map      string
+	RoundsCt int32
+	RoundsT  int32
 }
 
 type User struct {
