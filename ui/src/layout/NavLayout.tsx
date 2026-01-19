@@ -54,7 +54,7 @@ export const NavLayout = ({ children }: Props) => {
       header={{ height: 60 }}
       footer={{ height: 60 }}
       navbar={{ width: 300, breakpoint: "lg", collapsed: { desktop: true, mobile: !opened } }}
-      className="max-h-screen overflow-hidden"
+      className="max-h-screen overflow-auto"
     >
       <AppShell.Header px="md" withBorder={false} bg="background.9">
         <Group h="100%" justify="space-between">

@@ -10,7 +10,7 @@ export const useDemoGetAll = () => {
     queryKey: ["demo"],
     queryFn: async () => (await apiGet(ENDPOINT, convertDemos)).data,
     retry: 0,
-    staleTime: STALE_TIME.MIN_30,
+    staleTime: STALE_TIME.MIN_5,
     throwOnError: true,
   })
 }
