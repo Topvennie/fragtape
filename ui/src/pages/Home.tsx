@@ -1,4 +1,3 @@
-import { Card } from "@/components/atoms/Card"
 import { Title } from "@/components/atoms/Title"
 import { Demo } from "@/components/demo/Demo"
 import { useDemoGetAll, useDemoUpload } from "@/lib/api/demo"
@@ -47,9 +46,7 @@ export const Home = () => {
           {props => <Button loading={uploading} {...props}>Upload</Button>}
         </FileButton>
       </Group>
-      <Card>
-        {content}
-      </Card>
+      {content}
     </Stack>
   )
 }
