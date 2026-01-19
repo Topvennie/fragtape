@@ -33,21 +33,6 @@ func (d *Demo) Get(ctx context.Context, demoID int) (*model.Demo, error) {
 	return model.DemoModel(demo), nil
 }
 
-func (d *Demo) GetUserByDemoUser(ctx context.Context, demoID, userID int) (*model.DemoUser, error) {
-	user, err := d.repo.queries(ctx).DemoUserGetByDemoUser(ctx, sqlc.DemoUserGetByDemoUserParams{
-		DemoID: int32(demoID),
-		UserID: int32(userID),
-	})
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("get demo user by demo %d user %d | %w", demoID, userID, err)
-	}
-
-	return model.DemoUserModel(user), nil
-}
-
 func (d *Demo) GetByUser(ctx context.Context, userID int) ([]*model.Demo, error) {
 	demos, err := d.repo.queries(ctx).DemoGetByUser(ctx, int32(userID))
 	if err != nil {
@@ -103,20 +88,6 @@ func (d *Demo) Create(ctx context.Context, demo *model.Demo) error {
 	return nil
 }
 
-func (d *Demo) CreateUser(ctx context.Context, user *model.DemoUser) error {
-	id, err := d.repo.queries(ctx).DemoUserCreate(ctx, sqlc.DemoUserCreateParams{
-		DemoID: int32(user.DemoID),
-		UserID: int32(user.UserID),
-	})
-	if err != nil {
-		return fmt.Errorf("create demo user %+v | %w", *user, err)
-	}
-
-	user.ID = int(id)
-
-	return nil
-}
-
 func (d *Demo) UpdateStatus(ctx context.Context, demo model.Demo) error {
 	if err := d.repo.queries(ctx).DemoUpdateStatus(ctx, sqlc.DemoUpdateStatusParams{
 		ID:     int32(demo.ID),
@@ -168,17 +139,6 @@ func (d *Demo) ResetStatusAll(ctx context.Context, oldStatus, newStatus model.De
 		NewStatus: sqlc.DemoStatus(newStatus),
 	}); err != nil {
 		return fmt.Errorf("reset demo status from %s to %s | %w", oldStatus, newStatus, err)
-	}
-
-	return nil
-}
-
-func (d *Demo) DeleteUserByDemoUser(ctx context.Context, demoID, userID int) error {
-	if err := d.repo.queries(ctx).DemoUserDeleteByDemoUser(ctx, sqlc.DemoUserDeleteByDemoUserParams{
-		DemoID: int32(demoID),
-		UserID: int32(userID),
-	}); err != nil {
-		return fmt.Errorf("delete demo by demo %d user %d | %w", demoID, userID, err)
 	}
 
 	return nil

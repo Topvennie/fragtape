@@ -4,6 +4,11 @@ FROM highlights
 WHERE demo_id = $1
 ORDER BY created_at;
 
+-- name: HighlightGetByDemos :many
+SELECT *
+FROM highlights
+WHERE demo_id = ANY($1::int[]);
+
 -- name: HighlightCreate :one
 INSERT INTO highlights (user_id, demo_id, title)
 VALUES ($1, $2, $3)

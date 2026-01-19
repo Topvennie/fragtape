@@ -58,14 +58,47 @@ func (q *Queries) UserGet(ctx context.Context, id int32) (User, error) {
 	return i, err
 }
 
-const userGetByUID = `-- name: UserGetByUID :one
+const userGetByIds = `-- name: UserGetByIds :many
+SELECT id, uid, name, display_name, avatar_url, crosshair
+FROM users
+WHERE id = ANY($1::int[])
+`
+
+func (q *Queries) UserGetByIds(ctx context.Context, dollar_1 []int32) ([]User, error) {
+	rows, err := q.db.Query(ctx, userGetByIds, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Uid,
+			&i.Name,
+			&i.DisplayName,
+			&i.AvatarUrl,
+			&i.Crosshair,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const userGetByUid = `-- name: UserGetByUid :one
 SELECT id, uid, name, display_name, avatar_url, crosshair
 FROM users
 WHERE uid = $1
 `
 
-func (q *Queries) UserGetByUID(ctx context.Context, uid int32) (User, error) {
-	row := q.db.QueryRow(ctx, userGetByUID, uid)
+func (q *Queries) UserGetByUid(ctx context.Context, uid int32) (User, error) {
+	row := q.db.QueryRow(ctx, userGetByUid, uid)
 	var i User
 	err := row.Scan(
 		&i.ID,

@@ -56,19 +56,3 @@ func DemoModel(d sqlc.Demo) *Demo {
 		CreatedAt:       d.CreatedAt.Time,
 	}
 }
-
-type DemoUser struct {
-	ID        int
-	DemoID    int
-	UserID    int
-	DeletedAt time.Time
-}
-
-func DemoUserModel(d sqlc.DemoUser) *DemoUser {
-	return &DemoUser{
-		ID:        int(d.ID),
-		DemoID:    int(d.DemoID),
-		UserID:    int(d.UserID),
-		DeletedAt: fromTime(d.DeletedAt),
-	}
-}

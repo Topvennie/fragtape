@@ -6,8 +6,8 @@ WHERE id = $1;
 -- name: DemoGetByUser :many
 SELECT d.*
 FROM demos d
-LEFT JOIN demo_users du ON du.demo_id = d.id
-WHERE du.user_id = $1 AND du.deleted_at IS NULL
+LEFT JOIN stats s ON s.demo_id = d.id
+WHERE s.user_id = $1
 ORDER BY d.created_at DESC;
 
 -- name: DemoGetByStatus :many

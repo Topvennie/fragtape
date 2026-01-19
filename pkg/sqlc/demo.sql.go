@@ -153,8 +153,8 @@ func (q *Queries) DemoGetByStatusUpdateAtomic(ctx context.Context, arg DemoGetBy
 const demoGetByUser = `-- name: DemoGetByUser :many
 SELECT d.id, d.source, d.source_id, d.file_id, d.data_id, d.map, d.status, d.attempts, d.error, d.status_updated_at, d.created_at
 FROM demos d
-LEFT JOIN demo_users du ON du.demo_id = d.id
-WHERE du.user_id = $1 AND du.deleted_at IS NULL
+LEFT JOIN stats s ON s.demo_id = d.id
+WHERE s.user_id = $1
 ORDER BY d.created_at DESC
 `
 

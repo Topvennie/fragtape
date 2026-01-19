@@ -132,6 +132,8 @@ func (f *Finalizer) loop(ctx context.Context) error {
 	return nil
 }
 
+// TODO:Delete demo file
+
 func (f *Finalizer) loopOne(ctx context.Context, demo *model.Demo) error {
 	_, err := f.highlight.GetByDemo(ctx, demo.ID)
 	if err != nil {

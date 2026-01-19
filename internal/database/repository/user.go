@@ -8,6 +8,7 @@ import (
 
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/pkg/sqlc"
+	"github.com/topvennie/fragtape/pkg/utils"
 )
 
 type User struct {
@@ -33,7 +34,7 @@ func (u *User) Get(ctx context.Context, id int) (*model.User, error) {
 }
 
 func (u *User) GetByUID(ctx context.Context, uid int) (*model.User, error) {
-	user, err := u.repo.queries(ctx).UserGetByUID(ctx, int32(uid))
+	user, err := u.repo.queries(ctx).UserGetByUid(ctx, int32(uid))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -42,6 +43,18 @@ func (u *User) GetByUID(ctx context.Context, uid int) (*model.User, error) {
 	}
 
 	return model.UserModel(user), nil
+}
+
+func (u *User) GetByIDs(ctx context.Context, ids []int) ([]*model.User, error) {
+	users, err := u.repo.queries(ctx).UserGetByIds(ctx, utils.SliceMap(ids, func(id int) int32 { return int32(id) }))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get users with id %+v | %w", ids, err)
+	}
+
+	return utils.SliceMap(users, model.UserModel), nil
 }
 
 func (u *User) Create(ctx context.Context, user *model.User) error {
