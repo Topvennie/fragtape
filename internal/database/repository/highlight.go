@@ -35,8 +35,8 @@ func (h *Highlight) GetByDemo(ctx context.Context, demoID int) ([]*model.Highlig
 
 func (h *Highlight) Create(ctx context.Context, highlight *model.Highlight) error {
 	id, err := h.repo.queries(ctx).HighlightCreate(ctx, sqlc.HighlightCreateParams{
+		UserID: int32(highlight.UserID),
 		DemoID: int32(highlight.DemoID),
-		FileID: toString(highlight.FileID),
 		Title:  highlight.Title,
 	})
 	if err != nil {
@@ -44,6 +44,21 @@ func (h *Highlight) Create(ctx context.Context, highlight *model.Highlight) erro
 	}
 
 	highlight.ID = int(id)
+
+	return nil
+}
+
+func (h *Highlight) CreateSegment(ctx context.Context, segment *model.HighlightSegment) error {
+	id, err := h.repo.queries(ctx).HighlightSegmentCreate(ctx, sqlc.HighlightSegmentCreateParams{
+		HighlightID: int32(segment.HighlightID),
+		StartTick:   int32(segment.StartTick),
+		EndTick:     int32(segment.EndTick),
+	})
+	if err != nil {
+		return fmt.Errorf("create highlight segment %+v | %w", *segment, err)
+	}
+
+	segment.ID = int(id)
 
 	return nil
 }

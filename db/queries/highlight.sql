@@ -5,8 +5,8 @@ WHERE demo_id = $1
 ORDER BY created_at;
 
 -- name: HighlightCreate :one
-INSERT INTO highlights (demo_id, file_id, file_web_id, title)
-VALUES ($1, $2, $3, $4)
+INSERT INTO highlights (user_id, demo_id, title)
+VALUES ($1, $2, $3)
 RETURNING id;
 
 -- name: HighlightUpdate :exec

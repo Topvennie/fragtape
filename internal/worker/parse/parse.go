@@ -1,6 +1,11 @@
 // Package parse parses demos
 package parse
 
+// TODO: Cleanup data when the entire pipeline fails after x amount of attempts
+// Right now it leaves some data behind
+
+// TODO: Attempts go up one even when going to the next stage
+
 import (
 	"context"
 	"sync"
@@ -159,6 +164,12 @@ func (p *Parser) loop(ctx context.Context) error {
 					for i := range result.highlights {
 						if err := p.highlight.Create(ctx, result.highlights[i]); err != nil {
 							return err
+						}
+						for j := range result.highlights[i].Segments {
+							result.highlights[i].Segments[j].HighlightID = result.highlights[i].ID
+							if err := p.highlight.CreateSegment(ctx, &result.highlights[i].Segments[j]); err != nil {
+								return err
+							}
 						}
 					}
 				}

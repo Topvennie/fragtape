@@ -13,7 +13,7 @@ import (
 	"github.com/topvennie/fragtape/pkg/utils"
 )
 
-const dummyDir = "./dummydata/"
+const dummyDir = "./internal/recorder/capture/dummydata/"
 
 func (c *Capturer) Start(ctx context.Context, demo model.Demo) error {
 	highlights, err := c.highlight.GetByDemo(ctx, demo.ID)

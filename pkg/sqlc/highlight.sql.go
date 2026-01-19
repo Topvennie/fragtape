@@ -12,25 +12,19 @@ import (
 )
 
 const highlightCreate = `-- name: HighlightCreate :one
-INSERT INTO highlights (demo_id, file_id, file_web_id, title)
-VALUES ($1, $2, $3, $4)
+INSERT INTO highlights (user_id, demo_id, title)
+VALUES ($1, $2, $3)
 RETURNING id
 `
 
 type HighlightCreateParams struct {
-	DemoID    int32
-	FileID    pgtype.Text
-	FileWebID pgtype.Text
-	Title     string
+	UserID int32
+	DemoID int32
+	Title  string
 }
 
 func (q *Queries) HighlightCreate(ctx context.Context, arg HighlightCreateParams) (int32, error) {
-	row := q.db.QueryRow(ctx, highlightCreate,
-		arg.DemoID,
-		arg.FileID,
-		arg.FileWebID,
-		arg.Title,
-	)
+	row := q.db.QueryRow(ctx, highlightCreate, arg.UserID, arg.DemoID, arg.Title)
 	var id int32
 	err := row.Scan(&id)
 	return id, err
