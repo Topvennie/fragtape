@@ -95,6 +95,7 @@ func (p *Parser) savePlayers(ctx context.Context, match demo.Match) error {
 }
 
 func (p *Parser) getStats(ctx context.Context, d model.Demo, m demo.Match) ([]*model.Stat, error) {
+	// TODO: Delete existing stats
 	stats := make(map[demo.PlayerID]*model.Stat)
 
 	for _, player := range m.Players {

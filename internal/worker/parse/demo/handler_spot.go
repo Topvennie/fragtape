@@ -23,8 +23,16 @@ func (d *Demo) handleSpotPlayerSpottersChanged(p demoinfocs.Parser, _ events.Pla
 }
 
 func (d *Demo) processSpot(tick Tick, r *Round, spotter, spotted *common.Player) {
+	if spotter == nil {
+		return
+	}
+
 	spotterID := PlayerID(spotter.SteamID64)
 	spottedID := PlayerID(spotted.SteamID64)
+
+	if spotterID == 0 {
+		return
+	}
 
 	isSpotted := spotter.HasSpotted(spotted)
 

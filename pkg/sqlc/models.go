@@ -133,6 +133,13 @@ type Highlight struct {
 	CreatedAt pgtype.Timestamptz
 }
 
+type HighlightSegment struct {
+	ID          int32
+	HighlightID int32
+	StartTick   int32
+	EndTick     int32
+}
+
 type Stat struct {
 	ID      int32
 	DemoID  int32
