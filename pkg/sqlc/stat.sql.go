@@ -35,3 +35,36 @@ func (q *Queries) StatCreate(ctx context.Context, arg StatCreateParams) (int32, 
 	err := row.Scan(&id)
 	return id, err
 }
+
+const statGetByDemos = `-- name: StatGetByDemos :many
+SELECT id, demo_id, user_id, kills, assists, deaths
+FROM stats
+WHERE demo_id = ANY($1::int[])
+`
+
+func (q *Queries) StatGetByDemos(ctx context.Context, dollar_1 []int32) ([]Stat, error) {
+	rows, err := q.db.Query(ctx, statGetByDemos, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Stat
+	for rows.Next() {
+		var i Stat
+		if err := rows.Scan(
+			&i.ID,
+			&i.DemoID,
+			&i.UserID,
+			&i.Kills,
+			&i.Assists,
+			&i.Deaths,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

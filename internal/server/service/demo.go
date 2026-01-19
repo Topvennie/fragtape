@@ -17,24 +17,114 @@ import (
 type Demo struct {
 	service Service
 
-	demo repository.Demo
+	demo      repository.Demo
+	highlight repository.Highlight
+	stat      repository.Stat
+	user      repository.User
 }
 
 func (s *Service) NewDemo() *Demo {
 	return &Demo{
-		service: *s,
-		demo:    *s.repo.NewDemo(),
+		service:   *s,
+		demo:      *s.repo.NewDemo(),
+		highlight: *s.repo.NewHighlight(),
+		stat:      *s.repo.NewStat(),
+		user:      *s.repo.NewUser(),
 	}
 }
 
 func (d *Demo) GetAll(ctx context.Context, userID int) ([]dto.Demo, error) {
-	demos, err := d.demo.GetByUser(ctx, userID)
+	demosModel, err := d.demo.GetByUser(ctx, userID)
 	if err != nil {
 		zap.S().Error(err)
 		return nil, fiber.ErrInternalServerError
 	}
 
-	return utils.SliceMap(demos, dto.DemoDTO), nil
+	demoIDs := utils.SliceMap(demosModel, func(d *model.Demo) int { return d.ID })
+
+	statsModel, err := d.stat.GetByDemos(ctx, demoIDs)
+	if err != nil {
+		zap.S().Error(err)
+		return nil, fiber.ErrInternalServerError
+	}
+
+	statMap := make(map[int][]*model.Stat)
+	for _, s := range statsModel {
+		demoStats, ok := statMap[s.DemoID]
+		if !ok {
+			demoStats = []*model.Stat{}
+		}
+
+		demoStats = append(demoStats, s)
+		statMap[s.DemoID] = demoStats
+	}
+
+	highlightsModel, err := d.highlight.GetByDemos(ctx, demoIDs)
+	if err != nil {
+		zap.S().Error(err)
+		return nil, fiber.ErrInternalServerError
+	}
+
+	highlightMap := make(map[int]map[int][]*model.Highlight)
+	for _, h := range highlightsModel {
+		demoHighlights, ok := highlightMap[h.DemoID]
+		if !ok {
+			highlightMap[h.DemoID] = map[int][]*model.Highlight{}
+			demoHighlights = map[int][]*model.Highlight{}
+		}
+		userHighlights, ok := demoHighlights[h.UserID]
+		if !ok {
+			userHighlights = []*model.Highlight{}
+		}
+
+		userHighlights = append(userHighlights, h)
+		highlightMap[h.DemoID][h.UserID] = userHighlights
+	}
+
+	users, err := d.user.GetByIDs(ctx, utils.SliceUnique(utils.SliceMap(statsModel, func(s *model.Stat) int { return s.UserID })))
+	if err != nil {
+		zap.S().Error(err)
+		return nil, fiber.ErrInternalServerError
+	}
+
+	userMap := make(map[int]*model.User)
+	for _, u := range users {
+		userMap[u.ID] = u
+	}
+
+	demos := make([]dto.Demo, 0, len(demosModel))
+	for _, demoModel := range demosModel {
+		demo := dto.DemoDTO(demoModel)
+
+		stats, ok := statMap[demo.ID]
+		if !ok {
+			continue
+		}
+
+		demoHighlights, ok := highlightMap[demo.ID]
+		if !ok {
+			demoHighlights = map[int][]*model.Highlight{}
+		}
+
+		for _, s := range stats {
+			user, ok := userMap[s.UserID]
+			if !ok {
+				continue
+			}
+
+			demoPlayer := dto.DemoPlayer{
+				User:       dto.UserDTO(user),
+				Stat:       dto.StatDTO(s),
+				Highlights: utils.SliceMap(demoHighlights[s.UserID], dto.HighlightDTO),
+			}
+
+			demo.Players = append(demo.Players, demoPlayer)
+		}
+
+		demos = append(demos, demo)
+	}
+
+	return demos, nil
 }
 
 func (d *Demo) Upload(ctx context.Context, userID int, file []byte) error {
@@ -57,25 +147,4 @@ func (d *Demo) Upload(ctx context.Context, userID int, file []byte) error {
 
 		return nil
 	})
-}
-
-func (d *Demo) Delete(ctx context.Context, userID, demoID int) error {
-	user, err := d.demo.GetUserByDemoUser(ctx, demoID, userID)
-	if err != nil {
-		zap.S().Error(err)
-		return fiber.ErrInternalServerError
-	}
-	if user == nil {
-		return fiber.ErrForbidden
-	}
-	if !user.DeletedAt.IsZero() {
-		return fiber.ErrBadRequest
-	}
-
-	if err := d.demo.DeleteUserByDemoUser(ctx, demoID, userID); err != nil {
-		zap.S().Error(err)
-		return fiber.ErrInternalServerError
-	}
-
-	return nil
 }

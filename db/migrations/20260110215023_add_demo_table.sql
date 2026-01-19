@@ -17,13 +17,6 @@ CREATE TABLE demos (
   status_updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
-CREATE TABLE demo_users (
-  id SERIAL PRIMARY KEY,
-  demo_id INTEGER NOT NULL REFERENCES demos (id) ON DELETE CASCADE,
-  user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-  deleted_at TIMESTAMPTZ DEFAULT NULL
-);
 -- +goose StatementEnd
 
 -- +goose Down

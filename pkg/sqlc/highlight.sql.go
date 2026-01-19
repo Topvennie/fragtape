@@ -76,6 +76,40 @@ func (q *Queries) HighlightGetByDemo(ctx context.Context, demoID int32) ([]Highl
 	return items, nil
 }
 
+const highlightGetByDemos = `-- name: HighlightGetByDemos :many
+SELECT id, user_id, demo_id, file_id, file_web_id, title, created_at
+FROM highlights
+WHERE demo_id = ANY($1::int[])
+`
+
+func (q *Queries) HighlightGetByDemos(ctx context.Context, dollar_1 []int32) ([]Highlight, error) {
+	rows, err := q.db.Query(ctx, highlightGetByDemos, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Highlight
+	for rows.Next() {
+		var i Highlight
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.DemoID,
+			&i.FileID,
+			&i.FileWebID,
+			&i.Title,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const highlightUpdate = `-- name: HighlightUpdate :exec
 UPDATE highlights
 SET 

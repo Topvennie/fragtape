@@ -23,6 +23,7 @@ func HighlightModel(h sqlc.Highlight) *Highlight {
 	return &Highlight{
 		ID:        int(h.ID),
 		DemoID:    int(h.DemoID),
+		UserID:    int(h.UserID),
 		FileID:    fromString(h.FileID),
 		FileWebID: fromString(h.FileWebID),
 		Title:     h.Title,

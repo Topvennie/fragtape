@@ -116,13 +116,6 @@ type Demo struct {
 	CreatedAt       pgtype.Timestamptz
 }
 
-type DemoUser struct {
-	ID        int32
-	DemoID    int32
-	UserID    int32
-	DeletedAt pgtype.Timestamptz
-}
-
 type Highlight struct {
 	ID        int32
 	UserID    int32

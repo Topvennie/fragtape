@@ -3,10 +3,15 @@ SELECT *
 FROM users
 WHERE id = $1;
 
--- name: UserGetByUID :one
+-- name: UserGetByUid :one
 SELECT *
 FROM users
 WHERE uid = $1;
+
+-- name: UserGetByIds :many
+SELECT *
+FROM users
+WHERE id = ANY($1::int[]);
 
 -- name: UserCreate :one
 INSERT INTO users (uid, name, display_name, avatar_url, crosshair)
