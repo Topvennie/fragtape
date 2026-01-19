@@ -24,6 +24,7 @@ type Parser struct {
 	demo      repository.Demo
 	highlight repository.Highlight
 	stat      repository.Stat
+	statsDemo repository.StatsDemo
 	user      repository.User
 	repo      repository.Repository
 
@@ -38,6 +39,7 @@ func New(repo repository.Repository) *Parser {
 		demo:      *repo.NewDemo(),
 		highlight: *repo.NewHighlight(),
 		stat:      *repo.NewStat(),
+		statsDemo: *repo.NewStatsDemo(),
 		user:      *repo.NewUser(),
 		repo:      repo,
 		demoParser: *demo.New(
@@ -78,6 +80,7 @@ func (p *Parser) Start(ctx context.Context) error {
 }
 
 type loopResult struct {
+	statsDemo  *model.StatsDemo
 	stats      []*model.Stat
 	highlights []*model.Highlight
 	err        error
@@ -119,6 +122,8 @@ func (p *Parser) loop(ctx context.Context) error {
 					return
 				}
 
+				statsDemo := p.getStatsDemo(*d, *match)
+
 				stats, err := p.getStats(ctx, *d, *match)
 				if err != nil {
 					save(loopResult{err: err})
@@ -132,6 +137,7 @@ func (p *Parser) loop(ctx context.Context) error {
 				}
 
 				save(loopResult{
+					statsDemo:  statsDemo,
 					stats:      stats,
 					highlights: highlights,
 				})
@@ -155,6 +161,10 @@ func (p *Parser) loop(ctx context.Context) error {
 				// But nice safety just in case
 				// Create stat and highlight db entries
 				if result.err == nil {
+					if err := p.statsDemo.Create(ctx, result.statsDemo); err != nil {
+						return err
+					}
+
 					for i := range result.stats {
 						if err := p.stat.Create(ctx, result.stats[i]); err != nil {
 							return err
@@ -195,6 +205,7 @@ func (p *Parser) loop(ctx context.Context) error {
 
 				return nil
 			}); err != nil {
+				// TODO: Fail if this errors???
 				zap.S().Error(err)
 			}
 		}

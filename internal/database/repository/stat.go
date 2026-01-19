@@ -35,11 +35,13 @@ func (s *Stat) GetByDemos(ctx context.Context, demoIDs []int) ([]*model.Stat, er
 
 func (s *Stat) Create(ctx context.Context, stat *model.Stat) error {
 	id, err := s.repo.queries(ctx).StatCreate(ctx, sqlc.StatCreateParams{
-		DemoID:  int32(stat.DemoID),
-		UserID:  int32(stat.UserID),
-		Kills:   int32(stat.Kills),
-		Assists: int32(stat.Assists),
-		Deaths:  int32(stat.Deaths),
+		DemoID:    int32(stat.DemoID),
+		UserID:    int32(stat.UserID),
+		Result:    sqlc.Result(stat.Result),
+		StartTeam: sqlc.Team(stat.StartTeam),
+		Kills:     int32(stat.Kills),
+		Assists:   int32(stat.Assists),
+		Deaths:    int32(stat.Deaths),
 	})
 	if err != nil {
 		return fmt.Errorf("create stat %+v | %w", *stat, err)

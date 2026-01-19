@@ -65,6 +65,9 @@ type Match struct {
 	Players []*Player
 	Rounds  []*Round
 
+	RoundsCT int
+	RoundsT  int
+
 	PositionTickInterval Tick    // Amount of ticks between position updates. If set to 0 then no positions are saved
 	PositionMinDistance  float32 // Minimum distance in units before a new position is recorded
 }

@@ -31,7 +31,7 @@ func (q *Queries) DemoCreate(ctx context.Context, arg DemoCreateParams) (int32, 
 }
 
 const demoGet = `-- name: DemoGet :one
-SELECT id, source, source_id, file_id, data_id, map, status, attempts, error, status_updated_at, created_at
+SELECT id, source, source_id, file_id, data_id, status, attempts, error, status_updated_at, created_at
 FROM demos
 WHERE id = $1
 `
@@ -45,7 +45,6 @@ func (q *Queries) DemoGet(ctx context.Context, id int32) (Demo, error) {
 		&i.SourceID,
 		&i.FileID,
 		&i.DataID,
-		&i.Map,
 		&i.Status,
 		&i.Attempts,
 		&i.Error,
@@ -56,7 +55,7 @@ func (q *Queries) DemoGet(ctx context.Context, id int32) (Demo, error) {
 }
 
 const demoGetByStatus = `-- name: DemoGetByStatus :many
-SELECT id, source, source_id, file_id, data_id, map, status, attempts, error, status_updated_at, created_at
+SELECT id, source, source_id, file_id, data_id, status, attempts, error, status_updated_at, created_at
 FROM demos
 WHERE status = $1
 ORDER BY created_at ASC
@@ -77,7 +76,6 @@ func (q *Queries) DemoGetByStatus(ctx context.Context, status DemoStatus) ([]Dem
 			&i.SourceID,
 			&i.FileID,
 			&i.DataID,
-			&i.Map,
 			&i.Status,
 			&i.Attempts,
 			&i.Error,
@@ -109,7 +107,7 @@ SET
   attempts = attempts + 1,
   status_updated_at = NOW()
 WHERE id in (SELECT id from cte)
-RETURNING id, source, source_id, file_id, data_id, map, status, attempts, error, status_updated_at, created_at
+RETURNING id, source, source_id, file_id, data_id, status, attempts, error, status_updated_at, created_at
 `
 
 type DemoGetByStatusUpdateAtomicParams struct {
@@ -133,7 +131,6 @@ func (q *Queries) DemoGetByStatusUpdateAtomic(ctx context.Context, arg DemoGetBy
 			&i.SourceID,
 			&i.FileID,
 			&i.DataID,
-			&i.Map,
 			&i.Status,
 			&i.Attempts,
 			&i.Error,
@@ -150,35 +147,45 @@ func (q *Queries) DemoGetByStatusUpdateAtomic(ctx context.Context, arg DemoGetBy
 	return items, nil
 }
 
-const demoGetByUser = `-- name: DemoGetByUser :many
-SELECT d.id, d.source, d.source_id, d.file_id, d.data_id, d.map, d.status, d.attempts, d.error, d.status_updated_at, d.created_at
+const demoGetByUserPopulated = `-- name: DemoGetByUserPopulated :many
+SELECT d.id, d.source, d.source_id, d.file_id, d.data_id, d.status, d.attempts, d.error, d.status_updated_at, d.created_at, sd.id, sd.demo_id, sd.map, sd.rounds_ct, sd.rounds_t
 FROM demos d
 LEFT JOIN stats s ON s.demo_id = d.id
+LEFT JOIN stats_demos sd ON sd.demo_id = d.id
 WHERE s.user_id = $1
 ORDER BY d.created_at DESC
 `
 
-func (q *Queries) DemoGetByUser(ctx context.Context, userID int32) ([]Demo, error) {
-	rows, err := q.db.Query(ctx, demoGetByUser, userID)
+type DemoGetByUserPopulatedRow struct {
+	Demo      Demo
+	StatsDemo StatsDemo
+}
+
+func (q *Queries) DemoGetByUserPopulated(ctx context.Context, userID int32) ([]DemoGetByUserPopulatedRow, error) {
+	rows, err := q.db.Query(ctx, demoGetByUserPopulated, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Demo
+	var items []DemoGetByUserPopulatedRow
 	for rows.Next() {
-		var i Demo
+		var i DemoGetByUserPopulatedRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.Source,
-			&i.SourceID,
-			&i.FileID,
-			&i.DataID,
-			&i.Map,
-			&i.Status,
-			&i.Attempts,
-			&i.Error,
-			&i.StatusUpdatedAt,
-			&i.CreatedAt,
+			&i.Demo.ID,
+			&i.Demo.Source,
+			&i.Demo.SourceID,
+			&i.Demo.FileID,
+			&i.Demo.DataID,
+			&i.Demo.Status,
+			&i.Demo.Attempts,
+			&i.Demo.Error,
+			&i.Demo.StatusUpdatedAt,
+			&i.Demo.CreatedAt,
+			&i.StatsDemo.ID,
+			&i.StatsDemo.DemoID,
+			&i.StatsDemo.Map,
+			&i.StatsDemo.RoundsCt,
+			&i.StatsDemo.RoundsT,
 		); err != nil {
 			return nil, err
 		}
@@ -238,22 +245,6 @@ type DemoUpdateFileParams struct {
 
 func (q *Queries) DemoUpdateFile(ctx context.Context, arg DemoUpdateFileParams) error {
 	_, err := q.db.Exec(ctx, demoUpdateFile, arg.ID, arg.FileID)
-	return err
-}
-
-const demoUpdateMap = `-- name: DemoUpdateMap :exec
-UPDATE demos
-SET map = $2
-WHERE id = $1
-`
-
-type DemoUpdateMapParams struct {
-	ID  int32
-	Map pgtype.Text
-}
-
-func (q *Queries) DemoUpdateMap(ctx context.Context, arg DemoUpdateMapParams) error {
-	_, err := q.db.Exec(ctx, demoUpdateMap, arg.ID, arg.Map)
 	return err
 }
 

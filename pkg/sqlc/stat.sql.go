@@ -10,23 +10,27 @@ import (
 )
 
 const statCreate = `-- name: StatCreate :one
-INSERT INTO stats (demo_id, user_id, kills, assists, deaths)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO stats (demo_id, user_id, result, start_team, kills, assists, deaths)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING id
 `
 
 type StatCreateParams struct {
-	DemoID  int32
-	UserID  int32
-	Kills   int32
-	Assists int32
-	Deaths  int32
+	DemoID    int32
+	UserID    int32
+	Result    Result
+	StartTeam Team
+	Kills     int32
+	Assists   int32
+	Deaths    int32
 }
 
 func (q *Queries) StatCreate(ctx context.Context, arg StatCreateParams) (int32, error) {
 	row := q.db.QueryRow(ctx, statCreate,
 		arg.DemoID,
 		arg.UserID,
+		arg.Result,
+		arg.StartTeam,
 		arg.Kills,
 		arg.Assists,
 		arg.Deaths,
@@ -37,7 +41,7 @@ func (q *Queries) StatCreate(ctx context.Context, arg StatCreateParams) (int32, 
 }
 
 const statGetByDemos = `-- name: StatGetByDemos :many
-SELECT id, demo_id, user_id, kills, assists, deaths
+SELECT id, demo_id, user_id, result, start_team, kills, assists, deaths
 FROM stats
 WHERE demo_id = ANY($1::int[])
 `
@@ -55,6 +59,8 @@ func (q *Queries) StatGetByDemos(ctx context.Context, dollar_1 []int32) ([]Stat,
 			&i.ID,
 			&i.DemoID,
 			&i.UserID,
+			&i.Result,
+			&i.StartTeam,
 			&i.Kills,
 			&i.Assists,
 			&i.Deaths,

@@ -34,7 +34,7 @@ func (s *Service) NewDemo() *Demo {
 }
 
 func (d *Demo) GetAll(ctx context.Context, userID int) ([]dto.Demo, error) {
-	demosModel, err := d.demo.GetByUser(ctx, userID)
+	demosModel, err := d.demo.GetByUserPopulated(ctx, userID)
 	if err != nil {
 		zap.S().Error(err)
 		return nil, fiber.ErrInternalServerError
@@ -95,6 +95,7 @@ func (d *Demo) GetAll(ctx context.Context, userID int) ([]dto.Demo, error) {
 	demos := make([]dto.Demo, 0, len(demosModel))
 	for _, demoModel := range demosModel {
 		demo := dto.DemoDTO(demoModel)
+		demo.Stats = dto.StatsDemoDTO(&demoModel.Stat)
 
 		stats, ok := statMap[demo.ID]
 		if !ok {

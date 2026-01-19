@@ -10,7 +10,6 @@ CREATE TABLE demos (
   source_id TEXT,
   file_id TEXT,
   data_id TEXT,
-  map TEXT,
   status DEMO_STATUS NOT NULL DEFAULT 'queued_parse',
   attempts INTEGER NOT NULL DEFAULT 0,
   error TEXT,
@@ -21,7 +20,6 @@ CREATE TABLE demos (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE demo_users;
 DROP TABLE demos;
 DROP TYPE demo_status;
 DROP TYPE demo_source;
