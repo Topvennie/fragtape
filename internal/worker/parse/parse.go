@@ -8,6 +8,7 @@ import (
 
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
+	"github.com/topvennie/fragtape/internal/worker/parse/demo"
 	"github.com/topvennie/fragtape/pkg/config"
 	"go.uber.org/zap"
 )
@@ -17,7 +18,11 @@ const maxAttempts = 3
 type Parser struct {
 	demo      repository.Demo
 	highlight repository.Highlight
+	stat      repository.Stat
+	user      repository.User
 	repo      repository.Repository
+
+	demoParser demo.Demo
 
 	interval   time.Duration
 	concurrent int
@@ -25,9 +30,15 @@ type Parser struct {
 
 func New(repo repository.Repository) *Parser {
 	return &Parser{
-		demo:       *repo.NewDemo(),
-		highlight:  *repo.NewHighlight(),
-		repo:       repo,
+		demo:      *repo.NewDemo(),
+		highlight: *repo.NewHighlight(),
+		stat:      *repo.NewStat(),
+		user:      *repo.NewUser(),
+		repo:      repo,
+		demoParser: *demo.New(
+			config.GetDefaultInt("worker.parser.positions_per_second", 4),
+			config.GetDefaultInt("worker.parser.positions_min_distance", 10),
+		),
 		interval:   config.GetDefaultDurationS("worker.parser.interval_s", 60),
 		concurrent: config.GetDefaultInt("worker.parser.concurrent", 8),
 	}
@@ -62,7 +73,8 @@ func (p *Parser) Start(ctx context.Context) error {
 }
 
 type loopResult struct {
-	highlights []model.Highlight
+	stats      []*model.Stat
+	highlights []*model.Highlight
 	err        error
 }
 
@@ -81,20 +93,43 @@ func (p *Parser) loop(ctx context.Context) error {
 		resultMap := make(map[int]loopResult)
 
 		for _, demo := range demos {
-			// Get highlights
+			// Multithread parsing the demo file and resulting data
 			d := demo
 			wg.Go(func() {
-				highlights, err := p.parse(*d)
+				save := func(result loopResult) {
+					mu.Lock()
+					defer mu.Unlock()
 
-				result := loopResult{
-					highlights: highlights,
-					err:        err,
+					resultMap[d.ID] = result
 				}
 
-				mu.Lock()
-				defer mu.Unlock()
+				match, err := p.getMatch(ctx, d)
+				if err != nil {
+					save(loopResult{err: err})
+					return
+				}
 
-				resultMap[d.ID] = result
+				if err := p.savePlayers(ctx, *match); err != nil {
+					save(loopResult{err: err})
+					return
+				}
+
+				stats, err := p.getStats(ctx, *d, *match)
+				if err != nil {
+					save(loopResult{err: err})
+					return
+				}
+
+				highlights, err := p.getHighlights(ctx, *d, *match)
+				if err != nil {
+					save(loopResult{err: err})
+					return
+				}
+
+				save(loopResult{
+					stats:      stats,
+					highlights: highlights,
+				})
 			})
 		}
 
@@ -113,10 +148,16 @@ func (p *Parser) loop(ctx context.Context) error {
 			if err := p.repo.WithRollback(ctx, func(ctx context.Context) error {
 				// DB transactions so unlikely something will fail
 				// But nice safety just in case
-				// Create highlight db entries
+				// Create stat and highlight db entries
 				if result.err == nil {
+					for i := range result.stats {
+						if err := p.stat.Create(ctx, result.stats[i]); err != nil {
+							return err
+						}
+					}
+
 					for i := range result.highlights {
-						if err := p.highlight.Create(ctx, &result.highlights[i]); err != nil {
+						if err := p.highlight.Create(ctx, result.highlights[i]); err != nil {
 							return err
 						}
 					}

@@ -28,14 +28,14 @@ server:
 
 worker:
   parser:
-    interval_s:
-    concurrent:
+    interval_s: 10
+    concurrent: 1
     positions_per_second:
     positions_min_distance:
 
   finalizer:
-    interval_s:
-    concurrent:
+    interval_s: 10
+    concurrent: 1
 
   db:
     host:
@@ -52,7 +52,7 @@ worker:
     password:
 
 recorder:
-  interval_s:
+  interval_s: 10
   dummy_data: true
 
   db:

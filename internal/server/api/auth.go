@@ -3,6 +3,7 @@ package api
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/markbates/goth"
@@ -54,12 +55,18 @@ func (r *Auth) loginCallback(c *fiber.Ctx) error {
 		return fiber.ErrInternalServerError
 	}
 
-	dtoUser, err := r.user.GetByUID(c.Context(), user.UserID)
+	userID, err := strconv.Atoi(user.UserID)
+	if err != nil {
+		return fiber.ErrInternalServerError
+	}
+
+	dtoUser, err := r.user.GetByUID(c.Context(), userID)
 	if err != nil {
 		if errors.Is(err, fiber.ErrNotFound) {
+
 			// New user
 			dtoUser = dto.User{
-				UID:         user.UserID,
+				UID:         userID,
 				Name:        user.Name,
 				DisplayName: user.NickName,
 				AvatarURL:   user.AvatarURL,
@@ -68,6 +75,15 @@ func (r *Auth) loginCallback(c *fiber.Ctx) error {
 			dtoUser, err = r.user.Create(c.Context(), dtoUser)
 		}
 		if err != nil {
+			return err
+		}
+	}
+	if dtoUser.Name != user.Name {
+		dtoUser.Name = user.Name
+		dtoUser.DisplayName = user.NickName
+		dtoUser.AvatarURL = user.AvatarURL
+
+		if dtoUser, err = r.user.Update(c.Context(), dtoUser); err != nil {
 			return err
 		}
 	}

@@ -2,7 +2,7 @@ import { API } from "./api";
 
 export interface User {
   id: number;
-  uid: string;
+  uid: number;
   name: string;
   displayName: string;
   avatarUrl: string;

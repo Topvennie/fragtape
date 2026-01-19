@@ -51,6 +51,16 @@ UPDATE demos
 SET file_id = $2
 WHERE id = $1;
 
+-- name: DemoUpdateMap :exec
+UPDATE demos
+SET map = $2
+WHERE id = $1;
+
+-- name: DemoUpdateData :exec
+UPDATE demos
+SET data_id = $2
+WHERE id = $1;
+
 -- name: DemoResetStatusAll :exec
 UPDATE demos
 SET 

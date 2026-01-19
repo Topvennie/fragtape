@@ -2,10 +2,11 @@
 -- +goose StatementBegin
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
-  uid TEXT NOT NULL,
-  name TEXT NOT NULL,
+  uid INTEGER NOT NULL,
+  name TEXT,
   display_name TEXT NOT NULL,
-  avatar_url TEXT NOT NULL,
+  avatar_url TEXT,
+  crosshair TEXT,
 
   UNIQUE (uid)
 );

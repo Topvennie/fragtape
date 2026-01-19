@@ -107,6 +107,8 @@ type Demo struct {
 	Source          DemoSource
 	SourceID        pgtype.Text
 	FileID          pgtype.Text
+	DataID          pgtype.Text
+	Map             pgtype.Text
 	Status          DemoStatus
 	Attempts        int32
 	Error           pgtype.Text
@@ -131,10 +133,20 @@ type Highlight struct {
 	CreatedAt pgtype.Timestamptz
 }
 
+type Stat struct {
+	ID      int32
+	DemoID  int32
+	UserID  int32
+	Kills   int32
+	Assists int32
+	Deaths  int32
+}
+
 type User struct {
 	ID          int32
-	Uid         string
-	Name        string
+	Uid         int32
+	Name        pgtype.Text
 	DisplayName string
-	AvatarUrl   string
+	AvatarUrl   pgtype.Text
+	Crosshair   pgtype.Text
 }

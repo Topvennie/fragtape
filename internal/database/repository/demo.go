@@ -140,6 +140,28 @@ func (d *Demo) UpdateFile(ctx context.Context, demo model.Demo) error {
 	return nil
 }
 
+func (d *Demo) UpdateData(ctx context.Context, demo model.Demo) error {
+	if err := d.repo.queries(ctx).DemoUpdateData(ctx, sqlc.DemoUpdateDataParams{
+		ID:     int32(demo.ID),
+		DataID: toString(demo.DataID),
+	}); err != nil {
+		return fmt.Errorf("update demo data %+v | %w", demo, err)
+	}
+
+	return nil
+}
+
+func (d *Demo) UpdateMap(ctx context.Context, demo model.Demo) error {
+	if err := d.repo.queries(ctx).DemoUpdateMap(ctx, sqlc.DemoUpdateMapParams{
+		ID:  int32(demo.ID),
+		Map: toString(demo.Map),
+	}); err != nil {
+		return fmt.Errorf("update demo map %+v | %w", demo, err)
+	}
+
+	return nil
+}
+
 func (d *Demo) ResetStatusAll(ctx context.Context, oldStatus, newStatus model.DemoStatus) error {
 	if err := d.repo.queries(ctx).DemoResetStatusAll(ctx, sqlc.DemoResetStatusAllParams{
 		OldStatus: sqlc.DemoStatus(oldStatus),

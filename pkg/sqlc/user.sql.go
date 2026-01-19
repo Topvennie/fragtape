@@ -7,19 +7,22 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const userCreate = `-- name: UserCreate :one
-INSERT INTO users (uid, name, display_name, avatar_url)
-VALUES ($1, $2, $3, $4)
+INSERT INTO users (uid, name, display_name, avatar_url, crosshair)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING id
 `
 
 type UserCreateParams struct {
-	Uid         string
-	Name        string
+	Uid         int32
+	Name        pgtype.Text
 	DisplayName string
-	AvatarUrl   string
+	AvatarUrl   pgtype.Text
+	Crosshair   pgtype.Text
 }
 
 func (q *Queries) UserCreate(ctx context.Context, arg UserCreateParams) (int32, error) {
@@ -28,6 +31,7 @@ func (q *Queries) UserCreate(ctx context.Context, arg UserCreateParams) (int32, 
 		arg.Name,
 		arg.DisplayName,
 		arg.AvatarUrl,
+		arg.Crosshair,
 	)
 	var id int32
 	err := row.Scan(&id)
@@ -35,7 +39,7 @@ func (q *Queries) UserCreate(ctx context.Context, arg UserCreateParams) (int32, 
 }
 
 const userGet = `-- name: UserGet :one
-SELECT id, uid, name, display_name, avatar_url
+SELECT id, uid, name, display_name, avatar_url, crosshair
 FROM users
 WHERE id = $1
 `
@@ -49,17 +53,18 @@ func (q *Queries) UserGet(ctx context.Context, id int32) (User, error) {
 		&i.Name,
 		&i.DisplayName,
 		&i.AvatarUrl,
+		&i.Crosshair,
 	)
 	return i, err
 }
 
 const userGetByUID = `-- name: UserGetByUID :one
-SELECT id, uid, name, display_name, avatar_url
+SELECT id, uid, name, display_name, avatar_url, crosshair
 FROM users
 WHERE uid = $1
 `
 
-func (q *Queries) UserGetByUID(ctx context.Context, uid string) (User, error) {
+func (q *Queries) UserGetByUID(ctx context.Context, uid int32) (User, error) {
 	row := q.db.QueryRow(ctx, userGetByUID, uid)
 	var i User
 	err := row.Scan(
@@ -68,21 +73,23 @@ func (q *Queries) UserGetByUID(ctx context.Context, uid string) (User, error) {
 		&i.Name,
 		&i.DisplayName,
 		&i.AvatarUrl,
+		&i.Crosshair,
 	)
 	return i, err
 }
 
 const userUpdate = `-- name: UserUpdate :exec
 UPDATE users
-SET name = $2, display_name = $3, avatar_url = $4
+SET name = $2, display_name = $3, avatar_url = $4, crosshair = $5
 WHERE id = $1
 `
 
 type UserUpdateParams struct {
 	ID          int32
-	Name        string
+	Name        pgtype.Text
 	DisplayName string
-	AvatarUrl   string
+	AvatarUrl   pgtype.Text
+	Crosshair   pgtype.Text
 }
 
 func (q *Queries) UserUpdate(ctx context.Context, arg UserUpdateParams) error {
@@ -91,6 +98,7 @@ func (q *Queries) UserUpdate(ctx context.Context, arg UserUpdateParams) error {
 		arg.Name,
 		arg.DisplayName,
 		arg.AvatarUrl,
+		arg.Crosshair,
 	)
 	return err
 }
