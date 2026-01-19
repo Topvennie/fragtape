@@ -1,22 +1,12 @@
 package parse
 
 import (
-	"errors"
-	"fmt"
+	"context"
 
 	"github.com/topvennie/fragtape/internal/database/model"
-	"github.com/topvennie/fragtape/pkg/storage"
+	"github.com/topvennie/fragtape/internal/worker/parse/demo"
 )
 
-func (p *Parser) parse(demo model.Demo) ([]model.Highlight, error) {
-	if demo.FileID == "" {
-		return nil, errors.New("demo file deleted")
-	}
-
-	_, err := storage.S.Get(demo.FileID)
-	if err != nil {
-		return nil, fmt.Errorf("get demo file %w", err)
-	}
-
+func (p *Parser) getHighlights(ctx context.Context, d model.Demo, m demo.Match) ([]*model.Highlight, error) {
 	return nil, nil
 }

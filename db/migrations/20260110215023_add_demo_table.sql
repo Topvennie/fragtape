@@ -9,6 +9,8 @@ CREATE TABLE demos (
   source DEMO_SOURCE NOT NULL,
   source_id TEXT,
   file_id TEXT,
+  data_id TEXT,
+  map TEXT,
   status DEMO_STATUS NOT NULL DEFAULT 'queued_parse',
   attempts INTEGER NOT NULL DEFAULT 0,
   error TEXT,

@@ -35,7 +35,7 @@ func (u *User) Get(ctx context.Context, id int) (dto.User, error) {
 	return dto.UserDTO(user), nil
 }
 
-func (u *User) GetByUID(ctx context.Context, uid string) (dto.User, error) {
+func (u *User) GetByUID(ctx context.Context, uid int) (dto.User, error) {
 	user, err := u.user.GetByUID(ctx, uid)
 	if err != nil {
 		zap.S().Error(err)

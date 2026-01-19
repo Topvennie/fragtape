@@ -5,19 +5,21 @@ import "github.com/topvennie/fragtape/pkg/sqlc"
 
 type User struct {
 	ID          int
-	UID         string
+	UID         int
 	Name        string
 	DisplayName string
 	AvatarURL   string
+	Crosshair   string
 }
 
 func UserModel(user sqlc.User) *User {
 	return &User{
 		ID:          int(user.ID),
-		UID:         user.Uid,
-		Name:        user.Name,
+		UID:         int(user.Uid),
+		Name:        fromString(user.Name),
 		DisplayName: user.DisplayName,
-		AvatarURL:   user.AvatarUrl,
+		AvatarURL:   fromString(user.AvatarUrl),
+		Crosshair:   fromString(user.Crosshair),
 	}
 }
 

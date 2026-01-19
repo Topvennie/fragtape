@@ -4,10 +4,11 @@ import "github.com/topvennie/fragtape/internal/database/model"
 
 type User struct {
 	ID          int    `json:"id"`
-	UID         string `json:"uid"`
+	UID         int    `json:"uid"`
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
 	AvatarURL   string `json:"avatar_url"`
+	Crosshair   string `json:"crosshair"`
 }
 
 func UserDTO(user *model.User) User {

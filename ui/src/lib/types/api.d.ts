@@ -4,7 +4,7 @@ export namespace API {
   }
 
   export interface User extends Base {
-    uid: string;
+    uid: number;
     name: string;
     display_name: string;
     avatar_url: string;
