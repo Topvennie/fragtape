@@ -20,7 +20,7 @@ require (
 	github.com/jackc/pgx/v5 v5.8.0
 	github.com/joho/godotenv v1.5.1
 	github.com/markbates/goth v1.82.0
-	github.com/markus-wa/demoinfocs-golang/v5 v5.1.0
+	github.com/markus-wa/demoinfocs-golang/v5 v5.1.1-0.20260117182344-0dc7bdc1db0e
 	github.com/pressly/goose/v3 v3.26.0
 	github.com/shareed2k/goth_fiber v0.3.3
 	github.com/spf13/viper v1.21.0
@@ -59,6 +59,7 @@ require (
 	github.com/go-sql-driver/mysql v1.9.3 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gohugoio/hugo v0.149.1 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
@@ -80,6 +81,7 @@ require (
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/klauspost/crc32 v1.3.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
+	github.com/markus-wa/demoinfocs-golang v1.7.6 // indirect
 	github.com/markus-wa/go-unassert v0.1.3 // indirect
 	github.com/markus-wa/gobitread v0.2.5-0.20241202000432-3c3e0bc797c6 // indirect
 	github.com/markus-wa/godispatch v1.4.1 // indirect
