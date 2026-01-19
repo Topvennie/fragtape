@@ -15,16 +15,6 @@ services:
     ports:
       - "5432:5432"
 
-  redis:
-    image: redis:7-alpine
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
   minio:
     image: quay.io/minio/minio
     command: server /data --console-address ":9001"
@@ -56,8 +46,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      redis:
-        condition: service_healthy
       minio:
         condition: service_healthy
 
@@ -85,8 +73,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      redis:
-        condition: service_healthy
       minio:
         condition: service_healthy
 
@@ -100,12 +86,13 @@ services:
       - /app/ui
       - go_packages:/go/pkg/mod
     depends_on:
-      redis:
+      db:
+        condition: service_healthy
+      minio:
         condition: service_healthy
 
 volumes:
   db_data:
-  redis_data:
   minio_data:
   go_packages:
   frontend_packages:
