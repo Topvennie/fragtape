@@ -7,6 +7,8 @@ CREATE TABLE highlights (
   file_id TEXT,
   file_web_id TEXT,
   title TEXT NOT NULL,
+  round INTEGER NOT NULL,
+  duration_s INTEGER NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

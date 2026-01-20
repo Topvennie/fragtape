@@ -7,6 +7,11 @@ import (
 	"github.com/shareed2k/goth_fiber"
 )
 
+const (
+	MimeWEBP = "image/webp"
+	MimeWEBM = "video/webm"
+)
+
 func storeInSession(ctx *fiber.Ctx, key string, value any) error {
 	session, err := goth_fiber.SessionStore.Get(ctx)
 	if err != nil {

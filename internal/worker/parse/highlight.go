@@ -2,6 +2,7 @@ package parse
 
 import (
 	"context"
+	"time"
 
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/worker/parse/demo"
@@ -26,19 +27,28 @@ func (p *Parser) getHighlights(ctx context.Context, d model.Demo, m demo.Match) 
 			}
 
 			if len(stat.Kills) >= 4 {
-				start := stat.Kills[0].Tick - 20
-				end := stat.Kills[len(stat.Kills)-1].Tick + 20
+				duration := 0
+
+				segments := make([]model.HighlightSegment, 0, len(stat.Kills))
+				for _, k := range stat.Kills {
+					start := int(k.Tick) - 265
+					end := int(k.Tick) + 265
+
+					segments = append(segments, model.HighlightSegment{
+						StartTick: start,
+						EndTick:   end,
+					})
+
+					duration += end - start
+				}
 
 				highlights = append(highlights, &model.Highlight{
-					DemoID: d.ID,
-					UserID: user.ID,
-					Title:  "4k",
-					Segments: []model.HighlightSegment{
-						{
-							StartTick: int(start),
-							EndTick:   int(end),
-						},
-					},
+					DemoID:   d.ID,
+					UserID:   user.ID,
+					Title:    "4k",
+					Round:    r.Number,
+					Duration: time.Duration(duration/int(m.TickRate)) * time.Second,
+					Segments: segments,
 				})
 			}
 		}

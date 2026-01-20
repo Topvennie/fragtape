@@ -60,7 +60,7 @@ type DamageDealt struct {
 
 type Match struct {
 	Map      string
-	TickRate int
+	TickRate Tick // Amount of ticks in one second
 
 	Players []*Player
 	Rounds  []*Round

@@ -12,19 +12,27 @@ import (
 )
 
 const highlightCreate = `-- name: HighlightCreate :one
-INSERT INTO highlights (user_id, demo_id, title)
-VALUES ($1, $2, $3)
+INSERT INTO highlights (user_id, demo_id, title, round, duration_s)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING id
 `
 
 type HighlightCreateParams struct {
-	UserID int32
-	DemoID int32
-	Title  string
+	UserID    int32
+	DemoID    int32
+	Title     string
+	Round     int32
+	DurationS int32
 }
 
 func (q *Queries) HighlightCreate(ctx context.Context, arg HighlightCreateParams) (int32, error) {
-	row := q.db.QueryRow(ctx, highlightCreate, arg.UserID, arg.DemoID, arg.Title)
+	row := q.db.QueryRow(ctx, highlightCreate,
+		arg.UserID,
+		arg.DemoID,
+		arg.Title,
+		arg.Round,
+		arg.DurationS,
+	)
 	var id int32
 	err := row.Scan(&id)
 	return id, err
@@ -41,8 +49,31 @@ func (q *Queries) HighlightDeleteFile(ctx context.Context, id int32) error {
 	return err
 }
 
+const highlightGet = `-- name: HighlightGet :one
+SELECT id, user_id, demo_id, file_id, file_web_id, title, round, duration_s, created_at
+FROM highlights
+WHERE id = $1
+`
+
+func (q *Queries) HighlightGet(ctx context.Context, id int32) (Highlight, error) {
+	row := q.db.QueryRow(ctx, highlightGet, id)
+	var i Highlight
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.DemoID,
+		&i.FileID,
+		&i.FileWebID,
+		&i.Title,
+		&i.Round,
+		&i.DurationS,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const highlightGetByDemo = `-- name: HighlightGetByDemo :many
-SELECT id, user_id, demo_id, file_id, file_web_id, title, created_at
+SELECT id, user_id, demo_id, file_id, file_web_id, title, round, duration_s, created_at
 FROM highlights
 WHERE demo_id = $1
 ORDER BY created_at
@@ -64,6 +95,8 @@ func (q *Queries) HighlightGetByDemo(ctx context.Context, demoID int32) ([]Highl
 			&i.FileID,
 			&i.FileWebID,
 			&i.Title,
+			&i.Round,
+			&i.DurationS,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -77,7 +110,7 @@ func (q *Queries) HighlightGetByDemo(ctx context.Context, demoID int32) ([]Highl
 }
 
 const highlightGetByDemos = `-- name: HighlightGetByDemos :many
-SELECT id, user_id, demo_id, file_id, file_web_id, title, created_at
+SELECT id, user_id, demo_id, file_id, file_web_id, title, round, duration_s, created_at
 FROM highlights
 WHERE demo_id = ANY($1::int[])
 `
@@ -98,6 +131,8 @@ func (q *Queries) HighlightGetByDemos(ctx context.Context, dollar_1 []int32) ([]
 			&i.FileID,
 			&i.FileWebID,
 			&i.Title,
+			&i.Round,
+			&i.DurationS,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err

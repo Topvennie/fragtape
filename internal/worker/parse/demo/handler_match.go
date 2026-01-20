@@ -20,9 +20,9 @@ func (d *Demo) handleMatchRoundStarted(p demoinfocs.Parser, _ events.RoundStart)
 }
 
 func (d *Demo) handleMatchTickRateInfoAvailable(_ demoinfocs.Parser, e events.TickRateInfoAvailable) {
-	d.match.TickRate = int(e.TickRate)
+	d.match.TickRate = Tick(e.TickRate)
 	if d.positionsPerSecond > 0 {
-		d.match.PositionTickInterval = Tick(d.match.TickRate / d.positionsPerSecond)
+		d.match.PositionTickInterval = d.match.TickRate / Tick(d.positionsPerSecond)
 	}
 }
 

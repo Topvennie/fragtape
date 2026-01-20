@@ -8,7 +8,7 @@ import (
 )
 
 func (m Match) formatDuration(t Tick) time.Duration {
-	return time.Second * time.Duration(t/Tick(m.TickRate))
+	return time.Second * time.Duration(t/m.TickRate)
 }
 
 func (m Match) formatRelative(zero Tick, t Tick) time.Duration {

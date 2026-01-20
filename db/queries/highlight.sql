@@ -1,3 +1,8 @@
+-- name: HighlightGet :one
+SELECT *
+FROM highlights
+WHERE id = $1;
+
 -- name: HighlightGetByDemo :many
 SELECT *
 FROM highlights
@@ -10,8 +15,8 @@ FROM highlights
 WHERE demo_id = ANY($1::int[]);
 
 -- name: HighlightCreate :one
-INSERT INTO highlights (user_id, demo_id, title)
-VALUES ($1, $2, $3)
+INSERT INTO highlights (user_id, demo_id, title, round, duration_s)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING id;
 
 -- name: HighlightUpdate :exec

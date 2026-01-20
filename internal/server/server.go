@@ -64,6 +64,7 @@ func New(service service.Service, pool *pgxpool.Pool) *Server {
 
 	routers.NewUser(protectedAPI, service)
 	routers.NewDemo(protectedAPI, service)
+	routers.NewHighlight(protectedAPI, service)
 
 	// Static files if served in production
 	if !config.IsDev() {
