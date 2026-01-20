@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/pkg/sqlc"
@@ -19,6 +20,18 @@ func (r *Repository) NewHighlight() *Highlight {
 	return &Highlight{
 		repo: *r,
 	}
+}
+
+func (h *Highlight) Get(ctx context.Context, id int) (*model.Highlight, error) {
+	highlight, err := h.repo.queries(ctx).HighlightGet(ctx, int32(id))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get highlight by id %d | %w", id, err)
+	}
+
+	return model.HighlightModel(highlight), nil
 }
 
 func (h *Highlight) GetByDemo(ctx context.Context, demoID int) ([]*model.Highlight, error) {
@@ -47,9 +60,11 @@ func (h *Highlight) GetByDemos(ctx context.Context, demoIDs []int) ([]*model.Hig
 
 func (h *Highlight) Create(ctx context.Context, highlight *model.Highlight) error {
 	id, err := h.repo.queries(ctx).HighlightCreate(ctx, sqlc.HighlightCreateParams{
-		UserID: int32(highlight.UserID),
-		DemoID: int32(highlight.DemoID),
-		Title:  highlight.Title,
+		UserID:    int32(highlight.UserID),
+		DemoID:    int32(highlight.DemoID),
+		Title:     highlight.Title,
+		Round:     int32(highlight.Round),
+		DurationS: int32(highlight.Duration / time.Second),
 	})
 	if err != nil {
 		return fmt.Errorf("create highlight %+v | %w", *highlight, err)

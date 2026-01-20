@@ -13,6 +13,8 @@ type Highlight struct {
 	FileID    string
 	FileWebID string
 	Title     string
+	Round     int
+	Duration  time.Duration
 	CreatedAt time.Time
 
 	// Non db fields
@@ -27,6 +29,8 @@ func HighlightModel(h sqlc.Highlight) *Highlight {
 		FileID:    fromString(h.FileID),
 		FileWebID: fromString(h.FileWebID),
 		Title:     h.Title,
+		Round:     int(h.Round),
+		Duration:  time.Duration(h.DurationS) * time.Second,
 		CreatedAt: h.CreatedAt.Time,
 	}
 }

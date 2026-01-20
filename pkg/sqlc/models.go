@@ -207,6 +207,8 @@ type Highlight struct {
 	FileID    pgtype.Text
 	FileWebID pgtype.Text
 	Title     string
+	Round     int32
+	DurationS int32
 	CreatedAt pgtype.Timestamptz
 }
 
