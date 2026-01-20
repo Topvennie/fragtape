@@ -42,5 +42,7 @@ export namespace API {
 
   export interface Highlight extends Base {
     title: string;
+    round: number;
+    duration_s: number;
   }
 }
