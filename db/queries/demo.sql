@@ -3,11 +3,10 @@ SELECT *
 FROM demos
 WHERE id = $1;
 
--- name: DemoGetByUserPopulated :many
-SELECT sqlc.embed(d), sqlc.embed(sd)
+-- name: DemoGetByUser :many
+SELECT d.*
 FROM demos d
 LEFT JOIN stats s ON s.demo_id = d.id
-LEFT JOIN stats_demos sd ON sd.demo_id = d.id
 WHERE s.user_id = $1
 ORDER BY d.created_at DESC;
 

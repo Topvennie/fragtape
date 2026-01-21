@@ -3,6 +3,11 @@ SELECT *
 FROM stats_demos
 WHERE demo_id = $1;
 
+-- name: StatsDemoGetByDemos :many
+SELECT *
+FROM stats_demos
+WHERE demo_id = ANY($1::int[]);
+
 -- name: StatsDemoCreate :one
 INSERT INTO stats_demos (demo_id, map, rounds_ct, rounds_t)
 VALUES ($1, $2, $3, $4)

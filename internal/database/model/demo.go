@@ -38,9 +38,6 @@ type Demo struct {
 	Error           string
 	StatusUpdatedAt time.Time
 	CreatedAt       time.Time
-
-	// Non db fields
-	Stat StatsDemo
 }
 
 func DemoModel(d sqlc.Demo) *Demo {

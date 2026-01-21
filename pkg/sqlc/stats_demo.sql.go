@@ -55,6 +55,38 @@ func (q *Queries) StatsDemoGetByDemo(ctx context.Context, demoID int32) (StatsDe
 	return i, err
 }
 
+const statsDemoGetByDemos = `-- name: StatsDemoGetByDemos :many
+SELECT id, demo_id, map, rounds_ct, rounds_t
+FROM stats_demos
+WHERE demo_id = ANY($1::int[])
+`
+
+func (q *Queries) StatsDemoGetByDemos(ctx context.Context, dollar_1 []int32) ([]StatsDemo, error) {
+	rows, err := q.db.Query(ctx, statsDemoGetByDemos, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []StatsDemo
+	for rows.Next() {
+		var i StatsDemo
+		if err := rows.Scan(
+			&i.ID,
+			&i.DemoID,
+			&i.Map,
+			&i.RoundsCt,
+			&i.RoundsT,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const statsDemoUpdate = `-- name: StatsDemoUpdate :exec
 UPDATE stats_demos
 SET map = $2, rounds_ct = $3, rounds_ct = $4, rounds_t = $5

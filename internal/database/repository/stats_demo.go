@@ -8,6 +8,7 @@ import (
 
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/pkg/sqlc"
+	"github.com/topvennie/fragtape/pkg/utils"
 )
 
 type StatsDemo struct {
@@ -30,6 +31,18 @@ func (s *StatsDemo) GetByDemo(ctx context.Context, id int) (*model.StatsDemo, er
 	}
 
 	return model.StatsDemoModel(stat), nil
+}
+
+func (s *StatsDemo) GetByDemos(ctx context.Context, demoIDs []int) ([]*model.StatsDemo, error) {
+	stats, err := s.repo.queries(ctx).StatsDemoGetByDemos(ctx, utils.SliceMap(demoIDs, func(id int) int32 { return int32(id) }))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get stats demo with demo id %+v | %w", demoIDs, err)
+	}
+
+	return utils.SliceMap(stats, model.StatsDemoModel), nil
 }
 
 func (s *StatsDemo) Create(ctx context.Context, stat *model.StatsDemo) error {

@@ -33,8 +33,8 @@ func (d *Demo) Get(ctx context.Context, demoID int) (*model.Demo, error) {
 	return model.DemoModel(demo), nil
 }
 
-func (d *Demo) GetByUserPopulated(ctx context.Context, userID int) ([]*model.Demo, error) {
-	demos, err := d.repo.queries(ctx).DemoGetByUserPopulated(ctx, int32(userID))
+func (d *Demo) GetByUser(ctx context.Context, userID int) ([]*model.Demo, error) {
+	demos, err := d.repo.queries(ctx).DemoGetByUser(ctx, int32(userID))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -42,12 +42,7 @@ func (d *Demo) GetByUserPopulated(ctx context.Context, userID int) ([]*model.Dem
 		return nil, fmt.Errorf("get demos by user %d | %w", userID, err)
 	}
 
-	return utils.SliceMap(demos, func(d sqlc.DemoGetByUserPopulatedRow) *model.Demo {
-		demo := model.DemoModel(d.Demo)
-		demo.Stat = *model.StatsDemoModel(d.StatsDemo)
-
-		return demo
-	}), nil
+	return utils.SliceMap(demos, model.DemoModel), nil
 }
 
 func (d *Demo) GetByStatus(ctx context.Context, status model.DemoStatus) ([]*model.Demo, error) {
