@@ -147,45 +147,34 @@ func (q *Queries) DemoGetByStatusUpdateAtomic(ctx context.Context, arg DemoGetBy
 	return items, nil
 }
 
-const demoGetByUserPopulated = `-- name: DemoGetByUserPopulated :many
-SELECT d.id, d.source, d.source_id, d.file_id, d.data_id, d.status, d.attempts, d.error, d.status_updated_at, d.created_at, sd.id, sd.demo_id, sd.map, sd.rounds_ct, sd.rounds_t
+const demoGetByUser = `-- name: DemoGetByUser :many
+SELECT d.id, d.source, d.source_id, d.file_id, d.data_id, d.status, d.attempts, d.error, d.status_updated_at, d.created_at
 FROM demos d
 LEFT JOIN stats s ON s.demo_id = d.id
-LEFT JOIN stats_demos sd ON sd.demo_id = d.id
 WHERE s.user_id = $1
 ORDER BY d.created_at DESC
 `
 
-type DemoGetByUserPopulatedRow struct {
-	Demo      Demo
-	StatsDemo StatsDemo
-}
-
-func (q *Queries) DemoGetByUserPopulated(ctx context.Context, userID int32) ([]DemoGetByUserPopulatedRow, error) {
-	rows, err := q.db.Query(ctx, demoGetByUserPopulated, userID)
+func (q *Queries) DemoGetByUser(ctx context.Context, userID int32) ([]Demo, error) {
+	rows, err := q.db.Query(ctx, demoGetByUser, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []DemoGetByUserPopulatedRow
+	var items []Demo
 	for rows.Next() {
-		var i DemoGetByUserPopulatedRow
+		var i Demo
 		if err := rows.Scan(
-			&i.Demo.ID,
-			&i.Demo.Source,
-			&i.Demo.SourceID,
-			&i.Demo.FileID,
-			&i.Demo.DataID,
-			&i.Demo.Status,
-			&i.Demo.Attempts,
-			&i.Demo.Error,
-			&i.Demo.StatusUpdatedAt,
-			&i.Demo.CreatedAt,
-			&i.StatsDemo.ID,
-			&i.StatsDemo.DemoID,
-			&i.StatsDemo.Map,
-			&i.StatsDemo.RoundsCt,
-			&i.StatsDemo.RoundsT,
+			&i.ID,
+			&i.Source,
+			&i.SourceID,
+			&i.FileID,
+			&i.DataID,
+			&i.Status,
+			&i.Attempts,
+			&i.Error,
+			&i.StatusUpdatedAt,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}

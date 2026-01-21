@@ -20,6 +20,7 @@ type Demo struct {
 	demo      repository.Demo
 	highlight repository.Highlight
 	stat      repository.Stat
+	statsDemo repository.StatsDemo
 	user      repository.User
 }
 
@@ -29,18 +30,30 @@ func (s *Service) NewDemo() *Demo {
 		demo:      *s.repo.NewDemo(),
 		highlight: *s.repo.NewHighlight(),
 		stat:      *s.repo.NewStat(),
+		statsDemo: *s.repo.NewStatsDemo(),
 		user:      *s.repo.NewUser(),
 	}
 }
 
 func (d *Demo) GetAll(ctx context.Context, userID int) ([]dto.Demo, error) {
-	demosModel, err := d.demo.GetByUserPopulated(ctx, userID)
+	demosModel, err := d.demo.GetByUser(ctx, userID)
 	if err != nil {
 		zap.S().Error(err)
 		return nil, fiber.ErrInternalServerError
 	}
 
 	demoIDs := utils.SliceMap(demosModel, func(d *model.Demo) int { return d.ID })
+
+	statsDemosModel, err := d.statsDemo.GetByDemos(ctx, demoIDs)
+	if err != nil {
+		zap.S().Error(err)
+		return nil, fiber.ErrInternalServerError
+	}
+
+	statsDemosMap := make(map[int]*model.StatsDemo)
+	for _, s := range statsDemosModel {
+		statsDemosMap[s.DemoID] = s
+	}
 
 	statsModel, err := d.stat.GetByDemos(ctx, demoIDs)
 	if err != nil {
@@ -95,7 +108,9 @@ func (d *Demo) GetAll(ctx context.Context, userID int) ([]dto.Demo, error) {
 	demos := make([]dto.Demo, 0, len(demosModel))
 	for _, demoModel := range demosModel {
 		demo := dto.DemoDTO(demoModel)
-		demo.Stats = dto.StatsDemoDTO(&demoModel.Stat)
+		if stat, ok := statsDemosMap[demo.ID]; ok {
+			demo.Stats = dto.StatsDemoDTO(stat)
+		}
 
 		stats, ok := statMap[demo.ID]
 		if !ok {
@@ -137,6 +152,14 @@ func (d *Demo) Upload(ctx context.Context, userID int, file []byte) error {
 
 	return d.service.withRollback(ctx, func(c context.Context) error {
 		if err := d.demo.Create(ctx, demo); err != nil {
+			zap.S().Error(err)
+			return fiber.ErrInternalServerError
+		}
+
+		if err := d.stat.Create(ctx, &model.Stat{
+			DemoID: demo.ID,
+			UserID: userID,
+		}); err != nil {
 			zap.S().Error(err)
 			return fiber.ErrInternalServerError
 		}
