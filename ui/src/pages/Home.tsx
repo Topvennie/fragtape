@@ -46,7 +46,7 @@ export const Home = () => {
   return (
     <Stack>
       <Group justify="space-between">
-        <Title order={2} className="font-bold">Recent Demos</Title>
+        <Title order={2} className="font-bold">Recent Matches</Title>
         <FileButton onChange={handleUpload}>
           {props => <Button loading={uploading} {...props}>Upload</Button>}
         </FileButton>
