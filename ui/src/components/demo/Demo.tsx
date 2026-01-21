@@ -7,6 +7,7 @@ import { Button, Collapse } from "@mantine/core"
 import { ReactNode, useMemo, useState } from "react"
 import { LuChevronDown, LuClapperboard } from "react-icons/lu"
 import { Card } from "../atoms/Card"
+import { LoadableImage } from "../atoms/LoadableImage"
 import { HighlightCarousel } from "../highlight/HighlightCarousel"
 import { FragtapeIcon } from "../icons/FragtapeIcon"
 import { DemoThumbnail } from "./DemoThumbnail"
@@ -22,8 +23,28 @@ const resultColor: Record<Result, string> = {
 }
 
 export const Demo = ({ demo }: Props) => {
-  const { user } = useAuth()
+  const content = useMemo(() => {
+    switch (demo.status) {
+      case DemoStatus.QueuedParse:
+      case DemoStatus.Parsing:
+        return <Loading />
+      case DemoStatus.Failed:
+        return <Failed />
+      default:
+        return <Success demo={demo} />
+    }
+  }, [demo])
 
+  return (
+    <Card>
+      {content}
+    </Card>
+  )
+
+}
+
+const Success = ({ demo }: Props) => {
+  const { user } = useAuth()
   const [clips, setClips] = useState(false)
 
   const highlights = useMemo(() => demo.players.flatMap(p => p.highlights), [demo])
@@ -40,48 +61,62 @@ export const Demo = ({ demo }: Props) => {
     return `${loserRounds} - ${winnerRounds}`
   }
 
-
   return (
-    <Card>
-      <div className="flex flex-col">
-        <div className="flex gap-4">
-          <div className="w-62 aspect-video rounded-md overflow-hidden">
-            <DemoThumbnail demo={demo} />
-          </div>
-          <div className="flex justify-between w-full">
-            <div className="flex flex-col gap-2 justify-center">
-              <div className="flex items-center gap-4">
-                <p className={`text-2xl font-bold uppercase ${resultColor[player.stat.result]}`}>{resultString[player.stat.result]}</p>
-                <p className="text-xl text-white">{score()}</p>
-              </div>
-              <div className="space-x-4 text-secondary">
-                K <span className="text-white">{player.stat.kills}</span>
-                D <span className="text-white">{player.stat.deaths}</span>
-                A <span className="text-white">{player.stat.assists}</span>
-              </div>
-              <ClipBadge demo={demo} highlights={highlights} />
+    <div className="flex flex-col">
+      <div className="flex gap-4">
+        <div className="w-64 aspect-video shrink-0 rounded-md overflow-hidden">
+          <DemoThumbnail demo={demo} />
+        </div>
+        <div className="flex justify-between w-full">
+          <div className="flex flex-col gap-2 justify-center">
+            <div className="flex items-center gap-4">
+              <p className={`text-2xl font-bold uppercase ${resultColor[player.stat.result]}`}>{resultString[player.stat.result]}</p>
+              <p className="text-xl text-white">{score()}</p>
             </div>
-            <div className="flex flex-col items-end justify-between">
-              <div>
-                <p className="text-secondary">{formatDate(demo.createdAt)}</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <p className="text-secondary">In group</p>
-                <Button variant="subtle" color="muted" onClick={() => setClips(prev => !prev)} rightSection={<LuChevronDown className={`transform duration-300 ${clips ? "rotate-180" : ""}`} />}>
-                  {`${clips ? "Hide" : "Show"} clips`}
-                </Button>
-              </div>
+            <div className="space-x-4 text-secondary">
+              K <span className="text-white">{player.stat.kills}</span>
+              D <span className="text-white">{player.stat.deaths}</span>
+              A <span className="text-white">{player.stat.assists}</span>
+            </div>
+            <ClipBadge demo={demo} highlights={highlights} />
+          </div>
+          <div className="flex flex-col items-end justify-between">
+            <div>
+              <p className="text-secondary">{formatDate(demo.createdAt)}</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <p className="text-secondary">In group</p>
+              <Button variant="subtle" color="muted" onClick={() => setClips(prev => !prev)} rightSection={<LuChevronDown className={`transform duration-300 ${clips ? "rotate-180" : ""}`} />}>
+                {`${clips ? "Hide" : "Show"} clips`}
+              </Button>
             </div>
           </div>
         </div>
-        <Collapse in={clips}>
-          <div className="pt-8">
-            <HighlightCarousel highlights={highlights} />
-          </div>
-        </Collapse>
       </div>
-    </Card>
+      <Collapse in={clips}>
+        <div className="pt-8">
+          <HighlightCarousel highlights={highlights} />
+        </div>
+      </Collapse>
+    </div>
   )
+}
+
+const Loading = () => {
+  return (
+    <div className="flex gap-4">
+      <div className="w-64 aspect-video shrink-0 rounded-md overflow-hidden">
+        <LoadableImage />
+      </div>
+      <div className="flex flex-col gap-2 justify-center">
+        <p className="text-2xl font-bold text-secondary">Processing match...</p>
+      </div>
+    </div>
+  )
+}
+
+const Failed = () => {
+  return <p>Failed</p>
 }
 
 const ClipBadge = ({ demo, highlights }: { demo: DemoType, highlights: Highlight[] }) => {
