@@ -3,9 +3,9 @@ import { DemoStatus, Demo as DemoType } from "@/lib/types/demo"
 import { Highlight } from "@/lib/types/highlight"
 import { Result, resultString } from "@/lib/types/stat"
 import { formatDate } from "@/lib/utils"
-import { Button, Collapse } from "@mantine/core"
+import { Button, Center, Collapse } from "@mantine/core"
 import { ReactNode, useMemo, useState } from "react"
-import { LuChevronDown, LuClapperboard } from "react-icons/lu"
+import { LuChevronDown, LuClapperboard, LuTriangleAlert } from "react-icons/lu"
 import { Card } from "../atoms/Card"
 import { LoadableImage } from "../atoms/LoadableImage"
 import { HighlightCarousel } from "../highlight/HighlightCarousel"
@@ -116,7 +116,19 @@ const Loading = () => {
 }
 
 const Failed = () => {
-  return <p>Failed</p>
+  return (
+    <div className="flex gap-4">
+      <div className="w-64 aspect-video shrink-0 rounded-md overflow-hidden">
+        <Center className="h-full">
+          <LuTriangleAlert className="size-12 text-red-400" />
+        </Center>
+      </div>
+      <div className="flex flex-col gap-2 justify-center">
+        <p className="text-2xl font-bold text-red-400">Highlight generation failed</p>
+        <p className="text-secondary">{`We couldn't process this match`}</p>
+      </div>
+    </div>
+  )
 }
 
 const ClipBadge = ({ demo, highlights }: { demo: DemoType, highlights: Highlight[] }) => {

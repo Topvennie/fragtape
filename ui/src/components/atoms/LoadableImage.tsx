@@ -17,6 +17,7 @@ export const LoadableImage = ({ className, ...props }: Props) => {
 
       <img
         onLoad={() => setLoaded(true)}
+        loading="lazy"
         className={cn(`h-full w-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`, className)}
         {...props}
       />
