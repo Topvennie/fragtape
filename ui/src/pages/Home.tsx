@@ -1,8 +1,9 @@
 import { Title } from "@/components/atoms/Title"
 import { Demo } from "@/components/demo/Demo"
+import { FragtapeIcon } from "@/components/icons/FragtapeIcon"
 import { useDemoGetAll, useDemoUpload } from "@/lib/api/demo"
 import { getErrorMessage } from "@/lib/utils"
-import { Button, FileButton, Group, Stack } from "@mantine/core"
+import { Button, Center, FileButton, Group, Stack } from "@mantine/core"
 import { notifications } from "@mantine/notifications"
 import { useMemo, useState } from "react"
 import { LuCircleCheckBig, LuClock } from "react-icons/lu"
@@ -29,7 +30,11 @@ export const Home = () => {
   }
 
   const content = useMemo(() => {
-    if (isLoading) return <button>Loading</button>
+    if (isLoading) return (
+      <Center className="mt-48">
+        <FragtapeIcon animated className="size-36 text-(--mantine-color-primary-6)" />
+      </Center>
+    )
     if (demos?.length === 0) return <NoDemos />
     return (
       <>
