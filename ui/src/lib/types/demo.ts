@@ -20,7 +20,7 @@ export enum DemoStatus {
   Parsing = "parsing",
   QueuedRender = "queued_render",
   Rendering = "rendering",
-  Completed = "completed",
+  Finished = "finished",
   Failed = "failed",
 }
 
