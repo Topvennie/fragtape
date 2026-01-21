@@ -7,6 +7,8 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const statCreate = `-- name: StatCreate :one
@@ -18,11 +20,11 @@ RETURNING id
 type StatCreateParams struct {
 	DemoID    int32
 	UserID    int32
-	Result    Result
-	StartTeam Team
-	Kills     int32
-	Assists   int32
-	Deaths    int32
+	Result    NullResult
+	StartTeam NullTeam
+	Kills     pgtype.Int4
+	Assists   pgtype.Int4
+	Deaths    pgtype.Int4
 }
 
 func (q *Queries) StatCreate(ctx context.Context, arg StatCreateParams) (int32, error) {
@@ -38,6 +40,41 @@ func (q *Queries) StatCreate(ctx context.Context, arg StatCreateParams) (int32, 
 	var id int32
 	err := row.Scan(&id)
 	return id, err
+}
+
+const statGetByDemo = `-- name: StatGetByDemo :many
+SELECT id, demo_id, user_id, result, start_team, kills, assists, deaths
+FROM stats
+WHERE demo_id = $1
+`
+
+func (q *Queries) StatGetByDemo(ctx context.Context, demoID int32) ([]Stat, error) {
+	rows, err := q.db.Query(ctx, statGetByDemo, demoID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Stat
+	for rows.Next() {
+		var i Stat
+		if err := rows.Scan(
+			&i.ID,
+			&i.DemoID,
+			&i.UserID,
+			&i.Result,
+			&i.StartTeam,
+			&i.Kills,
+			&i.Assists,
+			&i.Deaths,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const statGetByDemos = `-- name: StatGetByDemos :many
@@ -73,4 +110,31 @@ func (q *Queries) StatGetByDemos(ctx context.Context, dollar_1 []int32) ([]Stat,
 		return nil, err
 	}
 	return items, nil
+}
+
+const statUpdate = `-- name: StatUpdate :exec
+UPDATE stats
+SET result = $2, start_team = $3, kills = $4, assists = $5, deaths = $6
+WHERE id = $1
+`
+
+type StatUpdateParams struct {
+	ID        int32
+	Result    NullResult
+	StartTeam NullTeam
+	Kills     pgtype.Int4
+	Assists   pgtype.Int4
+	Deaths    pgtype.Int4
+}
+
+func (q *Queries) StatUpdate(ctx context.Context, arg StatUpdateParams) error {
+	_, err := q.db.Exec(ctx, statUpdate,
+		arg.ID,
+		arg.Result,
+		arg.StartTeam,
+		arg.Kills,
+		arg.Assists,
+		arg.Deaths,
+	)
+	return err
 }

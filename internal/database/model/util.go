@@ -12,14 +12,13 @@ func fromString(s pgtype.Text) string {
 	return ""
 }
 
-// Uncomment when used
-// func fromInt(i pgtype.Int4) int {
-// 	if i.Valid {
-// 		return int(i.Int32)
-// 	}
-//
-// 	return 0
-// }
+func fromInt(i pgtype.Int4) int {
+	if i.Valid {
+		return int(i.Int32)
+	}
+
+	return 0
+}
 
 // Uncomment when used
 // func fromBool(b pgtype.Bool) *bool {

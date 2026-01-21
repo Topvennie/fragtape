@@ -8,11 +8,11 @@ CREATE TABLE stats (
   id SERIAL PRIMARY KEY,
   demo_id INTEGER NOT NULL REFERENCES demos (id) ON DELETE CASCADE,
   user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-  result RESULT NOT NULL,
-  start_team TEAM NOT NULL,
-  kills INTEGER NOT NULL,
-  assists INTEGER NOT NULL,
-  deaths INTEGER NOT NULL,
+  result RESULT,
+  start_team TEAM,
+  kills INTEGER,
+  assists INTEGER,
+  deaths INTEGER,
 
   UNIQUE (demo_id, user_id)
 );

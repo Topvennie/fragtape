@@ -14,8 +14,8 @@ func StatsDemoModel(s sqlc.StatsDemo) *StatsDemo {
 	return &StatsDemo{
 		ID:       int(s.ID),
 		DemoID:   int(s.DemoID),
-		Map:      s.Map,
-		RoundsCT: int(s.RoundsCt),
-		RoundsT:  int(s.RoundsT),
+		Map:      fromString(s.Map),
+		RoundsCT: fromInt(s.RoundsCt),
+		RoundsT:  fromInt(s.RoundsT),
 	}
 }

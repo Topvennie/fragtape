@@ -3,9 +3,11 @@
 CREATE TABLE stats_demos (
   id SERIAL PRIMARY KEY,
   demo_id INTEGER NOT NULL REFERENCES demos (id) ON DELETE CASCADE,
-  map TEXT NOT NULL,
-  rounds_ct INTEGER NOT NULL,
-  rounds_t INTEGER NOT NULL
+  map TEXT,
+  rounds_ct INTEGER,
+  rounds_t INTEGER,
+
+  UNIQUE (demo_id)
 );
 -- +goose StatementEnd
 
