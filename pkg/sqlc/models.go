@@ -223,19 +223,19 @@ type Stat struct {
 	ID        int32
 	DemoID    int32
 	UserID    int32
-	Result    Result
-	StartTeam Team
-	Kills     int32
-	Assists   int32
-	Deaths    int32
+	Result    NullResult
+	StartTeam NullTeam
+	Kills     pgtype.Int4
+	Assists   pgtype.Int4
+	Deaths    pgtype.Int4
 }
 
 type StatsDemo struct {
 	ID       int32
 	DemoID   int32
-	Map      string
-	RoundsCt int32
-	RoundsT  int32
+	Map      pgtype.Text
+	RoundsCt pgtype.Int4
+	RoundsT  pgtype.Int4
 }
 
 type User struct {

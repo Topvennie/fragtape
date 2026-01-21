@@ -122,7 +122,11 @@ func (p *Parser) loop(ctx context.Context) error {
 					return
 				}
 
-				statsDemo := p.getStatsDemo(*d, *match)
+				statsDemo, err := p.getStatsDemo(ctx, *d, *match)
+				if err != nil {
+					save(loopResult{err: err})
+					return
+				}
 
 				stats, err := p.getStats(ctx, *d, *match)
 				if err != nil {
@@ -161,13 +165,25 @@ func (p *Parser) loop(ctx context.Context) error {
 				// But nice safety just in case
 				// Create stat and highlight db entries
 				if result.err == nil {
-					if err := p.statsDemo.Create(ctx, result.statsDemo); err != nil {
-						return err
+					if result.statsDemo.ID == 0 {
+						if err := p.statsDemo.Create(ctx, result.statsDemo); err != nil {
+							return err
+						}
+					} else {
+						if err := p.statsDemo.Update(ctx, *result.statsDemo); err != nil {
+							return err
+						}
 					}
 
 					for i := range result.stats {
-						if err := p.stat.Create(ctx, result.stats[i]); err != nil {
-							return err
+						if result.stats[i].ID == 0 {
+							if err := p.stat.Create(ctx, result.stats[i]); err != nil {
+								return err
+							}
+						} else {
+							if err := p.stat.Update(ctx, *result.stats[i]); err != nil {
+								return err
+							}
 						}
 					}
 

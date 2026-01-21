@@ -90,8 +90,12 @@ func (p *Parser) savePlayers(ctx context.Context, match demo.Match) error {
 	return nil
 }
 
-func (p *Parser) getStatsDemo(d model.Demo, m demo.Match) *model.StatsDemo {
-	// TODO: Delete existing stats
+func (p *Parser) getStatsDemo(ctx context.Context, d model.Demo, m demo.Match) (*model.StatsDemo, error) {
+	statDB, err := p.statsDemo.GetByDemo(ctx, d.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	stat := &model.StatsDemo{
 		DemoID:   d.ID,
 		Map:      m.Map,
@@ -99,7 +103,12 @@ func (p *Parser) getStatsDemo(d model.Demo, m demo.Match) *model.StatsDemo {
 		RoundsT:  m.RoundsT,
 	}
 
-	return stat
+	// Add id if it already exists
+	if statDB != nil {
+		stat.ID = statDB.ID
+	}
+
+	return stat, nil
 }
 
 func (p *Parser) getStats(ctx context.Context, d model.Demo, m demo.Match) ([]*model.Stat, error) {
@@ -107,7 +116,11 @@ func (p *Parser) getStats(ctx context.Context, d model.Demo, m demo.Match) ([]*m
 		return nil, nil
 	}
 
-	// TODO: Delete existing stats
+	statsDB, err := p.stat.GetByDemo(ctx, d.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	stats := make(map[demo.PlayerID]*model.Stat)
 
 	for _, player := range m.Players {
@@ -138,11 +151,18 @@ func (p *Parser) getStats(ctx context.Context, d model.Demo, m demo.Match) ([]*m
 			}
 		}
 
-		stats[player.SteamID] = &model.Stat{
+		stat := &model.Stat{
 			DemoID: d.ID,
 			UserID: user.ID,
 			Result: result,
 		}
+
+		// Add id if it already exists
+		if statDB, ok := utils.SliceFind(statsDB, func(s *model.Stat) bool { return s.UserID == user.ID }); ok {
+			stat.ID = (*statDB).ID
+		}
+
+		stats[player.SteamID] = stat
 	}
 
 	for _, r := range m.Rounds {

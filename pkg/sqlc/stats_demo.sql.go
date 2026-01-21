@@ -7,6 +7,8 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const statsDemoCreate = `-- name: StatsDemoCreate :one
@@ -17,9 +19,9 @@ RETURNING id
 
 type StatsDemoCreateParams struct {
 	DemoID   int32
-	Map      string
-	RoundsCt int32
-	RoundsT  int32
+	Map      pgtype.Text
+	RoundsCt pgtype.Int4
+	RoundsT  pgtype.Int4
 }
 
 func (q *Queries) StatsDemoCreate(ctx context.Context, arg StatsDemoCreateParams) (int32, error) {
@@ -32,4 +34,48 @@ func (q *Queries) StatsDemoCreate(ctx context.Context, arg StatsDemoCreateParams
 	var id int32
 	err := row.Scan(&id)
 	return id, err
+}
+
+const statsDemoGetByDemo = `-- name: StatsDemoGetByDemo :one
+SELECT id, demo_id, map, rounds_ct, rounds_t
+FROM stats_demos
+WHERE demo_id = $1
+`
+
+func (q *Queries) StatsDemoGetByDemo(ctx context.Context, demoID int32) (StatsDemo, error) {
+	row := q.db.QueryRow(ctx, statsDemoGetByDemo, demoID)
+	var i StatsDemo
+	err := row.Scan(
+		&i.ID,
+		&i.DemoID,
+		&i.Map,
+		&i.RoundsCt,
+		&i.RoundsT,
+	)
+	return i, err
+}
+
+const statsDemoUpdate = `-- name: StatsDemoUpdate :exec
+UPDATE stats_demos
+SET map = $2, rounds_ct = $3, rounds_ct = $4, rounds_t = $5
+WHERE id = $1
+`
+
+type StatsDemoUpdateParams struct {
+	ID         int32
+	Map        pgtype.Text
+	RoundsCt   pgtype.Int4
+	RoundsCt_2 pgtype.Int4
+	RoundsT    pgtype.Int4
+}
+
+func (q *Queries) StatsDemoUpdate(ctx context.Context, arg StatsDemoUpdateParams) error {
+	_, err := q.db.Exec(ctx, statsDemoUpdate,
+		arg.ID,
+		arg.Map,
+		arg.RoundsCt,
+		arg.RoundsCt_2,
+		arg.RoundsT,
+	)
+	return err
 }
