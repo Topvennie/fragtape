@@ -37,6 +37,7 @@ func NewPSQL(cfg PostgresCfg) (DB, error) {
 	pgConfig.ConnConfig.Database = cfg.Database
 	pgConfig.ConnConfig.User = cfg.User
 	pgConfig.ConnConfig.Password = cfg.Password
+	pgConfig.ConnConfig.TLSConfig = nil
 
 	pool, err := pgxpool.NewWithConfig(context.Background(), pgConfig)
 	if err != nil {

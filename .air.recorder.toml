@@ -2,8 +2,8 @@ root = "."
 tmp_dir = "tmp_recorder"
 
 [build]
-entrypoint = "recorder"
-cmd = "make build-recorder"
+entrypoint = "/bin/true"
+cmd = "make build-recorder-win"
 delay = 1000
 exclude_dir = [
   "cmd/server",
@@ -14,10 +14,11 @@ exclude_dir = [
   "tmp_worker",
   "tmp_server",
   "screenshots",
+  "dist",
 ]
 include_ext = ["go"]
 kill_delay = "0s"
-log = "build-recorder-errors.log"
+log = "logs/build-recorder-errors.log"
 
 [color]
 main = "cyan"

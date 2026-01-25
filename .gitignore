@@ -12,8 +12,11 @@ tmp*/
 !.env.prod.example
 
 # Project build
-/server
-/worker
-/recorder
-/migrate
+dist/
+
+# Logs
+logs/
+
+# Overwrite docker file
+docker-compose.override.yml
 

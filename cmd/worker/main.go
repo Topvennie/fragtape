@@ -19,7 +19,11 @@ func main() {
 		panic(fmt.Errorf("initialize config %w", err))
 	}
 
-	zapLogger, err := logger.New()
+	loggerFile := config.GetDefaultString("worker.logger.file", "")
+	zapLogger, err := logger.New(logger.Config{
+		Console: true,
+		File:    loggerFile,
+	})
 	if err != nil {
 		panic(fmt.Errorf("initialize logger %w", err))
 	}
@@ -58,18 +62,18 @@ func main() {
 
 	zap.S().Info("Worker is running")
 
-	fmt.Println()
-	fmt.Println("┌──────────────────────────────────────────┐")
-	fmt.Println("│              Fragtape Worker             │")
-	fmt.Println("│                                          │")
-	fmt.Println("│  Parser                                  │")
-	fmt.Printf("│    Interval       %-22s │\n", config.GetDefaultDurationS("worker.parser.interval_s", 60))
-	fmt.Printf("│    Concurrency    %-22d │\n", config.GetDefaultInt("worker.parser.concurrent", 8))
-	fmt.Println("│  Finalizer                               │")
-	fmt.Printf("│    Interval       %-22s │\n", config.GetDefaultDurationS("worker.finalizer.interval_s", 60))
-	fmt.Printf("│    Concurrency    %-22d │\n", config.GetDefaultInt("worker.finalizer.concurrent", 8))
-	fmt.Println("└──────────────────────────────────────────┘")
-	fmt.Println()
+	zap.S().Info()
+	zap.S().Info("┌──────────────────────────────────────────┐")
+	zap.S().Info("│              Fragtape Worker             │")
+	zap.S().Info("│                                          │")
+	zap.S().Info("│  Parser                                  │")
+	zap.S().Infof("│    Interval       %-22s │\n", config.GetDefaultDurationS("worker.parser.interval_s", 60))
+	zap.S().Infof("│    Concurrency    %-22d │\n", config.GetDefaultInt("worker.parser.concurrent", 8))
+	zap.S().Info("│  Finalizer                               │")
+	zap.S().Infof("│    Interval       %-22s │\n", config.GetDefaultDurationS("worker.finalizer.interval_s", 60))
+	zap.S().Infof("│    Concurrency    %-22d │\n", config.GetDefaultInt("worker.finalizer.concurrent", 8))
+	zap.S().Info("└──────────────────────────────────────────┘")
+	zap.S().Info()
 
 	// Wait indefinitely
 	for {
