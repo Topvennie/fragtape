@@ -16,7 +16,7 @@ import (
 const maxAttempts = 3
 
 type Recorder struct {
-	capture capture.Capturer
+	capturer capture.Capturer
 
 	demo      repository.Demo
 	highlight repository.Highlight
@@ -31,7 +31,7 @@ func New(repo repository.Repository) (*Recorder, error) {
 	}
 
 	return &Recorder{
-		capture:   *capturer,
+		capturer:  *capturer,
 		demo:      *repo.NewDemo(),
 		highlight: *repo.NewHighlight(),
 		interval:  config.GetDefaultDurationS("recorder.interval_s", 60),
@@ -76,7 +76,7 @@ func (r *Recorder) loop(ctx context.Context) error {
 	for len(demos) > 0 {
 		demo := demos[0]
 
-		err = r.capture.Start(ctx, *demo)
+		err = r.capturer.Capture(ctx, *demo)
 		if err != nil {
 			// Something failed
 			// Clean up

@@ -59,6 +59,8 @@ worker:
 recorder:
   interval_s: 60
   dummy_data: false
+  hlae_path: "C:\\Program Files (x86)\\HLAE"
+  cs2_path: "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Counter-Strike Global Offensive"
 
   logger:
     file: recorder

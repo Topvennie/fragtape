@@ -28,8 +28,8 @@ func New(repo repository.Repository) *Finalizer {
 	return &Finalizer{
 		demo:       *repo.NewDemo(),
 		highlight:  *repo.NewHighlight(),
-		interval:   config.GetDefaultDurationS("worker.interval_s.finalizer", 60),
-		concurrent: config.GetDefaultInt("worker.concurrent.finalizer", 8),
+		interval:   config.GetDefaultDurationS("worker.finalizer.interval_s", 60),
+		concurrent: config.GetDefaultInt("worker.finalizer.concurrent", 8),
 	}
 }
 
