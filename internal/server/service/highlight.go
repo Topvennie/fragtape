@@ -28,7 +28,6 @@ func (h *Highlight) GetVideo(ctx context.Context, id int) ([]byte, error) {
 	if highlight == nil {
 		return nil, fiber.ErrNotFound
 	}
-	// TODO: Change to file web id
 	if highlight.FileID == "" {
 		return nil, fiber.ErrBadRequest
 	}

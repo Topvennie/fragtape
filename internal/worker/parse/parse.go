@@ -1,11 +1,6 @@
 // Package parse parses demos
 package parse
 
-// TODO: Cleanup data when the entire pipeline fails after x amount of attempts
-// Right now it leaves some data behind
-
-// TODO: Attempts go up one even when going to the next stage
-
 import (
 	"context"
 	"sync"

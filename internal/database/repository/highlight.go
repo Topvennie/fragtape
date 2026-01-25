@@ -92,11 +92,10 @@ func (h *Highlight) CreateSegment(ctx context.Context, segment *model.HighlightS
 
 func (h *Highlight) Update(ctx context.Context, highlight model.Highlight) error {
 	if err := h.repo.queries(ctx).HighlightUpdate(ctx, sqlc.HighlightUpdateParams{
-		ID:        int32(highlight.ID),
-		DemoID:    toInt(highlight.DemoID),
-		FileID:    toString(highlight.FileID),
-		FileWebID: toString(highlight.FileWebID),
-		Title:     toString(highlight.Title),
+		ID:     int32(highlight.ID),
+		DemoID: toInt(highlight.DemoID),
+		FileID: toString(highlight.FileID),
+		Title:  toString(highlight.Title),
 	}); err != nil {
 		return fmt.Errorf("update highlight %+v | %w", highlight, err)
 	}

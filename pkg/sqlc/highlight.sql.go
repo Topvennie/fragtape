@@ -40,7 +40,7 @@ func (q *Queries) HighlightCreate(ctx context.Context, arg HighlightCreateParams
 
 const highlightDeleteFile = `-- name: HighlightDeleteFile :exec
 UPDATE highlights
-SET file_id = NULL, file_web_id = NULL
+SET file_id = NULL
 WHERE id = $1
 `
 
@@ -50,7 +50,7 @@ func (q *Queries) HighlightDeleteFile(ctx context.Context, id int32) error {
 }
 
 const highlightGet = `-- name: HighlightGet :one
-SELECT id, user_id, demo_id, file_id, file_web_id, title, round, duration_s, created_at
+SELECT id, user_id, demo_id, file_id, title, round, duration_s, created_at
 FROM highlights
 WHERE id = $1
 `
@@ -63,7 +63,6 @@ func (q *Queries) HighlightGet(ctx context.Context, id int32) (Highlight, error)
 		&i.UserID,
 		&i.DemoID,
 		&i.FileID,
-		&i.FileWebID,
 		&i.Title,
 		&i.Round,
 		&i.DurationS,
@@ -73,7 +72,7 @@ func (q *Queries) HighlightGet(ctx context.Context, id int32) (Highlight, error)
 }
 
 const highlightGetByDemo = `-- name: HighlightGetByDemo :many
-SELECT id, user_id, demo_id, file_id, file_web_id, title, round, duration_s, created_at
+SELECT id, user_id, demo_id, file_id, title, round, duration_s, created_at
 FROM highlights
 WHERE demo_id = $1
 ORDER BY created_at
@@ -93,7 +92,6 @@ func (q *Queries) HighlightGetByDemo(ctx context.Context, demoID int32) ([]Highl
 			&i.UserID,
 			&i.DemoID,
 			&i.FileID,
-			&i.FileWebID,
 			&i.Title,
 			&i.Round,
 			&i.DurationS,
@@ -110,7 +108,7 @@ func (q *Queries) HighlightGetByDemo(ctx context.Context, demoID int32) ([]Highl
 }
 
 const highlightGetByDemos = `-- name: HighlightGetByDemos :many
-SELECT id, user_id, demo_id, file_id, file_web_id, title, round, duration_s, created_at
+SELECT id, user_id, demo_id, file_id, title, round, duration_s, created_at
 FROM highlights
 WHERE demo_id = ANY($1::int[])
 `
@@ -129,7 +127,6 @@ func (q *Queries) HighlightGetByDemos(ctx context.Context, dollar_1 []int32) ([]
 			&i.UserID,
 			&i.DemoID,
 			&i.FileID,
-			&i.FileWebID,
 			&i.Title,
 			&i.Round,
 			&i.DurationS,
@@ -150,17 +147,15 @@ UPDATE highlights
 SET 
   demo_id = coalesce($2, demo_id),
   file_id = coalesce($3, file_id),
-  file_web_id = coalesce($4, file_web_id),
-  title = coalesce($5, title)
+  title = coalesce($4, title)
 WHERE id = $1
 `
 
 type HighlightUpdateParams struct {
-	ID        int32
-	DemoID    pgtype.Int4
-	FileID    pgtype.Text
-	FileWebID pgtype.Text
-	Title     pgtype.Text
+	ID     int32
+	DemoID pgtype.Int4
+	FileID pgtype.Text
+	Title  pgtype.Text
 }
 
 func (q *Queries) HighlightUpdate(ctx context.Context, arg HighlightUpdateParams) error {
@@ -168,7 +163,6 @@ func (q *Queries) HighlightUpdate(ctx context.Context, arg HighlightUpdateParams
 		arg.ID,
 		arg.DemoID,
 		arg.FileID,
-		arg.FileWebID,
 		arg.Title,
 	)
 	return err
