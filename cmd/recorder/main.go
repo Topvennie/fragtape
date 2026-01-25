@@ -80,6 +80,7 @@ func main() {
 	zap.S().Info("│            Fragtape Recorder            │")
 	zap.S().Info("│                                         │")
 	zap.S().Infof("│  Interval       %-23s │\n", config.GetDefaultDurationS("recorder.interval_s", 60))
+	zap.S().Infof("│  Dummy          %-23t │\n", config.GetDefaultBool("recorder.dummy_data", false))
 	zap.S().Info("└─────────────────────────────────────────┘")
 	zap.S().Info()
 

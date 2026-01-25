@@ -1,20 +1,51 @@
+// Package capture converts a highlight to an actual video
 package capture
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"math/rand/v2"
-	"os"
 
-	"github.com/google/uuid"
 	"github.com/topvennie/fragtape/internal/database/model"
-	"github.com/topvennie/fragtape/pkg/storage"
+	"github.com/topvennie/fragtape/internal/database/repository"
+	"github.com/topvennie/fragtape/internal/recorder/capture/dummy"
+	"github.com/topvennie/fragtape/internal/recorder/capture/hlae"
+	"github.com/topvennie/fragtape/pkg/config"
 )
 
-const dummyDir = "./internal/recorder/capture/dummydata/"
+type Capturer struct {
+	repo      repository.Repository
+	highlight repository.Highlight
 
-func (c *Capturer) Start(ctx context.Context, demo model.Demo) error {
+	dummy bool
+
+	cDummy *dummy.Dummy
+	cHLAE  *hlae.Hlae
+}
+
+func New(repo repository.Repository) (*Capturer, error) {
+	capturer := &Capturer{
+		repo:      repo,
+		highlight: *repo.NewHighlight(),
+		dummy:     config.GetDefaultBool("recorder.dummy_data", false),
+	}
+
+	if capturer.dummy {
+		cDummy, err := dummy.New(repo)
+		if err != nil {
+			return nil, err
+		}
+		capturer.cDummy = cDummy
+	} else {
+		cHLAE, err := hlae.New(repo)
+		if err != nil {
+			return nil, err
+		}
+		capturer.cHLAE = cHLAE
+	}
+
+	return capturer, nil
+}
+
+func (c *Capturer) Capture(ctx context.Context, demo model.Demo) error {
 	highlightsAll, err := c.highlight.GetByDemo(ctx, demo.ID)
 	if err != nil {
 		return err
@@ -33,45 +64,15 @@ func (c *Capturer) Start(ctx context.Context, demo model.Demo) error {
 		return nil
 	}
 
-	// Actually render it now
 	if c.dummy {
-		return c.captureDummy(ctx, highlights)
+		err = c.cDummy.Capture(ctx, highlights)
+	} else {
+		err = c.cHLAE.Capture(ctx, demo, highlights)
 	}
 
-	return capture()
-}
-
-func (c *Capturer) captureDummy(ctx context.Context, highlights []model.Highlight) error {
-	dummyVideos, err := os.ReadDir(dummyDir)
 	if err != nil {
-		return fmt.Errorf("read dummy data dir %w", err)
-	}
-	if len(dummyVideos) == 0 {
-		return errors.New("no dummmy videos")
+		return err
 	}
 
-	// Cleanup is done by the recorder loop
-	for _, h := range highlights {
-		idx := rand.IntN(len(dummyVideos))
-		data, err := os.ReadFile(dummyDir + dummyVideos[idx].Name())
-		if err != nil {
-			return fmt.Errorf("read file %w", err)
-		}
-
-		h.FileID = uuid.NewString()
-
-		if err := storage.S.Set(h.FileID, data, 0); err != nil {
-			return fmt.Errorf("store file in storage %w", err)
-		}
-
-		if err := c.highlight.Update(ctx, h); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func capture() error {
 	return nil
 }
