@@ -11,7 +11,6 @@ type Highlight struct {
 	UserID    int
 	DemoID    int
 	FileID    string
-	FileWebID string
 	Title     string
 	Round     int
 	Duration  time.Duration
@@ -27,7 +26,6 @@ func HighlightModel(h sqlc.Highlight) *Highlight {
 		DemoID:    int(h.DemoID),
 		UserID:    int(h.UserID),
 		FileID:    fromString(h.FileID),
-		FileWebID: fromString(h.FileWebID),
 		Title:     h.Title,
 		Round:     int(h.Round),
 		Duration:  time.Duration(h.DurationS) * time.Second,

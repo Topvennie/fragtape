@@ -1,3 +1,4 @@
+// Package image contains image conversions helpers
 package image
 
 import (

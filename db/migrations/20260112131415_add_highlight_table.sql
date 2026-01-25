@@ -5,7 +5,6 @@ CREATE TABLE highlights (
   user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
   demo_id INTEGER NOT NULL REFERENCES demos (id) ON DELETE CASCADE,
   file_id TEXT,
-  file_web_id TEXT,
   title TEXT NOT NULL,
   round INTEGER NOT NULL,
   duration_s INTEGER NOT NULL,

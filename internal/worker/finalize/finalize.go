@@ -3,6 +3,7 @@ package finalize
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -137,8 +138,6 @@ func (f *Finalizer) loop(ctx context.Context) error {
 	return nil
 }
 
-// TODO:Delete demo file
-
 func (f *Finalizer) loopOne(ctx context.Context, demo *model.Demo) error {
 	_, err := f.highlight.GetByDemo(ctx, demo.ID)
 	if err != nil {
@@ -147,6 +146,10 @@ func (f *Finalizer) loopOne(ctx context.Context, demo *model.Demo) error {
 
 	// In the future generate thumbnail, convert to webm
 	// Send to discord, ...
+
+	if err := storage.S.Delete(demo.FileID); err != nil {
+		return fmt.Errorf("failed to delete demo file for demo %+v | %w", *demo, err)
+	}
 
 	return nil
 }

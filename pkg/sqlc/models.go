@@ -205,7 +205,6 @@ type Highlight struct {
 	UserID    int32
 	DemoID    int32
 	FileID    pgtype.Text
-	FileWebID pgtype.Text
 	Title     string
 	Round     int32
 	DurationS int32
