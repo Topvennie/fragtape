@@ -2,7 +2,7 @@ root = "."
 tmp_dir = "tmp_worker"
 
 [build]
-entrypoint = "worker"
+entrypoint = "dist/worker"
 cmd = "make build-worker"
 delay = 1000
 exclude_dir = [
@@ -14,10 +14,11 @@ exclude_dir = [
   "tmp_server",
   "tmp_recorder",
   "screenshots",
+  "dist",
 ]
 include_ext = ["go"]
 kill_delay = "0s"
-log = "build-worker-errors.log"
+log = "logs/build-worker-errors.log"
 
 [color]
 main = "green"

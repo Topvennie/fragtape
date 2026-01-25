@@ -12,6 +12,9 @@ server:
       callback_url: http://localhost:3001/api/auth/callback/steam
     redirect_url: http://localhost:3000
 
+  logger:
+    file:
+
   db:
     host:
     port:
@@ -37,6 +40,9 @@ worker:
     interval_s: 10
     concurrent: 1
 
+  logger:
+    file:
+
   db:
     host:
     port:
@@ -54,6 +60,9 @@ worker:
 recorder:
   interval_s: 10
   dummy_data: true
+
+  logger:
+    file: recorder
 
   db:
     host:

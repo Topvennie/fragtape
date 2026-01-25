@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"runtime/debug"
 
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/internal/recorder"
@@ -18,11 +20,29 @@ func main() {
 		panic(fmt.Errorf("initialize config %w", err))
 	}
 
-	zapLogger, err := logger.New()
+	loggerFile := config.GetDefaultString("recorder.logger.file", "recorder")
+	zapLogger, err := logger.New(logger.Config{
+		Console: true,
+		File:    loggerFile,
+	})
 	if err != nil {
 		panic(fmt.Errorf("initialize logger %w", err))
 	}
 	zap.ReplaceGlobals(zapLogger)
+
+	// Make sure that panics are logged to a file
+	defer func() {
+		if r := recover(); r != nil {
+			zap.L().Error("panic",
+				zap.Any("recover", r),
+				zap.ByteString("stack", debug.Stack()),
+			)
+
+			_ = zap.L().Sync()
+
+			os.Exit(1)
+		}
+	}()
 
 	db, err := db.NewPSQL(db.PostgresCfg{
 		Host:     config.GetDefaultString("recorder.db.host", "db"),
@@ -52,13 +72,13 @@ func main() {
 
 	zap.S().Info("Recorder is running")
 
-	fmt.Println()
-	fmt.Println("┌─────────────────────────────────────────┐")
-	fmt.Println("│            Fragtape Recorder            │")
-	fmt.Println("│                                         │")
-	fmt.Printf("│  Interval       %-23s │\n", config.GetDefaultDurationS("recorder.interval_s", 60))
-	fmt.Println("└─────────────────────────────────────────┘")
-	fmt.Println()
+	zap.S().Info()
+	zap.S().Info("┌─────────────────────────────────────────┐")
+	zap.S().Info("│            Fragtape Recorder            │")
+	zap.S().Info("│                                         │")
+	zap.S().Infof("│  Interval       %-23s │\n", config.GetDefaultDurationS("recorder.interval_s", 60))
+	zap.S().Info("└─────────────────────────────────────────┘")
+	zap.S().Info()
 
 	// Wait indefinitely
 	for {

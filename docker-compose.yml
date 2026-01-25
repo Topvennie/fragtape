@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:16
+    container_name: db
     environment:
       POSTGRES_DB: fragtape
       POSTGRES_USER: postgres
@@ -17,6 +18,7 @@ services:
 
   minio:
     image: quay.io/minio/minio
+    container_name: minio
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minio
@@ -35,7 +37,8 @@ services:
   backend:
     build:
       context: .
-      dockerfile: docker/server.dev.Dockerfile
+      dockerfile: docker/server-dev.Dockerfile
+    container_name: backend
     command: sh -c "go mod download && air -c .air.server.toml"
     ports:
       - 3001:3001
@@ -52,7 +55,8 @@ services:
   frontend:
     build:
       context: ui
-      dockerfile: Dockerfile.dev
+      dockerfile: dev.Dockerfile
+    container_name: frontend
     ports:
       - 3000:3000
     volumes:
@@ -64,7 +68,8 @@ services:
   worker:
     build:
       context: .
-      dockerfile: docker/worker.dev.Dockerfile
+      dockerfile: docker/worker-dev.Dockerfile
+    container_name: worker
     command: sh -c "go mod download && air -c .air.worker.toml"
     volumes:
       - .:/app
@@ -76,15 +81,52 @@ services:
       minio:
         condition: service_healthy
 
-  recorder:
+  recorder-manager:
     build:
       context: .
-      dockerfile: docker/recorder.dev.Dockerfile
-    command: sh -c "go mod download && air -c .air.recorder.toml"
+      dockerfile: docker/recorder-dev.Dockerfile
+    container_name: recorder-m
+    command: sh -c "/app/docker/recorder-dev-entrypoint.sh"
+    ports:
+      - "15432:15432"
+      - "19000:19000"
     volumes:
       - .:/app
       - /app/ui
       - go_packages:/go/pkg/mod
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  recorder:
+    image: dockurr/windows
+    container_name: recorder
+    environment:
+      VERSION: 11
+      USERNAME: Fragtape
+      PASSWORD: admin
+      DISK_SIZE: ${RECORDER_DISK_SIZE:-128G}
+      RAM_SIZE: ${RECORDER_RAM_SIZE:-8G}
+      CPU_CORES: ${RECORDER_CPU_CORES:-8}
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 8006:8006
+      - 3389:3389/tcp
+      - 3389:3389/udp
+    volumes:
+      - recorder_data:/storage
+      - ./config:/shared/recorder/config
+      - ./logs:/shared/recorder/logs
+      - ./dist/:/shared/recorder/dist
+      - ./.env:/shared/recorder/.env
+      - ./internal/recorder/capture/dummydata:/shared/recorder/internal/recorder/capture/dummydata
+      - ./docker/recorder-dev-oem:/oem
     depends_on:
       db:
         condition: service_healthy
@@ -96,3 +138,4 @@ volumes:
   minio_data:
   go_packages:
   frontend_packages:
+  recorder_data:

@@ -2,7 +2,7 @@ root = "."
 tmp_dir = "tmp_server"
 
 [build]
-entrypoint = "server"
+entrypoint = "dist/server"
 cmd = "make build-server"
 delay = 1000
 exclude_dir = [
@@ -14,10 +14,11 @@ exclude_dir = [
   "tmp_worker",
   "tmp_recorder",
   "screenshots",
+  "dist",
 ]
 include_ext = ["go"]
 kill_delay = "0s"
-log = "build-server-errors.log"
+log = "logs/build-server-errors.log"
 
 [color]
 main = "yellow"

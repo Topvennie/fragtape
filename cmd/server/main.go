@@ -18,7 +18,11 @@ func main() {
 		panic(fmt.Errorf("initialize config %w", err))
 	}
 
-	zapLogger, err := logger.New()
+	loggerFile := config.GetDefaultString("server.logger.file", "")
+	zapLogger, err := logger.New(logger.Config{
+		Console: true,
+		File:    loggerFile,
+	})
 	if err != nil {
 		panic(fmt.Errorf("initialize logger %w", err))
 	}

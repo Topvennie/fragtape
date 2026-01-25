@@ -5,16 +5,19 @@ setup:
 	@cd ui && pnpm install
 
 build-server:
-	@go build -o server cmd/server/main.go
+	@go build -o dist/server cmd/server/main.go
 
 build-worker:
-	@go build -o worker cmd/worker/main.go
+	@go build -o dist/worker cmd/worker/main.go
 
 build-recorder:
-	@go build -o recorder cmd/recorder/main.go
+	@go build -o dist/recorder cmd/recorder/main.go
+
+build-recorder-win:
+	@GOOS=windows GOARCH=amd64 go build -o dist/recorder.exe cmd/recorder/main.go
 
 watch:
-	@docker compose up backend frontend worker recorder
+	@docker compose up backend frontend worker recorder-manager recorder
 	@docker compose down
 
 goose:

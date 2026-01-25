@@ -11,6 +11,9 @@ server:
       api_key:
       callback_url:
 
+  logger:
+    file: server
+
   db:
     host: db
     port: 5432
@@ -36,6 +39,9 @@ worker:
     interval_s: 60
     concurrent: 8
 
+  logger:
+    file: worker
+
   db:
     host: db
     port: 5432
@@ -53,6 +59,9 @@ worker:
 recorder:
   interval_s: 60
   dummy_data: false
+
+  logger:
+    file: recorder
 
   db:
     host: db
