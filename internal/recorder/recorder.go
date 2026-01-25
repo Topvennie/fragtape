@@ -9,6 +9,7 @@ import (
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/internal/recorder/capture"
 	"github.com/topvennie/fragtape/pkg/config"
+	"github.com/topvennie/fragtape/pkg/storage"
 	"go.uber.org/zap"
 )
 
@@ -78,10 +79,24 @@ func (r *Recorder) loop(ctx context.Context) error {
 		err = r.capture.Start(ctx, *demo)
 		if err != nil {
 			// Something failed
+			// Clean up
+			if highlights, err := r.highlight.GetByDemo(ctx, demo.ID); err == nil {
+				for _, h := range highlights {
+					if h.FileID != "" {
+						_ = r.highlight.DeleteFile(ctx, h.ID)
+						_ = storage.S.Delete(h.FileID)
+					}
+				}
+			}
+
 			// Reset status
 			demo.Error = err.Error()
 			demo.Status = model.DemoStatusQueuedRender
 			if demo.Attempts > maxAttempts {
+				if err := storage.S.Delete(demo.FileID); err != nil {
+					zap.S().Errorf("failed to delete demo file after max attempts reached for demo %+v | %w", *demo, err)
+				}
+
 				demo.Status = model.DemoStatusFailed
 			}
 		} else {
