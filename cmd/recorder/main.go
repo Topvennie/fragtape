@@ -65,7 +65,10 @@ func main() {
 
 	repo := repository.New(db)
 
-	recorder := recorder.New(*repo)
+	recorder, err := recorder.New(*repo)
+	if err != nil {
+		zap.S().Fatalf("Creating recorder failed %v", err)
+	}
 	if err := recorder.Start(context.Background()); err != nil {
 		zap.S().Fatalf("Starting recorder failed %v", err)
 	}

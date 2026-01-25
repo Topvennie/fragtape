@@ -23,22 +23,25 @@ type Recorder struct {
 	interval time.Duration
 }
 
-func New(repo repository.Repository) *Recorder {
+func New(repo repository.Repository) (*Recorder, error) {
+	capturer, err := capture.New(repo)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Recorder{
-		capture:   *capture.New(repo),
+		capture:   *capturer,
 		demo:      *repo.NewDemo(),
 		highlight: *repo.NewHighlight(),
 		interval:  config.GetDefaultDurationS("recorder.interval_s", 60),
-	}
+	}, nil
 }
 
 // Start starts the loop to get new jobs and render them
 func (r *Recorder) Start(ctx context.Context) error {
-	// This doesn't work because it needs to be horizontally scalable
-	// FIXME: reset stuck demos
-	// if err := r.demo.ResetStatusAll(ctx, model.DemoStatusRendering, model.DemoStatusQueuedRender); err != nil {
-	// 	return err
-	// }
+	if err := r.demo.ResetStatusAll(ctx, model.DemoStatusRendering, model.DemoStatusQueuedRender); err != nil {
+		return err
+	}
 
 	// Start the loop
 	go func() {

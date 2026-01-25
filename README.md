@@ -163,6 +163,8 @@ Inside the VM install:
 - CS2
 - [HLAE](https://github.com/advancedfx/advancedfx)
 
+Make sure to add both the CS2 and HLAE executable to the system wide Windows PATH.
+
 ## Production
 
 1. Copy `docker-compose.prod.yml` -> `docker-compose.yml`.
@@ -190,11 +192,11 @@ docker compose up -d
 - Golang tools: _Air_, _Goose_, _Sqlc_, _Deadcode_
 - Frontend dependencies
 
-4. Install the git hook for code quality: `git config --local core.hooksPath .githooks/`
-5. Copy `.env.example` -> `.env` and populate
-6. Follow the recorder section in the readme
-7. Run database migrations: `make migrate`
-8. Start the project `make watch`.
+1. Install the git hook for code quality: `git config --local core.hooksPath .githooks/`
+2. Copy `.env.example` -> `.env` and populate
+3. Follow the recorder section in the readme
+4. Run database migrations: `make migrate`
+5. Start the project `make watch`.
 
 Endpoints:
 
@@ -203,4 +205,3 @@ Endpoints:
 
 By default you don't need to change any config values.
 In any case don't change the log file of the recorder as the manager uses it to show the logs in the console.
-
