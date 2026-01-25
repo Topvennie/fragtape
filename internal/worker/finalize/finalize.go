@@ -9,6 +9,7 @@ import (
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/pkg/config"
+	"github.com/topvennie/fragtape/pkg/storage"
 	"go.uber.org/zap"
 )
 
@@ -108,6 +109,10 @@ func (f *Finalizer) loop(ctx context.Context) error {
 				demo.Error = result.err.Error()
 				demo.Status = model.DemoStatusQueuedFinalize
 				if demo.Attempts > maxAttempts {
+					if err := storage.S.Delete(demo.FileID); err != nil {
+						zap.S().Errorf("failed to delete demo file after max attempts reached for demo %+v | %w", *demo, err)
+					}
+
 					demo.Status = model.DemoStatusFailed
 				}
 			} else {
@@ -118,7 +123,7 @@ func (f *Finalizer) loop(ctx context.Context) error {
 			}
 
 			if err := f.demo.UpdateStatus(ctx, *demo); err != nil {
-				zap.S().Error(err)
+				return err
 			}
 		}
 

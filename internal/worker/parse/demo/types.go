@@ -430,7 +430,3 @@ type Message struct {
 type Chicken struct {
 	Damage
 }
-
-// TODO: Simplify kill / death and increase damage stat
-// TODO: Compress and inflate
-// TODO: Check size of damage things and maybe move it to per round with an id and connect to id

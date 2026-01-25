@@ -242,17 +242,24 @@ UPDATE demos
 SET
   status = $2,
   error = $3,
+  attempts = $4,
   status_updated_at = NOW()
 WHERE id = $1
 `
 
 type DemoUpdateStatusParams struct {
-	ID     int32
-	Status DemoStatus
-	Error  pgtype.Text
+	ID       int32
+	Status   DemoStatus
+	Error    pgtype.Text
+	Attempts int32
 }
 
 func (q *Queries) DemoUpdateStatus(ctx context.Context, arg DemoUpdateStatusParams) error {
-	_, err := q.db.Exec(ctx, demoUpdateStatus, arg.ID, arg.Status, arg.Error)
+	_, err := q.db.Exec(ctx, demoUpdateStatus,
+		arg.ID,
+		arg.Status,
+		arg.Error,
+		arg.Attempts,
+	)
 	return err
 }
