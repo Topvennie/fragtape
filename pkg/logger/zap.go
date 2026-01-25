@@ -56,8 +56,5 @@ func New(logCfg Config) (*zap.Logger, error) {
 		return nil, err
 	}
 
-	env := config.GetDefaultString("app.env", "development")
-	logger = logger.With(zap.String("env", env))
-
 	return logger, nil
 }
