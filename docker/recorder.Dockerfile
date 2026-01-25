@@ -1,19 +1,18 @@
 FROM golang:1.25.5-alpine3.22 AS builder
 WORKDIR /app
 
+RUN apk add --no-cache git
+
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o recorder ./cmd/recorder/main.go
+RUN CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o recorder.exe ./cmd/recorder/main.go
 
-FROM alpine:3.22
-WORKDIR /app
+FROM dockurr/windows:latest
 
-RUN apk add --no-cache ca-certificates tzdata
+COPY --from=builder /app/docker/recorder-oem/ /oem/
+COPY --from=builder /app/recorder.exe /oem/recorder.exe
+COPY --from=builder /app/config/production.yml /oem/config/production.yml
 
-COPY --from=builder /app/recorder .
-COPY --from=builder /app/config/production.yml ./config/production.yml
-
-ENTRYPOINT ["./recorder"]
