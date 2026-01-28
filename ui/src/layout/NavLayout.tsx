@@ -53,12 +53,12 @@ export const NavLayout = ({ children }: Props) => {
     <AppShell
       header={{ height: 60 }}
       footer={{ height: 60 }}
-      navbar={{ width: 300, breakpoint: "lg", collapsed: { desktop: true, mobile: !opened } }}
+      navbar={{ width: 300, breakpoint: "md", collapsed: { desktop: true, mobile: !opened } }}
       className="max-h-screen overflow-auto"
     >
       <AppShell.Header px="md" withBorder={false} bg="background.9">
         <Group h="100%" justify="space-between">
-          <Group gap="xs" visibleFrom="lg">
+          <Group gap="xs" visibleFrom="md">
             <ActionIcon onClick={handleHome} size="xl" variant="subtle">
               <FragtapeIcon className="size-8 text-(--mantine-color-primary-6)" />
             </ActionIcon>
@@ -69,7 +69,7 @@ export const NavLayout = ({ children }: Props) => {
             color="white"
             opened={opened}
             onClick={toggle}
-            hiddenFrom="lg"
+            hiddenFrom="md"
           />
           <Group>
             <p className="text-primary font-semibold">{user!.displayName}</p>
