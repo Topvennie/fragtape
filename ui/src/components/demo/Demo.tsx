@@ -11,6 +11,7 @@ import { LoadableImage } from "../atoms/LoadableImage"
 import { HighlightCarousel } from "../highlight/HighlightCarousel"
 import { FragtapeIcon } from "../icons/FragtapeIcon"
 import { DemoThumbnail } from "./DemoThumbnail"
+import { useMediaQuery } from "@mantine/hooks"
 
 type Props = {
   demo: DemoType
@@ -31,7 +32,7 @@ export const Demo = ({ demo }: Props) => {
       case DemoStatus.Failed:
         return <Failed />
       default:
-        return <Success demo={demo} />
+        return <DemoInner demo={demo} />
     }
   }, [demo])
 
@@ -43,11 +44,13 @@ export const Demo = ({ demo }: Props) => {
 
 }
 
-const Success = ({ demo }: Props) => {
+const DemoInner = ({ demo }: Props) => {
   const { user } = useAuth()
   const [clips, setClips] = useState(false)
 
-  const highlights = useMemo(() => demo.players.flatMap(p => p.highlights), [demo])
+  const smPoint = useMediaQuery('(width >= 40em)')
+
+  const highlights = useMemo(() => demo.players.flatMap(p => p.highlights.filter(h => h.generated)), [demo])
   const player = demo.players.find(p => p.user.id === user?.id)
   if (!player) return null // Shouldn't really be possible
 
@@ -64,14 +67,14 @@ const Success = ({ demo }: Props) => {
   return (
     <div className="flex flex-col">
       <div className="flex gap-4">
-        <div className="w-64 aspect-video shrink-0 rounded-md overflow-hidden">
+        <div className="w-16 sm:w-32 lg:w-64 aspect-square sm:aspect-video shrink-0 rounded-md overflow-hidden">
           <DemoThumbnail demo={demo} />
         </div>
         <div className="flex justify-between w-full">
           <div className="flex flex-col gap-2 justify-center">
             <div className="flex items-center gap-4">
-              <p className={`text-2xl font-bold uppercase ${resultColor[player.stat.result]}`}>{resultString[player.stat.result]}</p>
-              <p className="text-xl text-white">{score()}</p>
+              <p className={`text-lg sm:text-2xl font-bold uppercase ${resultColor[player.stat.result]}`}>{resultString[player.stat.result]}</p>
+              <p className="sm:text-xl text-white">{score()}</p>
             </div>
             <div className="space-x-4 text-secondary">
               K <span className="text-white">{player.stat.kills}</span>
@@ -80,17 +83,21 @@ const Success = ({ demo }: Props) => {
             </div>
             <ClipBadge demo={demo} highlights={highlights} />
           </div>
-          <div className="flex flex-col items-end justify-between">
-            <div>
-              <p className="text-secondary">{formatDate(demo.createdAt)}</p>
+          {smPoint && (
+            <div className="flex flex-col items-end justify-between">
+              <div>
+                <p className="text-secondary">{formatDate(demo.createdAt)}</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <p className="text-secondary">In group</p>
+                {highlights.length > 0 && (
+                  <Button variant="subtle" color="muted" onClick={() => setClips(prev => !prev)} rightSection={<LuChevronDown className={`transform duration-300 ${clips ? "rotate-180" : ""}`} />}>
+                    {`${clips ? "Hide" : "Show"} clips`}
+                  </Button>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-4">
-              <p className="text-secondary">In group</p>
-              <Button variant="subtle" color="muted" onClick={() => setClips(prev => !prev)} rightSection={<LuChevronDown className={`transform duration-300 ${clips ? "rotate-180" : ""}`} />}>
-                {`${clips ? "Hide" : "Show"} clips`}
-              </Button>
-            </div>
-          </div>
+          )}
         </div>
       </div>
       <Collapse in={clips}>
