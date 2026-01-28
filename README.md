@@ -140,7 +140,7 @@ services:
       - /dev/vfio:/dev/vfio
 
     cap_add:
-      IPC_LOCK
+      - IPC_LOCK
 
     ulimits:
       memlock:
@@ -153,7 +153,7 @@ services:
 
 </details>
 
-After booting the VM, confirm the GPU appears in Windows Task Manager.
+After booting the VM, confirm the GPU appears in the device manager view.
 
 #### Install drivers, CS2 and HLAE
 

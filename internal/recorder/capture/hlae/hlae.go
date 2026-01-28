@@ -2,20 +2,13 @@
 package hlae
 
 import (
-	"context"
 	"fmt"
 	"os"
-	"os/exec"
+	"path/filepath"
 	"runtime"
 
-	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/pkg/config"
-)
-
-const (
-	tmpDirVideo = "./tmp_recorder/video"
-	tmpDirDemo  = "./tmp_recorder/demo"
 )
 
 type Hlae struct {
@@ -37,11 +30,7 @@ func New(repo repository.Repository) (*Hlae, error) {
 		return nil, err
 	}
 
-	if err := h.cleanTmpDir(tmpDirVideo); err != nil {
-		return nil, err
-	}
-
-	if err := h.cleanTmpDir(tmpDirDemo); err != nil {
+	if err := h.cleanTmpDir(); err != nil {
 		return nil, err
 	}
 
@@ -50,14 +39,14 @@ func New(repo repository.Repository) (*Hlae, error) {
 
 func (h *Hlae) ensureDeps() error {
 	if runtime.GOOS != "windows" {
-		return fmt.Errorf("runtime is %s; HLAE/CS2 are expected to run in Windows", runtime.GOOS)
+		return fmt.Errorf("runtime is %s, HLAE/CS2 are expected to run in Windows", runtime.GOOS)
 	}
 
-	if _, err := exec.LookPath(hlaeExecutable(h.hlaePath)); err != nil {
+	if _, err := os.Stat(h.hlaeExecutable()); err != nil {
 		return fmt.Errorf("HLAE was not found %w", err)
 	}
 
-	if _, err := exec.LookPath(cs2Exectuable(h.cs2Path)); err != nil {
+	if _, err := os.Stat(h.cs2Executable()); err != nil {
 		return fmt.Errorf("CS2 was not found %w", err)
 	}
 
@@ -65,40 +54,52 @@ func (h *Hlae) ensureDeps() error {
 }
 
 func (h *Hlae) ensureTmpDirs() error {
-	if err := os.MkdirAll(tmpDirVideo, os.ModePerm); err != nil {
-		return fmt.Errorf("create tmp video dir %w", err)
+	if err := os.MkdirAll(h.cs2Video(), 0o755); err != nil {
+		return fmt.Errorf("create video dir %w", err)
 	}
 
-	if err := os.MkdirAll(tmpDirDemo, os.ModePerm); err != nil {
-		return fmt.Errorf("create tmp demo dir %w", err)
+	if err := os.MkdirAll(h.cs2Demo(), 0o755); err != nil {
+		return fmt.Errorf("create demo dir %w", err)
+	}
+
+	if err := os.MkdirAll(h.cs2Cfg(), 0o755); err != nil {
+		return fmt.Errorf("create cfg dir %w", err)
 	}
 
 	return nil
 }
 
-func (h *Hlae) cleanTmpDir(dir string) error {
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		return fmt.Errorf("read tmp dir %w", err)
-	}
-
-	for _, e := range entries {
-		if e.IsDir() {
-			if err := os.Remove(fmt.Sprintf("%s/%s", dir, e.Name())); err != nil {
-				return fmt.Errorf("remove tmp subdir %w", err)
+func (h *Hlae) cleanTmpDir() error {
+	clean := func(dir string) error {
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			if os.IsNotExist(err) {
+				return nil
 			}
-
-			continue
+			return fmt.Errorf("read tmp dir %w", err)
 		}
 
-		if err := os.Remove(fmt.Sprintf("%s/%s", dir, e.Name())); err != nil {
-			return fmt.Errorf("remove tmp file %w", err)
+		for _, e := range entries {
+			p := filepath.Join(dir, e.Name())
+			if err := os.RemoveAll(p); err != nil {
+				return fmt.Errorf("remove %q: %w", p, err)
+			}
 		}
+
+		return nil
 	}
 
-	return nil
-}
+	if err := clean(h.cs2Video()); err != nil {
+		return fmt.Errorf("clean video dir %w", err)
+	}
 
-func (h *Hlae) Capture(ctx context.Context, demo model.Demo, highlights []model.Highlight) error {
+	if err := clean(h.cs2Demo()); err != nil {
+		return fmt.Errorf("clean video dir %w", err)
+	}
+
+	if err := clean(h.cs2Cfg()); err != nil {
+		return fmt.Errorf("clean video dir %w", err)
+	}
+
 	return nil
 }
