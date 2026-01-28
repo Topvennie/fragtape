@@ -16,15 +16,20 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.10
 	github.com/gofiber/storage/minio v0.4.1
 	github.com/gofiber/storage/postgres/v3 v3.3.1
+	github.com/golang/geo v0.0.0-20260120070133-792bb8583fbb
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.8.0
 	github.com/joho/godotenv v1.5.1
+	github.com/klauspost/compress v1.18.3
 	github.com/markbates/goth v1.82.0
-	github.com/markus-wa/demoinfocs-golang/v5 v5.1.1-0.20260117182344-0dc7bdc1db0e
+	github.com/markus-wa/demoinfocs-golang/v5 v5.1.2
+	github.com/oklog/ulid/v2 v2.1.1
 	github.com/pressly/goose/v3 v3.26.0
 	github.com/shareed2k/goth_fiber v0.3.3
 	github.com/spf13/viper v1.21.0
+	github.com/vmihailenco/msgpack/v5 v5.4.1
 	go.uber.org/zap v1.27.1
+	golang.org/x/sys v0.40.0
 )
 
 require (
@@ -39,7 +44,7 @@ require (
 	github.com/bep/godartsass/v2 v2.5.0 // indirect
 	github.com/bep/golibsass v1.2.0 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
-	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
+	github.com/clipperhouse/uax29/v2 v2.4.0 // indirect
 	github.com/coder/websocket v1.8.12 // indirect
 	github.com/cubicdaiya/gonp v1.0.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -50,7 +55,7 @@ require (
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
-	github.com/go-chi/chi/v5 v5.2.3 // indirect
+	github.com/go-chi/chi/v5 v5.2.4 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
 	github.com/go-faster/errors v0.7.1 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
@@ -59,15 +64,12 @@ require (
 	github.com/go-sql-driver/mysql v1.9.3 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gohugoio/hugo v0.149.1 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
-	github.com/golang/geo v0.0.0-20251229110840-fd652594c94c // indirect
 	github.com/golang/snappy v1.0.0 // indirect
 	github.com/google/cel-go v0.26.1 // indirect
-	github.com/gorilla/context v1.1.2 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/gorilla/sessions v1.4.0 // indirect
@@ -77,11 +79,9 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jonboulle/clockwork v0.5.0 // indirect
-	github.com/klauspost/compress v1.18.3 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/klauspost/crc32 v1.3.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
-	github.com/markus-wa/demoinfocs-golang v1.7.6 // indirect
 	github.com/markus-wa/go-unassert v0.1.3 // indirect
 	github.com/markus-wa/gobitread v0.2.5-0.20241202000432-3c3e0bc797c6 // indirect
 	github.com/markus-wa/godispatch v1.4.1 // indirect
@@ -94,9 +94,8 @@ require (
 	github.com/microsoft/go-mssqldb v1.9.2 // indirect
 	github.com/minio/crc64nvme v1.1.1 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
-	github.com/minio/minio-go/v7 v7.0.97 // indirect
+	github.com/minio/minio-go/v7 v7.0.98 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
-	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/paulmach/orb v0.11.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
@@ -110,7 +109,6 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/riza-io/grpc-go v0.2.0 // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
@@ -130,9 +128,7 @@ require (
 	github.com/tursodatabase/libsql-client-go v0.0.0-20240902231107-85af5b9d094d // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.69.0 // indirect
-	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/vertica/vertica-sql-go v1.3.3 // indirect
-	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/wasilibs/go-pgquery v0.0.0-20250409022910-10ac41983c07 // indirect
 	github.com/wasilibs/wazero-helpers v0.0.0-20240620070341-3dff1577cd52 // indirect
@@ -150,7 +146,6 @@ require (
 	golang.org/x/net v0.49.0 // indirect
 	golang.org/x/oauth2 v0.34.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/telemetry v0.0.0-20260109210033-bd525da824e2 // indirect
 	golang.org/x/text v0.33.0 // indirect
 	golang.org/x/tools v0.41.0 // indirect

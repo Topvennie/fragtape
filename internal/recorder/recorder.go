@@ -9,13 +9,14 @@ import (
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/internal/recorder/capture"
 	"github.com/topvennie/fragtape/pkg/config"
+	"github.com/topvennie/fragtape/pkg/storage"
 	"go.uber.org/zap"
 )
 
 const maxAttempts = 3
 
 type Recorder struct {
-	capture capture.Capturer
+	capturer capture.Capturer
 
 	demo      repository.Demo
 	highlight repository.Highlight
@@ -23,22 +24,25 @@ type Recorder struct {
 	interval time.Duration
 }
 
-func New(repo repository.Repository) *Recorder {
+func New(repo repository.Repository) (*Recorder, error) {
+	capturer, err := capture.New(repo)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Recorder{
-		capture:   *capture.New(repo),
+		capturer:  *capturer,
 		demo:      *repo.NewDemo(),
 		highlight: *repo.NewHighlight(),
 		interval:  config.GetDefaultDurationS("recorder.interval_s", 60),
-	}
+	}, nil
 }
 
 // Start starts the loop to get new jobs and render them
 func (r *Recorder) Start(ctx context.Context) error {
-	// This doesn't work because it needs to be horizontally scalable
-	// FIXME: reset stuck demos
-	// if err := r.demo.ResetStatusAll(ctx, model.DemoStatusRendering, model.DemoStatusQueuedRender); err != nil {
-	// 	return err
-	// }
+	if err := r.demo.ResetStatusAll(ctx, model.DemoStatusRendering, model.DemoStatusQueuedRender); err != nil {
+		return err
+	}
 
 	// Start the loop
 	go func() {
@@ -72,13 +76,27 @@ func (r *Recorder) loop(ctx context.Context) error {
 	for len(demos) > 0 {
 		demo := demos[0]
 
-		err = r.capture.Start(ctx, *demo)
+		err = r.capturer.Capture(ctx, *demo)
 		if err != nil {
 			// Something failed
+			// Clean up
+			if highlights, err := r.highlight.GetByDemo(ctx, demo.ID); err == nil {
+				for _, h := range highlights {
+					if h.FileID != "" {
+						_ = r.highlight.DeleteFile(ctx, h.ID)
+						_ = storage.S.Delete(h.FileID)
+					}
+				}
+			}
+
 			// Reset status
 			demo.Error = err.Error()
 			demo.Status = model.DemoStatusQueuedRender
 			if demo.Attempts > maxAttempts {
+				if err := storage.S.Delete(demo.FileID); err != nil {
+					zap.S().Errorf("failed to delete demo file after max attempts reached for demo %+v | %w", *demo, err)
+				}
+
 				demo.Status = model.DemoStatusFailed
 			}
 		} else {

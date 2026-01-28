@@ -3,12 +3,14 @@ package finalize
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/pkg/config"
+	"github.com/topvennie/fragtape/pkg/storage"
 	"go.uber.org/zap"
 )
 
@@ -26,8 +28,8 @@ func New(repo repository.Repository) *Finalizer {
 	return &Finalizer{
 		demo:       *repo.NewDemo(),
 		highlight:  *repo.NewHighlight(),
-		interval:   config.GetDefaultDurationS("worker.interval_s.finalizer", 60),
-		concurrent: config.GetDefaultInt("worker.concurrent.finalizer", 8),
+		interval:   config.GetDefaultDurationS("worker.finalizer.interval_s", 60),
+		concurrent: config.GetDefaultInt("worker.finalizer.concurrent", 8),
 	}
 }
 
@@ -108,6 +110,10 @@ func (f *Finalizer) loop(ctx context.Context) error {
 				demo.Error = result.err.Error()
 				demo.Status = model.DemoStatusQueuedFinalize
 				if demo.Attempts > maxAttempts {
+					if err := storage.S.Delete(demo.FileID); err != nil {
+						zap.S().Errorf("failed to delete demo file after max attempts reached for demo %+v | %w", *demo, err)
+					}
+
 					demo.Status = model.DemoStatusFailed
 				}
 			} else {
@@ -118,7 +124,7 @@ func (f *Finalizer) loop(ctx context.Context) error {
 			}
 
 			if err := f.demo.UpdateStatus(ctx, *demo); err != nil {
-				zap.S().Error(err)
+				return err
 			}
 		}
 
@@ -132,8 +138,6 @@ func (f *Finalizer) loop(ctx context.Context) error {
 	return nil
 }
 
-// TODO:Delete demo file
-
 func (f *Finalizer) loopOne(ctx context.Context, demo *model.Demo) error {
 	_, err := f.highlight.GetByDemo(ctx, demo.ID)
 	if err != nil {
@@ -142,6 +146,10 @@ func (f *Finalizer) loopOne(ctx context.Context, demo *model.Demo) error {
 
 	// In the future generate thumbnail, convert to webm
 	// Send to discord, ...
+
+	if err := storage.S.Delete(demo.FileID); err != nil {
+		return fmt.Errorf("failed to delete demo file for demo %+v | %w", *demo, err)
+	}
 
 	return nil
 }

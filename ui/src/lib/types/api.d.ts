@@ -8,6 +8,12 @@ export namespace API {
     name: string;
     display_name: string;
     avatar_url: string;
+    admin: boolean;
+  }
+
+  export interface UserFilterResult {
+    users: User[];
+    total: number;
   }
 
   export interface Demo extends Base {
@@ -44,5 +50,6 @@ export namespace API {
     title: string;
     round: number;
     duration_s: number;
+    generated: boolean;
   }
 }

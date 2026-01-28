@@ -11,6 +11,7 @@ type Highlight struct {
 	Title     string `json:"title"`
 	Round     int    `json:"round"`
 	DurationS int    `json:"duration_s"`
+	Generated bool   `json:"generated"`
 }
 
 func HighlightDTO(h *model.Highlight) Highlight {
@@ -19,5 +20,6 @@ func HighlightDTO(h *model.Highlight) Highlight {
 		Title:     h.Title,
 		Round:     h.Round,
 		DurationS: int(h.Duration / time.Second),
+		Generated: h.FileID != "",
 	}
 }

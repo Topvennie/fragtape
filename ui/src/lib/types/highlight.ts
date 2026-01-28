@@ -5,6 +5,7 @@ export interface Highlight {
   title: string;
   round: number;
   durationS: number;
+  generated: boolean;
 }
 
 export const convertHighlight = (h: API.Highlight): Highlight => {
@@ -13,5 +14,6 @@ export const convertHighlight = (h: API.Highlight): Highlight => {
     title: h.title,
     round: h.round,
     durationS: h.duration_s,
+    generated: h.generated,
   }
 }

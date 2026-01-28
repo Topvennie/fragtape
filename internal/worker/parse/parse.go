@@ -1,11 +1,6 @@
 // Package parse parses demos
 package parse
 
-// TODO: Cleanup data when the entire pipeline fails after x amount of attempts
-// Right now it leaves some data behind
-
-// TODO: Attempts go up one even when going to the next stage
-
 import (
 	"context"
 	"sync"
@@ -15,6 +10,7 @@ import (
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/internal/worker/parse/demo"
 	"github.com/topvennie/fragtape/pkg/config"
+	"github.com/topvennie/fragtape/pkg/storage"
 	"go.uber.org/zap"
 )
 
@@ -207,6 +203,10 @@ func (p *Parser) loop(ctx context.Context) error {
 					demo.Status = model.DemoStatusQueuedParse
 					if demo.Attempts > maxAttempts {
 						demo.Status = model.DemoStatusFailed
+
+						if err := storage.S.Delete(demo.FileID); err != nil {
+							zap.S().Errorf("failed to delete demo file after max attempts reached for demo %+v | %w", *demo, err)
+						}
 					}
 				} else {
 					// No errors
@@ -221,8 +221,15 @@ func (p *Parser) loop(ctx context.Context) error {
 
 				return nil
 			}); err != nil {
-				// TODO: Fail if this errors???
-				zap.S().Error(err)
+				demo.Error = err.Error()
+				demo.Status = model.DemoStatusQueuedParse
+				if demo.Attempts > maxAttempts {
+					demo.Status = model.DemoStatusFailed
+				}
+
+				if err := p.demo.UpdateStatus(ctx, *demo); err != nil {
+					return err
+				}
 			}
 		}
 

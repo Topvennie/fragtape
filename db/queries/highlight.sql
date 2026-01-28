@@ -24,11 +24,10 @@ UPDATE highlights
 SET 
   demo_id = coalesce(sqlc.narg('demo_id'), demo_id),
   file_id = coalesce(sqlc.narg('file_id'), file_id),
-  file_web_id = coalesce(sqlc.narg('file_web_id'), file_web_id),
   title = coalesce(sqlc.narg('title'), title)
 WHERE id = $1;
 
 -- name: HighlightDeleteFile :exec
 UPDATE highlights
-SET file_id = NULL, file_web_id = NULL
+SET file_id = NULL
 WHERE id = $1;

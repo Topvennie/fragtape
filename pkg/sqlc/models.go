@@ -205,7 +205,6 @@ type Highlight struct {
 	UserID    int32
 	DemoID    int32
 	FileID    pgtype.Text
-	FileWebID pgtype.Text
 	Title     string
 	Round     int32
 	DurationS int32
@@ -245,4 +244,5 @@ type User struct {
 	DisplayName string
 	AvatarUrl   pgtype.Text
 	Crosshair   pgtype.Text
+	Admin       bool
 }

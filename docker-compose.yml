@@ -121,11 +121,8 @@ services:
       - 3389:3389/udp
     volumes:
       - recorder_data:/storage
-      - ./config:/shared/recorder/config
-      - ./logs:/shared/recorder/logs
-      - ./dist/:/shared/recorder/dist
-      - ./.env:/shared/recorder/.env
-      - ./internal/recorder/capture/dummydata:/shared/recorder/internal/recorder/capture/dummydata
+      - .:/shared/recorder
+      - /shared/recorder/ui
       - ./docker/recorder-dev-oem:/oem
     depends_on:
       db:

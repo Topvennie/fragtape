@@ -43,6 +43,7 @@ UPDATE demos
 SET
   status = $2,
   error = $3,
+  attempts = $4,
   status_updated_at = NOW()
 WHERE id = $1;
 
