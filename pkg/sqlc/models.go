@@ -244,4 +244,5 @@ type User struct {
 	DisplayName string
 	AvatarUrl   pgtype.Text
 	Crosshair   pgtype.Text
+	Admin       bool
 }

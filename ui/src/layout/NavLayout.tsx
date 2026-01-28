@@ -1,6 +1,6 @@
 import { LinkButton } from "@/components/atoms/LinkButton";
-import { UserIcon } from "@/components/atoms/UserIcon";
 import { FragtapeIcon } from "@/components/icons/FragtapeIcon";
+import { UserIcon } from "@/components/user/UserIcon";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { ActionIcon, AppShell, Burger, Container, Group, Stack } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -13,12 +13,18 @@ type Props = ComponentProps<"div">
 type Route = {
   title: string;
   link: LinkProps;
+  admin?: boolean;
 };
 
-const routes: Route[] = [
+const allRoutes: Route[] = [
   {
     title: "Overview",
     link: { to: "/" },
+  },
+  {
+    title: "Admin",
+    link: { to: "/admin" },
+    admin: true,
   },
 ];
 
@@ -48,6 +54,8 @@ export const NavLayout = ({ children }: Props) => {
   const handleHome = () => {
     navigate({ to: "/" })
   }
+
+  const routes = allRoutes.filter(r => !r.admin || user?.admin)
 
   return (
     <AppShell
