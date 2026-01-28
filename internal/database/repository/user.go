@@ -57,6 +57,57 @@ func (u *User) GetByIDs(ctx context.Context, ids []int) ([]*model.User, error) {
 	return utils.SliceMap(users, model.UserModel), nil
 }
 
+func (u *User) GetAdmin(ctx context.Context) ([]*model.User, error) {
+	users, err := u.repo.queries(ctx).UserGetAdmin(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get users with admin %w", err)
+	}
+
+	return utils.SliceMap(users, model.UserModel), nil
+}
+
+func (u *User) GetFiltered(ctx context.Context, filter model.UserFilter) (*model.UserFilterResult, error) {
+	admin := false
+	if filter.Admin != nil {
+		admin = *filter.Admin
+	}
+	real := false
+	if filter.Real != nil {
+		real = *filter.Real
+	}
+
+	params := sqlc.UserGetFilteredParams{
+		Name:        filter.Name,
+		Admin:       admin,
+		FilterAdmin: filter.Admin != nil,
+		FilterReal:  real,
+		Limit:       int32(filter.Limit),
+		Offset:      int32(filter.Offset),
+	}
+
+	usersDB, err := u.repo.queries(ctx).UserGetFiltered(ctx, params)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get users filtered %+v | %w", filter, err)
+	}
+
+	users := utils.SliceMap(usersDB, func(u sqlc.UserGetFilteredRow) model.User { return *model.UserModel(u.User) })
+
+	if len(users) == 0 {
+		return nil, nil
+	}
+
+	return &model.UserFilterResult{
+		Users: users,
+		Total: int(usersDB[0].TotalCount),
+	}, nil
+}
+
 func (u *User) Create(ctx context.Context, user *model.User) error {
 	id, err := u.repo.queries(ctx).UserCreate(ctx, sqlc.UserCreateParams{
 		Uid:         int32(user.UID),
@@ -81,6 +132,7 @@ func (u *User) Update(ctx context.Context, user model.User) error {
 		DisplayName: user.DisplayName,
 		AvatarUrl:   toString(user.AvatarURL),
 		Crosshair:   toString(user.Crosshair),
+		Admin:       user.Admin,
 	}); err != nil {
 		return fmt.Errorf("update user %+v | %w", user, err)
 	}

@@ -12,8 +12,8 @@ import (
 )
 
 const userCreate = `-- name: UserCreate :one
-INSERT INTO users (uid, name, display_name, avatar_url, crosshair)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO users (uid, name, display_name, avatar_url, crosshair, admin)
+VALUES ($1, $2, $3, $4, $5, NOT EXISTS (SELECT 1 FROM users))
 RETURNING id
 `
 
@@ -39,7 +39,7 @@ func (q *Queries) UserCreate(ctx context.Context, arg UserCreateParams) (int32, 
 }
 
 const userGet = `-- name: UserGet :one
-SELECT id, uid, name, display_name, avatar_url, crosshair
+SELECT id, uid, name, display_name, avatar_url, crosshair, admin
 FROM users
 WHERE id = $1
 `
@@ -54,12 +54,47 @@ func (q *Queries) UserGet(ctx context.Context, id int32) (User, error) {
 		&i.DisplayName,
 		&i.AvatarUrl,
 		&i.Crosshair,
+		&i.Admin,
 	)
 	return i, err
 }
 
+const userGetAdmin = `-- name: UserGetAdmin :many
+SELECT id, uid, name, display_name, avatar_url, crosshair, admin
+FROM users
+WHERE admin
+`
+
+func (q *Queries) UserGetAdmin(ctx context.Context) ([]User, error) {
+	rows, err := q.db.Query(ctx, userGetAdmin)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Uid,
+			&i.Name,
+			&i.DisplayName,
+			&i.AvatarUrl,
+			&i.Crosshair,
+			&i.Admin,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const userGetByIds = `-- name: UserGetByIds :many
-SELECT id, uid, name, display_name, avatar_url, crosshair
+SELECT id, uid, name, display_name, avatar_url, crosshair, admin
 FROM users
 WHERE id = ANY($1::int[])
 `
@@ -80,6 +115,7 @@ func (q *Queries) UserGetByIds(ctx context.Context, dollar_1 []int32) ([]User, e
 			&i.DisplayName,
 			&i.AvatarUrl,
 			&i.Crosshair,
+			&i.Admin,
 		); err != nil {
 			return nil, err
 		}
@@ -92,7 +128,7 @@ func (q *Queries) UserGetByIds(ctx context.Context, dollar_1 []int32) ([]User, e
 }
 
 const userGetByUid = `-- name: UserGetByUid :one
-SELECT id, uid, name, display_name, avatar_url, crosshair
+SELECT id, uid, name, display_name, avatar_url, crosshair, admin
 FROM users
 WHERE uid = $1
 `
@@ -107,13 +143,77 @@ func (q *Queries) UserGetByUid(ctx context.Context, uid int32) (User, error) {
 		&i.DisplayName,
 		&i.AvatarUrl,
 		&i.Crosshair,
+		&i.Admin,
 	)
 	return i, err
 }
 
+const userGetFiltered = `-- name: UserGetFiltered :many
+SELECT
+  u.id, u.uid, u.name, u.display_name, u.avatar_url, u.crosshair, u.admin,
+  COUNT(*) OVER()::bigint AS total_count
+FROM users u
+WHERE
+  (u.name ILIKE '%' || $3::text || '%' OR u.display_name ILIKE '%' || $3::text || '%') AND
+  (u.admin = $4::bool OR NOT $5::bool) AND
+  (u.name != '' OR NOT $6::bool)
+ORDER BY u.name, u.display_name
+LIMIT $1 OFFSET $2
+`
+
+type UserGetFilteredParams struct {
+	Limit       int32
+	Offset      int32
+	Name        string
+	Admin       bool
+	FilterAdmin bool
+	FilterReal  bool
+}
+
+type UserGetFilteredRow struct {
+	User       User
+	TotalCount int64
+}
+
+func (q *Queries) UserGetFiltered(ctx context.Context, arg UserGetFilteredParams) ([]UserGetFilteredRow, error) {
+	rows, err := q.db.Query(ctx, userGetFiltered,
+		arg.Limit,
+		arg.Offset,
+		arg.Name,
+		arg.Admin,
+		arg.FilterAdmin,
+		arg.FilterReal,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserGetFilteredRow
+	for rows.Next() {
+		var i UserGetFilteredRow
+		if err := rows.Scan(
+			&i.User.ID,
+			&i.User.Uid,
+			&i.User.Name,
+			&i.User.DisplayName,
+			&i.User.AvatarUrl,
+			&i.User.Crosshair,
+			&i.User.Admin,
+			&i.TotalCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const userUpdate = `-- name: UserUpdate :exec
 UPDATE users
-SET name = $2, display_name = $3, avatar_url = $4, crosshair = $5
+SET name = $2, display_name = $3, avatar_url = $4, crosshair = $5, admin = $6
 WHERE id = $1
 `
 
@@ -123,6 +223,7 @@ type UserUpdateParams struct {
 	DisplayName string
 	AvatarUrl   pgtype.Text
 	Crosshair   pgtype.Text
+	Admin       bool
 }
 
 func (q *Queries) UserUpdate(ctx context.Context, arg UserUpdateParams) error {
@@ -132,6 +233,7 @@ func (q *Queries) UserUpdate(ctx context.Context, arg UserUpdateParams) error {
 		arg.DisplayName,
 		arg.AvatarUrl,
 		arg.Crosshair,
+		arg.Admin,
 	)
 	return err
 }

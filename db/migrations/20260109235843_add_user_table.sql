@@ -7,6 +7,7 @@ CREATE TABLE users (
   display_name TEXT NOT NULL,
   avatar_url TEXT,
   crosshair TEXT,
+  admin BOOLEAN NOT NULL DEFAULT false,
 
   UNIQUE (uid)
 );

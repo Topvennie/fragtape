@@ -25,7 +25,7 @@ export const theme = createTheme({
       "#7990ba",
       "#6580b1",
       "#5a78ae",
-      "#4a6699",
+      "#293a57",
       "#121A27",
       "#0f1724"
     ],
@@ -46,4 +46,16 @@ export const theme = createTheme({
     xxxl: "142em",
     xxxxl: "172em",
   },
+  components: {
+    Modal: {
+      styles: {
+        content: {
+          backgroundColor: "#0f1724",
+        },
+        header: {
+          backgroundColor: "#0f1724",
+        }
+      }
+    }
+  }
 });
