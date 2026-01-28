@@ -1,3 +1,5 @@
+//go:build linux
+
 // Package image contains image conversions helpers
 package image
 
