@@ -2,7 +2,7 @@ import { useUserAdmin, useUserCreateAdmin, useUserDeleteAdmin, useUserFiltered }
 import { useAuth } from "@/lib/hooks/useAuth"
 import { User } from "@/lib/types/user"
 import { getErrorMessage } from "@/lib/utils"
-import { ActionIcon, Button, Center } from "@mantine/core"
+import { ActionIcon, Button } from "@mantine/core"
 import { useDebouncedValue, useDisclosure } from "@mantine/hooks"
 import { notifications } from "@mantine/notifications"
 import { useState } from "react"
@@ -12,13 +12,12 @@ import { BottomOfPage } from "../atoms/ButtomOfPage"
 import { Card } from "../atoms/Card"
 import { ModalCenter } from "../atoms/ModalCenter"
 import { Title } from "../atoms/Title"
-import { FragtapeIcon } from "../icons/FragtapeIcon"
 import { Search } from "../molecules/Search"
 import { UserList } from "../user/UserList"
 
 export const AdminTeam = () => {
   const { user } = useAuth()
-  const { data: admins, isLoading } = useUserAdmin()
+  const { data: admins } = useUserAdmin()
 
   const [deleting, setDeleting] = useState(false)
 
@@ -44,29 +43,23 @@ export const AdminTeam = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <Title order={3}>Admin Team</Title>
-          <Button onClick={open} leftSection={<LuPlus />} loading={isLoading}>
+          <Button onClick={open} leftSection={<LuPlus />}>
             Add Admin
           </Button>
         </div>
         <Card>
-          {isLoading ? (
-            <Center>
-              <FragtapeIcon animated className="size-12 text-(--mantine-color-primary-6)" />
-            </Center>
-          ) : (
-            <UserList
-              users={admins ?? []}
-              leftSection={(u) => {
-                if (u.id === user?.id) return <p className="text-secondary">(You)</p>
+          <UserList
+            users={admins ?? []}
+            leftSection={(u) => {
+              if (u.id === user?.id) return <p className="text-secondary">(You)</p>
 
-                return (
-                  <ActionIcon onClick={() => handleDelete(u)} variant="subtle" color="muted" loading={deleting}>
-                    <LuTrash2 />
-                  </ActionIcon>
-                )
-              }}
-            />
-          )}
+              return (
+                <ActionIcon onClick={() => handleDelete(u)} variant="subtle" color="muted" loading={deleting}>
+                  <LuTrash2 />
+                </ActionIcon>
+              )
+            }}
+          />
         </Card>
       </div>
       <ModalCenter

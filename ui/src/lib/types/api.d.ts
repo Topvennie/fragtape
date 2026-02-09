@@ -52,4 +52,11 @@ export namespace API {
     duration_s: number;
     generated: boolean;
   }
+
+  export interface SettingGlobal {
+    demo_upload: boolean;
+    custom_criteria: boolean;
+    chat_command: boolean;
+    chat_trigger: string;
+  }
 }
