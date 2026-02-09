@@ -12,15 +12,14 @@ func toInt(i int) pgtype.Int4 {
 	return pgtype.Int4{Int32: int32(i), Valid: i != 0}
 }
 
-// Uncomment when used
-// func toBool(b *bool) pgtype.Bool {
-// 	bb := false
-// 	if b != nil {
-// 		bb = *b
-// 	}
-//
-// 	return pgtype.Bool{Bool: bb, Valid: b != nil}
-// }
+func toBool(b *bool) pgtype.Bool {
+	bb := false
+	if b != nil {
+		bb = *b
+	}
+
+	return pgtype.Bool{Bool: bb, Valid: b != nil}
+}
 
 // Uncomment when used
 // func toTime(t time.Time) pgtype.Timestamptz {
