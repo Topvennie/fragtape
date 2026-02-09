@@ -46,6 +46,19 @@ func New(positionsPerSecond, positionsMinDistance int) *Demo {
 }
 
 func (d *Demo) Parse(file []byte) (*Match, error) {
+	d.match = &Match{
+		Players: []*Player{},
+		Rounds:  []*Round{},
+	}
+	d.started = false
+	d.weaponOwner = map[ulid.ULID]PlayerID{}
+	d.droppedWeapons = map[ulid.ULID]PlayerID{}
+	d.playerSpots = map[PlayerID]map[PlayerID]bool{}
+	d.playerDeathTick = map[PlayerID]Tick{}
+	d.playerButtonMask = map[PlayerID]common.ButtonBitMask{}
+	d.playerScoped = map[PlayerID]bool{}
+	d.playerMvps = map[PlayerID]int{}
+
 	if err := demoinfocs.Parse(bytes.NewReader(file), func(p demoinfocs.Parser) error {
 		// Net messages
 		p.RegisterNetMessageHandler(wrap(p, d.onNetMessage))
