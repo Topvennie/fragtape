@@ -2,6 +2,7 @@ import { Title } from "@/components/atoms/Title"
 import { Demo } from "@/components/demo/Demo"
 import { FragtapeIcon } from "@/components/icons/FragtapeIcon"
 import { useDemoGetAll, useDemoUpload } from "@/lib/api/demo"
+import { useSettingGlobalGet } from "@/lib/api/setting_global"
 import { getErrorMessage } from "@/lib/utils"
 import { Button, Center, FileButton, Group, Stack } from "@mantine/core"
 import { notifications } from "@mantine/notifications"
@@ -9,10 +10,12 @@ import { useMemo, useState } from "react"
 import { LuCircleCheckBig, LuClock } from "react-icons/lu"
 
 export const Home = () => {
-  const { data: demos, isLoading } = useDemoGetAll()
+  const { data: demos, isLoading: isLoadingDemos } = useDemoGetAll()
   const demoUpload = useDemoUpload()
 
   const [uploading, setUploading] = useState(false)
+
+  const { data: setting } = useSettingGlobalGet()
 
   const handleUpload = (file: File | null) => {
     if (!file) return
@@ -30,7 +33,7 @@ export const Home = () => {
   }
 
   const content = useMemo(() => {
-    if (isLoading) return (
+    if (isLoadingDemos) return (
       <Center className="mt-48">
         <FragtapeIcon animated className="size-36 text-(--mantine-color-primary-6)" />
       </Center>
@@ -41,15 +44,17 @@ export const Home = () => {
         {demos?.map(d => <Demo key={d.id} demo={d} />)}
       </>
     )
-  }, [demos, isLoading])
+  }, [demos, isLoadingDemos])
 
   return (
     <Stack>
       <Group justify="space-between">
         <Title order={2} className="font-bold">Recent Matches</Title>
-        <FileButton onChange={handleUpload}>
-          {props => <Button loading={uploading} {...props}>Upload</Button>}
-        </FileButton>
+        {setting?.demoUpload && (
+          <FileButton onChange={handleUpload}>
+            {props => <Button loading={uploading} {...props}>Upload</Button>}
+          </FileButton>
+        )}
       </Group>
       {content}
     </Stack>
