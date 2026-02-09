@@ -218,6 +218,14 @@ type HighlightSegment struct {
 	EndTick     int32
 }
 
+type SettingGlobal struct {
+	ID             int32
+	DemoUpload     bool
+	CustomCriteria bool
+	ChatCommand    bool
+	ChatTrigger    string
+}
+
 type Stat struct {
 	ID        int32
 	DemoID    int32
