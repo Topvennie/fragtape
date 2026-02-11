@@ -1,5 +1,5 @@
 import { convertSettingGlobalSchema, SettingGlobal, settingGlobalSchema, SettingGlobalSchema } from "@/lib/types/setting_global"
-import { ActionIcon, Button, Center, Switch, TextInput } from "@mantine/core"
+import { ActionIcon, Button, Center, Switch } from "@mantine/core"
 import { Block } from "@tanstack/react-router"
 import { LuSave } from "react-icons/lu"
 
@@ -13,6 +13,7 @@ import { Card } from "../atoms/Card"
 import { ModalCenter } from "../atoms/ModalCenter"
 import { Title } from "../atoms/Title"
 import { FragtapeIcon } from "../icons/FragtapeIcon"
+import { TextInput } from "../atoms/TextInput"
 
 type Keys = keyof SettingGlobal
 type Values = SettingGlobal[Keys]
@@ -66,7 +67,7 @@ export const AdminConfiguration = () => {
         const msg = await getErrorMessage(error)
         notifications.show({ color: "red", message: msg })
       },
-      onSettled: () => setUpdating(false)
+      onSettled: () => setUpdating(false),
     })
   }
 

@@ -5,6 +5,7 @@ import { Error404 } from "./pages/404";
 import { Error } from "./pages/Error";
 import { Home } from "./pages/Home";
 import { Admin } from "./pages/Admin";
+import { Setting } from "./pages/Setting";
 
 const root = createRootRouteWithContext()({
   component: App,
@@ -28,10 +29,17 @@ const admin = createRoute({
   component: Admin,
 })
 
+const setting = createRoute({
+  getParentRoute: () => index,
+  path: "/setting",
+  component: Setting,
+})
+
 const routeTree = root.addChildren([
   index.addChildren([
     home,
     admin,
+    setting,
   ]),
 ])
 

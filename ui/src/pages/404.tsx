@@ -10,7 +10,7 @@ export const Error404 = () => {
   const handleReturn = () => navigate({ to: "/" })
 
   return (
-    <Center h="100vh">
+    <Center>
       <Stack align="center" gap="xl">
         <div className="flex justify-center relative w-16 sm:w-32 lg:w-64 aspect-square">
           <FragtapeIcon className="text-(--mantine-color-primary-6) size-16 sm:size-32 lg:size-64  z-20 absolute left-7 -top-5 sm:left-15 sm:-top-10 lg:left-25 lg:-top-15" />
