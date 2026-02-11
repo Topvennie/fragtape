@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shareed2k/goth_fiber"
 	routers "github.com/topvennie/fragtape/internal/server/api"
+	"github.com/topvennie/fragtape/internal/server/dto"
 	"github.com/topvennie/fragtape/internal/server/middlewares"
 	"github.com/topvennie/fragtape/internal/server/service"
 	"github.com/topvennie/fragtape/pkg/config"
@@ -24,7 +25,7 @@ type Server struct {
 	Addr string
 }
 
-func New(service service.Service, pool *pgxpool.Pool) *Server {
+func New(service service.Service, pool *pgxpool.Pool) (*Server, error) {
 	// Construct app
 	app := fiber.New(fiber.Config{
 		BodyLimit:         20 * 1024 * 1024,
@@ -55,6 +56,11 @@ func New(service service.Service, pool *pgxpool.Pool) *Server {
 		CookieSecure:   !config.IsDev(),
 	})
 
+	// Init dto validator
+	if err := dto.InitValidator(); err != nil {
+		return nil, err
+	}
+
 	// Register routes
 	api := app.Group("/api")
 
@@ -66,6 +72,7 @@ func New(service service.Service, pool *pgxpool.Pool) *Server {
 	routers.NewDemo(protectedAPI, service)
 	routers.NewHighlight(protectedAPI, service)
 	routers.NewSettingGlobal(protectedAPI, service)
+	routers.NewSettingUser(protectedAPI, service)
 
 	// Static files if served in production
 	if !config.IsDev() {
@@ -87,5 +94,5 @@ func New(service service.Service, pool *pgxpool.Pool) *Server {
 		App:  app,
 	}
 
-	return srv
+	return srv, nil
 }

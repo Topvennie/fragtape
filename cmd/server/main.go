@@ -50,7 +50,10 @@ func main() {
 	repo := repository.New(db)
 	service := service.New(*repo)
 
-	api := server.New(*service, db.Pool())
+	api, err := server.New(*service, db.Pool())
+	if err != nil {
+		zap.S().Fatalf("Unable to start API server %v", err)
+	}
 
 	zap.S().Infof("Server is running on %s", api.Addr)
 	if err := api.Listen(api.Addr); err != nil {
