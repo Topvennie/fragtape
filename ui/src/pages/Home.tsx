@@ -1,13 +1,16 @@
+import { Alert } from "@/components/atoms/Alert"
+import { LinkButton } from "@/components/atoms/LinkButton"
 import { Title } from "@/components/atoms/Title"
 import { Demo } from "@/components/demo/Demo"
 import { FragtapeIcon } from "@/components/icons/FragtapeIcon"
 import { useDemoGetAll, useDemoUpload } from "@/lib/api/demo"
 import { useSettingGlobalGet } from "@/lib/api/setting_global"
+import { useSettingUserGet } from "@/lib/api/setting_user"
 import { getErrorMessage } from "@/lib/utils"
 import { Button, Center, FileButton, Group, Stack } from "@mantine/core"
 import { notifications } from "@mantine/notifications"
 import { useMemo, useState } from "react"
-import { LuCircleCheckBig, LuClock } from "react-icons/lu"
+import { LuArrowRight, LuCircleCheckBig, LuClock, LuTriangleAlert } from "react-icons/lu"
 
 export const Home = () => {
   const { data: demos, isLoading: isLoadingDemos } = useDemoGetAll()
@@ -15,7 +18,8 @@ export const Home = () => {
 
   const [uploading, setUploading] = useState(false)
 
-  const { data: setting } = useSettingGlobalGet()
+  const { data: settingGlobal } = useSettingGlobalGet()
+  const { data: settingUser } = useSettingUserGet()
 
   const handleUpload = (file: File | null) => {
     if (!file) return
@@ -48,9 +52,10 @@ export const Home = () => {
 
   return (
     <Stack>
+      {!settingUser?.connectedSteam && <NoConnections />}
       <Group justify="space-between">
         <Title order={2} className="font-bold">Recent Matches</Title>
-        {setting?.demoUpload && (
+        {settingGlobal?.demoUpload && (
           <FileButton onChange={handleUpload}>
             {props => <Button loading={uploading} {...props}>Upload</Button>}
           </FileButton>
@@ -58,6 +63,24 @@ export const Home = () => {
       </Group>
       {content}
     </Stack>
+  )
+}
+
+const NoConnections = () => {
+  return (
+    <Alert
+      title="Missing Account Connections"
+      icon={<LuTriangleAlert className="size-6 text-(--mantine-color-primary-6)" />}
+      color="orange"
+      border
+    >
+      No accounts are linked to your profile. We cannot fetch your matches or generate highlights until you connect at least one account.
+      <div className="mt-2">
+        <LinkButton to="/setting" rightSection={<LuArrowRight />}>
+          Go to Settings
+        </LinkButton>
+      </div>
+    </Alert>
   )
 }
 
@@ -82,3 +105,4 @@ const NoDemos = () => {
     </Stack>
   )
 }
+

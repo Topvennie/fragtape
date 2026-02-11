@@ -59,4 +59,9 @@ export namespace API {
     chat_command: boolean;
     chat_trigger: string;
   }
+
+  export interface SettingUser {
+    connected_steam: boolean;
+  }
 }
+
