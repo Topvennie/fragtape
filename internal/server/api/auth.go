@@ -18,7 +18,8 @@ import (
 type Auth struct {
 	router fiber.Router
 
-	user service.User
+	settingUser service.SettingUser
+	user        service.User
 
 	redirectURL string
 }
@@ -33,6 +34,7 @@ func NewAuth(router fiber.Router, service service.Service) *Auth {
 
 	api := &Auth{
 		router:      router.Group("/auth"),
+		settingUser: *service.NewSettingUser(),
 		user:        *service.NewUser(),
 		redirectURL: config.GetDefaultString("server.auth.redirect_url", "/"),
 	}
@@ -78,6 +80,9 @@ func (r *Auth) loginCallback(c *fiber.Ctx) error {
 			return err
 		}
 	}
+
+	// If the name is not equal then the user has not logged in yet
+	// and got added because he played a match that added by someone elses match
 	if dtoUser.Name != user.Name {
 		dtoUser.Name = user.Name
 		dtoUser.DisplayName = user.NickName
@@ -86,6 +91,10 @@ func (r *Auth) loginCallback(c *fiber.Ctx) error {
 		if dtoUser, err = r.user.Update(c.Context(), dtoUser); err != nil {
 			return err
 		}
+	}
+
+	if err := r.settingUser.CreateIfNotExist(c.Context(), dtoUser.ID); err != nil {
+		return err
 	}
 
 	if err := storeInSession(c, "userID", dtoUser.ID); err != nil {

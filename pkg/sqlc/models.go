@@ -226,6 +226,13 @@ type SettingGlobal struct {
 	ChatTrigger    string
 }
 
+type SettingUser struct {
+	ID                       int32
+	UserID                   int32
+	SteamMatchToken          pgtype.Text
+	SteamAuthenticationToken pgtype.Text
+}
+
 type Stat struct {
 	ID        int32
 	DemoID    int32
