@@ -6,6 +6,7 @@ LINT_SERVER=false
 LINT_WORKER=false
 LINT_RECORDER=false
 LINT_FRONTEND=false
+LINT_STEAM=false
 LINT_ALL=false
 
 for file in $CHANGED_FILES; do
@@ -17,6 +18,8 @@ for file in $CHANGED_FILES; do
     LINT_RECORDER=true
   elif [[ $file == ui/* ]]; then
     LINT_FRONTEND=true
+  elif [[ $file == service/steam/* ]]; then
+    LINT_STEAM=true
   else
     LINT_ALL=true
     break
@@ -48,6 +51,15 @@ if [ "$LINT_FRONTEND" = true ]; then
   echo "Linting Frontend"
   pnpm --silent run lint || exit 1
   echo "Typecheck Frontend"
+  pnpm --silent run typecheck || exit 1
+  cd - >/dev/null || exit 1
+fi
+
+if [ "$LINT_STEAM" = true ]; then
+  cd service/steam || exit 1
+  echo "Linting Steam"
+  pnpm --silent run lint || exit 1
+  echo "Typecheck Steam"
   pnpm --silent run typecheck || exit 1
   cd - >/dev/null || exit 1
 fi
