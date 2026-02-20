@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/topvennie/fragtape/internal/database/repository"
+	"github.com/topvennie/fragtape/internal/worker/fetch"
 	"github.com/topvennie/fragtape/internal/worker/finalize"
 	"github.com/topvennie/fragtape/internal/worker/parse"
 	"github.com/topvennie/fragtape/pkg/config"
@@ -49,6 +50,11 @@ func main() {
 	})
 
 	repo := repository.New(db)
+
+	fetcher := fetch.New(*repo)
+	if err := fetcher.Start(context.Background()); err != nil {
+		zap.S().Fatalf("Starting fetcher failed %v", err)
+	}
 
 	parser := parse.New(*repo)
 	if err := parser.Start(context.Background()); err != nil {

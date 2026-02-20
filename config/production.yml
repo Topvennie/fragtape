@@ -29,6 +29,10 @@ server:
     password: miniominio
 
 worker:
+  fetcher:
+    interval_s: 60
+    cooldown_s: 300
+
   parser:
     interval_s: 60
     concurrent: 8

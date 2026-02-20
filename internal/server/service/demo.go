@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -146,7 +147,7 @@ func (d *Demo) GetAll(ctx context.Context, userID int) ([]dto.Demo, error) {
 func (d *Demo) Upload(ctx context.Context, userID int, file []byte) error {
 	demo := &model.Demo{
 		Source:   model.DemoSourceManual,
-		SourceID: strconv.Itoa(userID),
+		SourceID: time.Now().Format("%Y-%m-%d_%H-%M-%S") + strconv.Itoa(userID),
 		FileID:   uuid.NewString(),
 	}
 

@@ -108,6 +108,28 @@ func (u *User) GetFiltered(ctx context.Context, filter model.UserFilter) (*model
 	}, nil
 }
 
+func (u *User) GetAllRealWithLastDemo(ctx context.Context) ([]*model.UserDemo, error) {
+	users, err := u.repo.queries(ctx).UserGetAllRealWithLastDemo(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get all real users %w", err)
+	}
+
+	return utils.SliceMap(users, func(u sqlc.UserGetAllRealWithLastDemoRow) *model.UserDemo {
+		return &model.UserDemo{
+			User: *model.UserModel(u.User),
+			Demo: model.Demo{
+				ID:        int(u.ID),
+				Source:    model.DemoSource(u.Source),
+				SourceID:  fromString(u.SourceID),
+				CreatedAt: u.CreatedAt.Time,
+			},
+		}
+	}), nil
+}
+
 func (u *User) Create(ctx context.Context, user *model.User) error {
 	id, err := u.repo.queries(ctx).UserCreate(ctx, sqlc.UserCreateParams{
 		Uid:         int32(user.UID),

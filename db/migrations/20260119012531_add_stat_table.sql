@@ -16,10 +16,13 @@ CREATE TABLE stats (
 
   UNIQUE (demo_id, user_id)
 );
+
+CREATE INDEX IF NOT EXISTS stats_user_id_idx ON stats(user_id);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP INDEX stats_user_id_idx;
 DROP TABLE stats;
 DROP TYPE team
 DROP TYPE result;

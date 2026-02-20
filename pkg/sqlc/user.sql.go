@@ -93,6 +93,65 @@ func (q *Queries) UserGetAdmin(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
+const userGetAllRealWithLastDemo = `-- name: UserGetAllRealWithLastDemo :many
+SELECT
+  u.id, u.uid, u.name, u.display_name, u.avatar_url, u.crosshair, u.admin,
+  d.id,
+  d.source,
+  d.source_id,
+  d.created_at
+FROM users u
+LEFT JOIN LATERAL (
+  SELECT d2.id, d2.source, d2.source_id, d2.created_at
+  FROM stats s
+  JOIN demos d2 ON d2.id = s.demo_id
+  WHERE s.user_id = u.id
+  ORDER BY d2.created_at DESC
+  LIMIT 1
+) d ON true
+WHERE u.name != ''
+`
+
+type UserGetAllRealWithLastDemoRow struct {
+	User      User
+	ID        int32
+	Source    DemoSource
+	SourceID  pgtype.Text
+	CreatedAt pgtype.Timestamptz
+}
+
+func (q *Queries) UserGetAllRealWithLastDemo(ctx context.Context) ([]UserGetAllRealWithLastDemoRow, error) {
+	rows, err := q.db.Query(ctx, userGetAllRealWithLastDemo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserGetAllRealWithLastDemoRow
+	for rows.Next() {
+		var i UserGetAllRealWithLastDemoRow
+		if err := rows.Scan(
+			&i.User.ID,
+			&i.User.Uid,
+			&i.User.Name,
+			&i.User.DisplayName,
+			&i.User.AvatarUrl,
+			&i.User.Crosshair,
+			&i.User.Admin,
+			&i.ID,
+			&i.Source,
+			&i.SourceID,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const userGetByIds = `-- name: UserGetByIds :many
 SELECT id, uid, name, display_name, avatar_url, crosshair, admin
 FROM users

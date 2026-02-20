@@ -27,8 +27,8 @@ export const Alert = ({ color, icon = null, title = "", border = false, children
     <div className={cn(`flex items-start gap-4 p-4 rounded-md border ${backgroundColor[color]} ${border ? borderColor[color] : ""}`, className)} {...props}>
       {icon}
       <div className="flex flex-col gap-2">
-        {title && <p className="font-bold text-white">{title}</p>}
-        <p className="text-secondary">{children}</p>
+        {title && <div className="font-bold text-white">{title}</div>}
+        <div className="text-secondary">{children}</div>
       </div>
     </div>
   )

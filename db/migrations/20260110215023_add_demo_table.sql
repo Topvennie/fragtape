@@ -14,12 +14,17 @@ CREATE TABLE demos (
   attempts INTEGER NOT NULL DEFAULT 0,
   error TEXT,
   status_updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  UNIQUE(souce, source_id)
 );
+
+CREATE INDEX IF NOT EXISTS demos_created_at_idx ON demos(created_at);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP INDEX demos_created_at_idx;
 DROP TABLE demos;
 DROP TYPE demo_status;
 DROP TYPE demo_source;
