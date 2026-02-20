@@ -30,6 +30,10 @@ server:
     password:
 
 worker:
+  fetcher:
+    interval_s: 60
+    cooldown_s: 300
+
   parser:
     interval_s: 10
     concurrent: 1

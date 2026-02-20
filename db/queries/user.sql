@@ -30,6 +30,24 @@ WHERE
 ORDER BY u.name, u.display_name
 LIMIT $1 OFFSET $2;
 
+-- name: UserGetAllRealWithLastDemo :many
+SELECT
+  sqlc.embed(u),
+  d.id,
+  d.source,
+  d.source_id,
+  d.created_at
+FROM users u
+LEFT JOIN LATERAL (
+  SELECT d2.id, d2.source, d2.source_id, d2.created_at
+  FROM stats s
+  JOIN demos d2 ON d2.id = s.demo_id
+  WHERE s.user_id = u.id
+  ORDER BY d2.created_at DESC
+  LIMIT 1
+) d ON true
+WHERE u.name != '';
+
 -- name: UserCreate :one
 INSERT INTO users (uid, name, display_name, avatar_url, crosshair, admin)
 VALUES ($1, $2, $3, $4, $5, NOT EXISTS (SELECT 1 FROM users))

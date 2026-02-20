@@ -30,6 +30,11 @@ func (u *User) EqualEntry(u2 User) bool {
 	return u.Name == u2.Name && u.DisplayName == u2.DisplayName && u.AvatarURL == u2.AvatarURL
 }
 
+type UserDemo struct {
+	User User
+	Demo Demo
+}
+
 type UserFilterResult struct {
 	Users []User
 	Total int

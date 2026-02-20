@@ -14,6 +14,7 @@ import (
 const demoCreate = `-- name: DemoCreate :one
 INSERT INTO demos (source, source_id, file_id)
 VALUES ($1, $2, $3)
+ON CONFLICT DO NOTHING
 RETURNING id
 `
 
@@ -104,6 +105,7 @@ WITH cte AS (
 UPDATE demos
 SET
   status = $1,
+  error = NULL,
   attempts = attempts + 1,
   status_updated_at = NOW()
 WHERE id in (SELECT id from cte)
