@@ -80,6 +80,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      steam:
+        condition: service_started
 
   recorder-manager:
     build:
@@ -130,9 +132,22 @@ services:
       minio:
         condition: service_healthy
 
+  steam:
+    build:
+      context: service/steam
+      dockerfile: ../../docker/steam-dev.Dockerfile
+    container_name: steam
+    ports:
+      - 3002:3002
+    volumes:
+      - ./service/steam:/app
+      - ./config:/app/config
+      - steam_packages:/app/node_modules
+
 volumes:
   db_data:
   minio_data:
   go_packages:
   frontend_packages:
   recorder_data:
+  steam_packages:
