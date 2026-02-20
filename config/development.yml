@@ -83,3 +83,7 @@ recorder:
     secure:
     username:
     password:
+
+service:
+  steam:
+    port: 3002
