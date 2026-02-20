@@ -3,6 +3,7 @@ all: build
 setup:
 	@go get tool
 	@cd ui && pnpm install
+	@cd service/steam && pnpm install
 
 build-server:
 	@go build -o dist/server cmd/server/main.go
