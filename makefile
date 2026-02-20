@@ -17,7 +17,7 @@ build-recorder-win:
 	@GOOS=windows GOARCH=amd64 go build -o dist/recorder.exe cmd/recorder/main.go
 
 watch:
-	@docker compose up backend frontend worker recorder-manager recorder
+	@docker compose up backend frontend worker recorder-manager recorder steam
 	@docker compose down
 
 goose:
