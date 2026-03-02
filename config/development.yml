@@ -33,6 +33,11 @@ worker:
   fetcher:
     interval_s: 60
     cooldown_s: 300
+    steam:
+      username:
+      password:
+      shared_secret:
+      service_url: http://steam:3002
 
   parser:
     interval_s: 10

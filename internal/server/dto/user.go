@@ -27,8 +27,14 @@ func UserDTO(user *model.User) User {
 }
 
 func (u *User) ToModel() *model.User {
-	user := model.User(*u)
-	return &user
+	return &model.User{
+		ID:          u.ID,
+		UID:         u.UID,
+		Name:        u.Name,
+		DisplayName: u.DisplayName,
+		AvatarURL:   u.AvatarURL,
+		Admin:       u.Admin,
+	}
 }
 
 type UserFilterResult struct {

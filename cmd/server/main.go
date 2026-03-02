@@ -6,6 +6,7 @@ import (
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/internal/server"
 	"github.com/topvennie/fragtape/internal/server/service"
+	"github.com/topvennie/fragtape/internal/worker/fetch/steam"
 	"github.com/topvennie/fragtape/pkg/config"
 	"github.com/topvennie/fragtape/pkg/db"
 	"github.com/topvennie/fragtape/pkg/logger"
@@ -49,6 +50,10 @@ func main() {
 
 	repo := repository.New(db)
 	service := service.New(*repo)
+
+	if err := steam.Init(*repo); err != nil {
+		zap.S().Fatalf("Initialize steam %v", err)
+	}
 
 	api, err := server.New(*service, db.Pool())
 	if err != nil {

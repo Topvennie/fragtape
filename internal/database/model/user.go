@@ -11,6 +11,10 @@ type User struct {
 	AvatarURL   string
 	Crosshair   string
 	Admin       bool
+
+	// Optional non db fields
+	Demo    Demo
+	Setting SettingUser
 }
 
 func UserModel(user sqlc.User) *User {
@@ -28,11 +32,6 @@ func UserModel(user sqlc.User) *User {
 // EqualEntry returns true if all non unique values are equal
 func (u *User) EqualEntry(u2 User) bool {
 	return u.Name == u2.Name && u.DisplayName == u2.DisplayName && u.AvatarURL == u2.AvatarURL
-}
-
-type UserDemo struct {
-	User User
-	Demo Demo
 }
 
 type UserFilterResult struct {

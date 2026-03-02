@@ -142,6 +142,7 @@ services:
     volumes:
       - ./service/steam:/app
       - ./config:/app/config
+      - .env:/app/.env
       - steam_packages:/app/node_modules
 
 volumes:

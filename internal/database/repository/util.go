@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -30,9 +32,17 @@ func toBool(b *bool) pgtype.Bool {
 }
 
 // Uncomment when used
-// func toTime(t time.Time) pgtype.Timestamptz {
-// 	return pgtype.Timestamptz{Time: t, Valid: !t.IsZero()}
-// }
+//
+//	func toTime(t time.Time) pgtype.Timestamptz {
+//		return pgtype.Timestamptz{Time: t, Valid: !t.IsZero()}
+//	}
+func fromTime(t pgtype.Timestamptz) time.Time {
+	if t.Valid {
+		return t.Time
+	}
+
+	return time.Time{}
+}
 
 // Uncomment when used
 // func toDuration(d time.Duration) pgtype.Int8 {

@@ -3,47 +3,55 @@ package fetch
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
+	"github.com/topvennie/fragtape/internal/worker/fetch/steam"
 	"github.com/topvennie/fragtape/pkg/config"
 	"github.com/topvennie/fragtape/pkg/storage"
 	"github.com/topvennie/fragtape/pkg/utils"
 	"go.uber.org/zap"
 )
 
-type fetchResult struct {
-	file     []byte
-	source   model.DemoSource
-	sourceID string
+type Result struct {
+	File     []byte
+	Source   model.DemoSource
+	SourceID string
 }
 
-type fetcher interface {
-	fetch(context.Context, model.UserDemo) (fetchResult, error)
+type Fetcher interface {
+	// Fetch gets a new demo file
+	// It should only return a file if it is newer
+	Fetch(context.Context, model.User) ([]byte, model.DemoSource, string, error)
 }
 
 type Manager struct {
 	interval time.Duration
 	cooldown time.Duration
 
-	fetchers []fetcher
+	fetchers []Fetcher
 
 	repo repository.Repository
 	demo repository.Demo
 	user repository.User
 }
 
-func New(repo repository.Repository) *Manager {
+func New(repo repository.Repository) (*Manager, error) {
+	if err := steam.Init(repo); err != nil {
+		return nil, fmt.Errorf("init steam %w", err)
+	}
+
 	return &Manager{
 		interval: config.GetDefaultDurationS("worker.fetcher.interval_s", 60),
 		cooldown: config.GetDefaultDurationS("worker.fetcher.cooldown_s", 300),
-		fetchers: []fetcher{},
+		fetchers: []Fetcher{steam.S},
 		repo:     repo,
 		demo:     *repo.NewDemo(),
 		user:     *repo.NewUser(),
-	}
+	}, nil
 }
 
 func (m *Manager) Start(ctx context.Context) error {
@@ -69,7 +77,7 @@ func (m *Manager) Start(ctx context.Context) error {
 }
 
 func (m *Manager) loop(ctx context.Context) error {
-	users, err := m.user.GetAllRealWithLastDemo(ctx)
+	users, err := m.user.GetAllRealWithSettingLastDemo(ctx)
 	if err != nil {
 		return err
 	}
@@ -77,7 +85,7 @@ func (m *Manager) loop(ctx context.Context) error {
 	now := time.Now()
 	lastDemo := now.Add(-1 * m.cooldown)
 
-	users = utils.SliceFilter(users, func(u *model.UserDemo) bool {
+	users = utils.SliceFilter(users, func(u *model.User) bool {
 		if u.Demo.ID == 0 {
 			return true
 		}
@@ -86,25 +94,32 @@ func (m *Manager) loop(ctx context.Context) error {
 	})
 
 	for _, user := range users {
+		zap.S().Debugf("Fetching for %s", user.DisplayName)
 		// Try each fetcher for a new match
-		var result fetchResult
+		var file []byte
+		var source model.DemoSource
+		var sourceID string
 
 		for _, fetcher := range m.fetchers {
-			result, err = fetcher.fetch(ctx, *user)
+			file, source, sourceID, err = fetcher.Fetch(ctx, *user)
 			if err != nil {
-				return err
+				zap.S().Error(err)
+				continue
 			}
-			// Stop when we find a newer demo
-			if len(result.file) > 0 && (result.source != user.Demo.Source || result.sourceID != user.Demo.SourceID) {
+
+			// Stop when we find a demo
+			// The parser is responsible for making sure it is newer
+			if len(file) > 0 {
 				break
 			}
 		}
 
 		// If we have a result save it
-		if len(result.file) > 0 && (result.source != user.Demo.Source || result.sourceID != user.Demo.SourceID) {
+		if len(file) > 0 {
+			zap.S().Debug("Demo received, saving")
 			demo := model.Demo{
-				Source:   result.source,
-				SourceID: result.sourceID,
+				Source:   source,
+				SourceID: sourceID,
 				FileID:   uuid.NewString(),
 			}
 
@@ -113,9 +128,11 @@ func (m *Manager) loop(ctx context.Context) error {
 					return err
 				}
 
-				if err := storage.S.Set(demo.FileID, result.file, 0); err != nil {
+				if err := storage.S.Set(demo.FileID, file, 0); err != nil {
 					return err
 				}
+
+				zap.S().Debug("All good")
 
 				return nil
 			}); err != nil {
