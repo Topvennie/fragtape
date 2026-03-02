@@ -6,6 +6,7 @@ import (
 
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/internal/worker/fetch"
+	"github.com/topvennie/fragtape/internal/worker/fetch/steam"
 	"github.com/topvennie/fragtape/internal/worker/finalize"
 	"github.com/topvennie/fragtape/internal/worker/parse"
 	"github.com/topvennie/fragtape/pkg/config"
@@ -51,7 +52,14 @@ func main() {
 
 	repo := repository.New(db)
 
-	fetcher := fetch.New(*repo)
+	if err := steam.Init(*repo); err != nil {
+		zap.S().Fatalf("Initialize steam %v", err)
+	}
+
+	fetcher, err := fetch.New(*repo)
+	if err != nil {
+		zap.S().Fatalf("Init fetcher %w", err)
+	}
 	if err := fetcher.Start(context.Background()); err != nil {
 		zap.S().Fatalf("Starting fetcher failed %v", err)
 	}

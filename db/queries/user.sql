@@ -30,14 +30,16 @@ WHERE
 ORDER BY u.name, u.display_name
 LIMIT $1 OFFSET $2;
 
--- name: UserGetAllRealWithLastDemo :many
+-- name: UserGetAllRealWithSettingLastDemo :many
 SELECT
   sqlc.embed(u),
-  d.id,
-  d.source,
+  sqlc.embed(s_u),
+  COALESCE(d.id, 0),
+  COALESCE(d.source, 'manual'),
   d.source_id,
   d.created_at
 FROM users u
+LEFT JOIN setting_user s_u ON s_u.user_id = u.id
 LEFT JOIN LATERAL (
   SELECT d2.id, d2.source, d2.source_id, d2.created_at
   FROM stats s

@@ -93,14 +93,16 @@ func (q *Queries) UserGetAdmin(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
-const userGetAllRealWithLastDemo = `-- name: UserGetAllRealWithLastDemo :many
+const userGetAllRealWithSettingLastDemo = `-- name: UserGetAllRealWithSettingLastDemo :many
 SELECT
   u.id, u.uid, u.name, u.display_name, u.avatar_url, u.crosshair, u.admin,
-  d.id,
-  d.source,
+  s_u.id, s_u.user_id, s_u.steam_match_token, s_u.steam_authentication_token,
+  COALESCE(d.id, 0),
+  COALESCE(d.source, 'manual'),
   d.source_id,
   d.created_at
 FROM users u
+LEFT JOIN setting_user s_u ON s_u.user_id = u.id
 LEFT JOIN LATERAL (
   SELECT d2.id, d2.source, d2.source_id, d2.created_at
   FROM stats s
@@ -112,23 +114,24 @@ LEFT JOIN LATERAL (
 WHERE u.name != ''
 `
 
-type UserGetAllRealWithLastDemoRow struct {
-	User      User
-	ID        int32
-	Source    DemoSource
-	SourceID  pgtype.Text
-	CreatedAt pgtype.Timestamptz
+type UserGetAllRealWithSettingLastDemoRow struct {
+	User        User
+	SettingUser SettingUser
+	ID          int32
+	Source      DemoSource
+	SourceID    pgtype.Text
+	CreatedAt   pgtype.Timestamptz
 }
 
-func (q *Queries) UserGetAllRealWithLastDemo(ctx context.Context) ([]UserGetAllRealWithLastDemoRow, error) {
-	rows, err := q.db.Query(ctx, userGetAllRealWithLastDemo)
+func (q *Queries) UserGetAllRealWithSettingLastDemo(ctx context.Context) ([]UserGetAllRealWithSettingLastDemoRow, error) {
+	rows, err := q.db.Query(ctx, userGetAllRealWithSettingLastDemo)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []UserGetAllRealWithLastDemoRow
+	var items []UserGetAllRealWithSettingLastDemoRow
 	for rows.Next() {
-		var i UserGetAllRealWithLastDemoRow
+		var i UserGetAllRealWithSettingLastDemoRow
 		if err := rows.Scan(
 			&i.User.ID,
 			&i.User.Uid,
@@ -137,6 +140,10 @@ func (q *Queries) UserGetAllRealWithLastDemo(ctx context.Context) ([]UserGetAllR
 			&i.User.AvatarUrl,
 			&i.User.Crosshair,
 			&i.User.Admin,
+			&i.SettingUser.ID,
+			&i.SettingUser.UserID,
+			&i.SettingUser.SteamMatchToken,
+			&i.SettingUser.SteamAuthenticationToken,
 			&i.ID,
 			&i.Source,
 			&i.SourceID,
