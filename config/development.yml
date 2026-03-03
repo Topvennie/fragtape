@@ -31,13 +31,17 @@ server:
 
 worker:
   fetcher:
-    interval_s: 300
-    cooldown_s: 600
+    interval_s: 60
+    cooldown_s: 60
     steam:
       username:
       password:
       shared_secret:
       service_url: http://steam:3002
+
+  downloader:
+    interval_s: 60
+    concurrent: 1
 
   parser:
     interval_s: 10

@@ -11,6 +11,8 @@ export type NextMatchReq = z.infer<typeof nextMatchReq>
 export type NextMatchResp = {
   nextCode?: string;
   demoUrl?: string;
+  matchTime?: number;
+  players?: number[];
   code?: number;
   error?: string;
 }

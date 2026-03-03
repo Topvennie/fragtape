@@ -22,7 +22,7 @@ export namespace API {
     map: string;
     players: DemoPlayer[];
     stats: StatsDemo;
-    created_at: string;
+    played_at: string;
     status_updated_at: string;
   }
 

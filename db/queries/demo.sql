@@ -40,9 +40,8 @@ WHERE id in (SELECT id from cte)
 RETURNING *;
 
 -- name: DemoCreate :one
-INSERT INTO demos (source, source_id, source_url, status, file_id)
-VALUES ($1, $2, $3, $4, $5)
-ON CONFLICT DO NOTHING
+INSERT INTO demos (source, source_id, source_url, status, file_id, played_at)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING id;
 
 -- name: DemoUpdateStatus :exec

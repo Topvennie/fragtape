@@ -84,6 +84,8 @@ func (m *Manager) loop(ctx context.Context) (bool, error) {
 		return true, nil
 	}
 
+	zap.S().Debug("Downloading")
+
 	// Get the new demo
 	if err = func() error {
 		if demo.SourceURL == "" {

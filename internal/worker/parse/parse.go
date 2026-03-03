@@ -95,6 +95,8 @@ func (m *Manager) loop(ctx context.Context) (bool, error) {
 		return true, nil
 	}
 
+	zap.S().Debug("Parsing")
+
 	// Do the logic
 	if err = func() error {
 		// Parse the match and get the raw match data

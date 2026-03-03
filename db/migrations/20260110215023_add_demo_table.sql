@@ -14,10 +14,11 @@ CREATE TABLE demos (
   status DEMO_STATUS NOT NULL,
   attempts INTEGER NOT NULL DEFAULT 0,
   error TEXT,
+  played_at TIMESTAMPTZ,
   status_updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
-  UNIQUE(souce, source_id)
+  UNIQUE(source, source_id)
 );
 
 CREATE INDEX IF NOT EXISTS demos_created_at_idx ON demos(created_at);

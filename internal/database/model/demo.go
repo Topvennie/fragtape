@@ -39,8 +39,12 @@ type Demo struct {
 	DataID          string
 	Attempts        int
 	Error           string
+	PlayedAt        time.Time
 	StatusUpdatedAt time.Time
 	CreatedAt       time.Time
+
+	// Non db fields
+	Stats []Stat
 }
 
 func DemoModel(d sqlc.Demo) *Demo {
@@ -54,6 +58,7 @@ func DemoModel(d sqlc.Demo) *Demo {
 		DataID:          fromString(d.DataID),
 		Attempts:        int(d.Attempts),
 		Error:           fromString(d.Error),
+		PlayedAt:        fromTime(d.PlayedAt),
 		StatusUpdatedAt: d.StatusUpdatedAt.Time,
 		CreatedAt:       d.CreatedAt.Time,
 	}

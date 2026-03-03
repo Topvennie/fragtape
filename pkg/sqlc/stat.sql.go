@@ -11,13 +11,14 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const statCreate = `-- name: StatCreate :one
+const statCreateNoConflict = `-- name: StatCreateNoConflict :one
 INSERT INTO stats (demo_id, user_id, result, start_team, kills, assists, deaths)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
+ON CONFLICT DO NOTHING
 RETURNING id
 `
 
-type StatCreateParams struct {
+type StatCreateNoConflictParams struct {
 	DemoID    int32
 	UserID    int32
 	Result    NullResult
@@ -27,8 +28,42 @@ type StatCreateParams struct {
 	Deaths    pgtype.Int4
 }
 
-func (q *Queries) StatCreate(ctx context.Context, arg StatCreateParams) (int32, error) {
-	row := q.db.QueryRow(ctx, statCreate,
+func (q *Queries) StatCreateNoConflict(ctx context.Context, arg StatCreateNoConflictParams) (int32, error) {
+	row := q.db.QueryRow(ctx, statCreateNoConflict,
+		arg.DemoID,
+		arg.UserID,
+		arg.Result,
+		arg.StartTeam,
+		arg.Kills,
+		arg.Assists,
+		arg.Deaths,
+	)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
+const statCreateUpdateAtomic = `-- name: StatCreateUpdateAtomic :one
+INSERT INTO stats (demo_id, user_id, result, start_team, kills, assists, deaths)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+ON CONFLICT (demo_id, user_id)
+DO UPDATE SET
+  result = $3, start_team = $4, kills = $5, assists = $6, deaths = $7
+RETURNING id
+`
+
+type StatCreateUpdateAtomicParams struct {
+	DemoID    int32
+	UserID    int32
+	Result    NullResult
+	StartTeam NullTeam
+	Kills     pgtype.Int4
+	Assists   pgtype.Int4
+	Deaths    pgtype.Int4
+}
+
+func (q *Queries) StatCreateUpdateAtomic(ctx context.Context, arg StatCreateUpdateAtomicParams) (int32, error) {
+	row := q.db.QueryRow(ctx, statCreateUpdateAtomic,
 		arg.DemoID,
 		arg.UserID,
 		arg.Result,
@@ -110,31 +145,4 @@ func (q *Queries) StatGetByDemos(ctx context.Context, dollar_1 []int32) ([]Stat,
 		return nil, err
 	}
 	return items, nil
-}
-
-const statUpdate = `-- name: StatUpdate :exec
-UPDATE stats
-SET result = $2, start_team = $3, kills = $4, assists = $5, deaths = $6
-WHERE id = $1
-`
-
-type StatUpdateParams struct {
-	ID        int32
-	Result    NullResult
-	StartTeam NullTeam
-	Kills     pgtype.Int4
-	Assists   pgtype.Int4
-	Deaths    pgtype.Int4
-}
-
-func (q *Queries) StatUpdate(ctx context.Context, arg StatUpdateParams) error {
-	_, err := q.db.Exec(ctx, statUpdate,
-		arg.ID,
-		arg.Result,
-		arg.StartTeam,
-		arg.Kills,
-		arg.Assists,
-		arg.Deaths,
-	)
-	return err
 }

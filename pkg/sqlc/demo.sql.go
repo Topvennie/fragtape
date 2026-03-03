@@ -12,9 +12,8 @@ import (
 )
 
 const demoCreate = `-- name: DemoCreate :one
-INSERT INTO demos (source, source_id, source_url, status, file_id)
-VALUES ($1, $2, $3, $4, $5)
-ON CONFLICT DO NOTHING
+INSERT INTO demos (source, source_id, source_url, status, file_id, played_at)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING id
 `
 
@@ -24,6 +23,7 @@ type DemoCreateParams struct {
 	SourceUrl pgtype.Text
 	Status    DemoStatus
 	FileID    pgtype.Text
+	PlayedAt  pgtype.Timestamptz
 }
 
 func (q *Queries) DemoCreate(ctx context.Context, arg DemoCreateParams) (int32, error) {
@@ -33,6 +33,7 @@ func (q *Queries) DemoCreate(ctx context.Context, arg DemoCreateParams) (int32, 
 		arg.SourceUrl,
 		arg.Status,
 		arg.FileID,
+		arg.PlayedAt,
 	)
 	var id int32
 	err := row.Scan(&id)
@@ -40,7 +41,7 @@ func (q *Queries) DemoCreate(ctx context.Context, arg DemoCreateParams) (int32, 
 }
 
 const demoGet = `-- name: DemoGet :one
-SELECT id, source, source_id, source_url, file_id, data_id, status, attempts, error, status_updated_at, created_at
+SELECT id, source, source_id, source_url, file_id, data_id, status, attempts, error, played_at, status_updated_at, created_at
 FROM demos
 WHERE id = $1
 `
@@ -58,6 +59,7 @@ func (q *Queries) DemoGet(ctx context.Context, id int32) (Demo, error) {
 		&i.Status,
 		&i.Attempts,
 		&i.Error,
+		&i.PlayedAt,
 		&i.StatusUpdatedAt,
 		&i.CreatedAt,
 	)
@@ -65,7 +67,7 @@ func (q *Queries) DemoGet(ctx context.Context, id int32) (Demo, error) {
 }
 
 const demoGetBySourceSourceID = `-- name: DemoGetBySourceSourceID :one
-SELECT id, source, source_id, source_url, file_id, data_id, status, attempts, error, status_updated_at, created_at
+SELECT id, source, source_id, source_url, file_id, data_id, status, attempts, error, played_at, status_updated_at, created_at
 FROM demos
 WHERE source = $1 AND source_id = $2
 `
@@ -88,6 +90,7 @@ func (q *Queries) DemoGetBySourceSourceID(ctx context.Context, arg DemoGetBySour
 		&i.Status,
 		&i.Attempts,
 		&i.Error,
+		&i.PlayedAt,
 		&i.StatusUpdatedAt,
 		&i.CreatedAt,
 	)
@@ -95,7 +98,7 @@ func (q *Queries) DemoGetBySourceSourceID(ctx context.Context, arg DemoGetBySour
 }
 
 const demoGetByStatus = `-- name: DemoGetByStatus :many
-SELECT id, source, source_id, source_url, file_id, data_id, status, attempts, error, status_updated_at, created_at
+SELECT id, source, source_id, source_url, file_id, data_id, status, attempts, error, played_at, status_updated_at, created_at
 FROM demos
 WHERE status = $1
 ORDER BY created_at ASC
@@ -120,6 +123,7 @@ func (q *Queries) DemoGetByStatus(ctx context.Context, status DemoStatus) ([]Dem
 			&i.Status,
 			&i.Attempts,
 			&i.Error,
+			&i.PlayedAt,
 			&i.StatusUpdatedAt,
 			&i.CreatedAt,
 		); err != nil {
@@ -149,7 +153,7 @@ SET
   attempts = attempts + 1,
   status_updated_at = NOW()
 WHERE id in (SELECT id from cte)
-RETURNING id, source, source_id, source_url, file_id, data_id, status, attempts, error, status_updated_at, created_at
+RETURNING id, source, source_id, source_url, file_id, data_id, status, attempts, error, played_at, status_updated_at, created_at
 `
 
 type DemoGetByStatusUpdateAtomicParams struct {
@@ -177,6 +181,7 @@ func (q *Queries) DemoGetByStatusUpdateAtomic(ctx context.Context, arg DemoGetBy
 			&i.Status,
 			&i.Attempts,
 			&i.Error,
+			&i.PlayedAt,
 			&i.StatusUpdatedAt,
 			&i.CreatedAt,
 		); err != nil {
@@ -191,7 +196,7 @@ func (q *Queries) DemoGetByStatusUpdateAtomic(ctx context.Context, arg DemoGetBy
 }
 
 const demoGetByUser = `-- name: DemoGetByUser :many
-SELECT d.id, d.source, d.source_id, d.source_url, d.file_id, d.data_id, d.status, d.attempts, d.error, d.status_updated_at, d.created_at
+SELECT d.id, d.source, d.source_id, d.source_url, d.file_id, d.data_id, d.status, d.attempts, d.error, d.played_at, d.status_updated_at, d.created_at
 FROM demos d
 LEFT JOIN stats s ON s.demo_id = d.id
 WHERE s.user_id = $1
@@ -217,6 +222,7 @@ func (q *Queries) DemoGetByUser(ctx context.Context, userID int32) ([]Demo, erro
 			&i.Status,
 			&i.Attempts,
 			&i.Error,
+			&i.PlayedAt,
 			&i.StatusUpdatedAt,
 			&i.CreatedAt,
 		); err != nil {

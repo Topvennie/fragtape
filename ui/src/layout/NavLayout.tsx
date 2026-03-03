@@ -2,7 +2,7 @@ import { LinkButton } from "@/components/atoms/LinkButton";
 import { FragtapeIcon } from "@/components/icons/FragtapeIcon";
 import { UserIcon } from "@/components/user/UserIcon";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { ActionIcon, AppShell, Burger, Container, Group, Stack } from "@mantine/core";
+import { ActionIcon, AppShell, Burger, Button, Container, Group, Stack } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { LinkProps, useNavigate } from "@tanstack/react-router";
 import { ComponentProps } from "react";
@@ -71,10 +71,9 @@ export const NavLayout = ({ children }: Props) => {
       <AppShell.Header px="md" withBorder={false} bg="background.9">
         <Group h="100%" justify="space-between">
           <Group gap="xs" visibleFrom="md">
-            <ActionIcon onClick={handleHome} size="xl" variant="subtle">
-              <FragtapeIcon className="size-8 text-(--mantine-color-primary-6)" />
-            </ActionIcon>
-            <p className="font-bold text-xl text-primary mr-4">Fragtape</p>
+            <Button onClick={handleHome} size="lg" c="white" variant="subtle" leftSection={<FragtapeIcon className="size-8 text-(--mantine-color-primary-6)" />}>
+              Fragtape
+            </Button>
             {routes.map(r => <NavLink key={r.title} route={r} />)}
           </Group>
           <Burger

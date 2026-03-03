@@ -95,6 +95,7 @@ func (d *Demo) Create(ctx context.Context, demo *model.Demo) error {
 		SourceUrl: toString(demo.SourceURL),
 		Status:    sqlc.DemoStatus(demo.Status),
 		FileID:    toString(demo.FileID),
+		PlayedAt:  toTime(demo.PlayedAt),
 	})
 	if err != nil {
 		return fmt.Errorf("create demo %+v | %w", *demo, err)

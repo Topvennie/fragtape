@@ -16,10 +16,14 @@ export const demoSourceString: Record<DemoSource, string> = {
 }
 
 export enum DemoStatus {
+  QueuedDownload = "queued_download",
+  Downloading = "downloading",
   QueuedParse = "queued_parse",
   Parsing = "parsing",
   QueuedRender = "queued_render",
   Rendering = "rendering",
+  QueuedFinalize = "queued_finalize",
+  Finalize = "finalize",
   Finished = "finished",
   Failed = "failed",
 }
@@ -30,7 +34,7 @@ export interface Demo {
   status: DemoStatus;
   players: DemoPlayer[];
   stats: StatsDemo;
-  createdAt: Date;
+  playedAt: Date;
   statusUpdatedAt: Date;
 }
 
@@ -47,7 +51,7 @@ export const convertDemo = (d: API.Demo): Demo => {
     status: d.status as DemoStatus,
     players: d.players.map(convertDemoPlayer),
     stats: convertStatsDemo(d.stats),
-    createdAt: new Date(d.created_at),
+    playedAt: new Date(d.played_at),
     statusUpdatedAt: new Date(d.status_updated_at),
   }
 }

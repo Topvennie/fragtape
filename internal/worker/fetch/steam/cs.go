@@ -6,12 +6,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-
-	"go.uber.org/zap"
 )
 
 func (s *steam) Download(ctx context.Context, demoURL string) ([]byte, error) {
-	zap.S().Debug("Downloading demo")
 	req, err := http.NewRequestWithContext(ctx, "GET", demoURL, http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("new request %w", err)

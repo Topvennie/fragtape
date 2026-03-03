@@ -12,17 +12,22 @@ type Demo struct {
 	Status          model.DemoStatus `json:"status"`
 	Players         []DemoPlayer     `json:"players"`
 	Stats           StatsDemo        `json:"stats"`
-	CreatedAt       time.Time        `json:"created_at"`
+	PlayedAt        time.Time        `json:"played_at"`
 	StatusUpdatedAt time.Time        `json:"status_updated_at"`
 }
 
 func DemoDTO(d *model.Demo) Demo {
+	playedAt := d.CreatedAt
+	if !d.PlayedAt.IsZero() {
+		playedAt = d.PlayedAt
+	}
+
 	return Demo{
 		ID:              d.ID,
 		Source:          d.Source,
 		Players:         []DemoPlayer{},
 		Status:          d.Status,
-		CreatedAt:       d.CreatedAt,
+		PlayedAt:        playedAt,
 		StatusUpdatedAt: d.StatusUpdatedAt,
 	}
 }

@@ -31,6 +31,7 @@ type Manager struct {
 
 	repo repository.Repository
 	demo repository.Demo
+	stat repository.Stat
 	user repository.User
 }
 
@@ -41,6 +42,7 @@ func New(repo repository.Repository) *Manager {
 		fetchers: []Fetcher{steam.S},
 		repo:     repo,
 		demo:     *repo.NewDemo(),
+		stat:     *repo.NewStat(),
 		user:     *repo.NewUser(),
 	}
 }
@@ -98,7 +100,6 @@ func (m *Manager) loop(ctx context.Context) error {
 				continue
 			}
 
-			// Stop when we find a demo
 			// The parser is responsible for making sure it is newer
 			if !ok {
 				continue
@@ -113,15 +114,25 @@ func (m *Manager) loop(ctx context.Context) error {
 			if oldDemo != nil {
 				// Demo already exists
 				// Possible if a different user was also in the match and got handled first
-				continue
+				demo.ID = oldDemo.ID
+			} else {
+				// New demo
+				demo.Status = model.DemoStatusQueuedDownload
+
+				if err := m.demo.Create(ctx, &demo); err != nil {
+					zap.S().Error(err)
+					continue
+				}
 			}
 
-			// We have a new demo
-			demo.Status = model.DemoStatusQueuedDownload
-
-			if err := m.demo.Create(ctx, &demo); err != nil {
-				zap.S().Error(err)
-				continue
+			// Add all players (if any)
+			// Use the no conflict create as we only insert the player id
+			// We want to do it atomically and don't overwrite any existing data
+			for _, stat := range demo.Stats {
+				stat.DemoID = demo.ID
+				if err := m.stat.CreateNoConflict(ctx, &stat); err != nil {
+					zap.S().Error(err)
+				}
 			}
 		}
 	}

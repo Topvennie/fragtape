@@ -1,13 +1,16 @@
 import { AuthLayout } from "@/layout/AuthLayout"
+import { DataLayout } from "@/layout/DataLayout"
 import { NavLayout } from "@/layout/NavLayout"
 import { Outlet } from "@tanstack/react-router"
 
 export const Index = () => {
   return (
     <AuthLayout>
-      <NavLayout>
-        <Outlet />
-      </NavLayout>
+      <DataLayout>
+        <NavLayout>
+          <Outlet />
+        </NavLayout>
+      </DataLayout>
     </AuthLayout>
   )
 }

@@ -32,11 +32,10 @@ func toBool(b *bool) pgtype.Bool {
 	return pgtype.Bool{Bool: bb, Valid: b != nil}
 }
 
-// Uncomment when used
-//
-//	func toTime(t time.Time) pgtype.Timestamptz {
-//		return pgtype.Timestamptz{Time: t, Valid: !t.IsZero()}
-//	}
+func toTime(t time.Time) pgtype.Timestamptz {
+	return pgtype.Timestamptz{Time: t, Valid: !t.IsZero()}
+}
+
 func fromTime(t pgtype.Timestamptz) time.Time {
 	if t.Valid {
 		return t.Time
