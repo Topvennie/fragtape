@@ -8,6 +8,11 @@ SELECT *
 FROM users
 WHERE uid = $1;
 
+-- name: UserGetByUids :many
+SELECT *
+FROM users
+WHERE uid = ANY($1::int[]);
+
 -- name: UserGetByIds :many
 SELECT *
 FROM users
@@ -36,7 +41,7 @@ SELECT
   sqlc.embed(s_u),
   COALESCE(d.id, 0),
   COALESCE(d.source, 'manual'),
-  d.source_id,
+  COALESCE(d.source_id, ''),
   d.created_at
 FROM users u
 LEFT JOIN setting_user s_u ON s_u.user_id = u.id

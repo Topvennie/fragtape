@@ -85,7 +85,6 @@ func (u *User) GetFiltered(ctx context.Context, userID int, filter dto.UserFilte
 	}
 
 	filterModel := filter.ToModel()
-	zap.S().Debugf("%+v", *filterModel)
 
 	result, err := u.user.GetFiltered(ctx, *filterModel)
 	if err != nil {

@@ -199,6 +199,7 @@ type Demo struct {
 	Status          DemoStatus
 	Attempts        int32
 	Error           pgtype.Text
+	PlayedAt        pgtype.Timestamptz
 	StatusUpdatedAt pgtype.Timestamptz
 	CreatedAt       pgtype.Timestamptz
 }

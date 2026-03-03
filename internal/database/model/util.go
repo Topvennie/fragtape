@@ -1,6 +1,8 @@
 package model
 
 import (
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -29,14 +31,13 @@ func fromInt(i pgtype.Int4) int {
 // 	return nil
 // }
 
-// Uncomment when used
-// func fromTime(t pgtype.Timestamptz) time.Time {
-// 	if t.Valid {
-// 		return t.Time
-// 	}
-//
-// 	return time.Time{}
-// }
+func fromTime(t pgtype.Timestamptz) time.Time {
+	if t.Valid {
+		return t.Time
+	}
+
+	return time.Time{}
+}
 
 // Uncomment when used
 // func fromDuration(i pgtype.Int8) time.Duration {

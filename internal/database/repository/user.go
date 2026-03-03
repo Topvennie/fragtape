@@ -45,6 +45,18 @@ func (u *User) GetByUID(ctx context.Context, uid int) (*model.User, error) {
 	return model.UserModel(user), nil
 }
 
+func (u *User) GetByUIDs(ctx context.Context, uids []int) ([]*model.User, error) {
+	users, err := u.repo.queries(ctx).UserGetByUids(ctx, utils.SliceMap(uids, func(id int) int32 { return int32(id) }))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get users with uid %+v | %w", uids, err)
+	}
+
+	return utils.SliceMap(users, model.UserModel), nil
+}
+
 func (u *User) GetByIDs(ctx context.Context, ids []int) ([]*model.User, error) {
 	users, err := u.repo.queries(ctx).UserGetByIds(ctx, utils.SliceMap(ids, func(id int) int32 { return int32(id) }))
 	if err != nil {

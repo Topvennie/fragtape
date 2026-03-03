@@ -20,16 +20,27 @@ type nextDemoReq struct {
 }
 
 type nextDemoResp struct {
-	NextCode string `json:"nextCode"`
-	DemoURL  string `json:"demoUrl"`
-	Code     int    `json:"code"`
-	Error    string `json:"error"`
+	NextCode  string `json:"nextCode"`
+	DemoURL   string `json:"demoUrl"`
+	MatchTime int    `json:"matchTime"`
+	Players   []int  `json:"players"`
+	Code      int    `json:"code"`
+	Error     string `json:"error"`
+}
+
+type NextDemo struct {
+	NextCode  string
+	DemoURL   string
+	MatchTime time.Time
+	Players   []int
+	Code      int
+	Error     error
 }
 
 // NextDemo communicates with the steam service to get the next match
 // If error != nil then something unexpected happened on the golang side
-// If the resp.Error != "" then something unexpected happened on the typescript side
-func (s *steam) NextDemo(ctx context.Context, user model.User) (nextDemoResp, error) {
+// If the resp.Error != nil then something unexpected happened on the typescript side
+func (s *steam) NextDemo(ctx context.Context, user model.User) (NextDemo, error) {
 	body := nextDemoReq{
 		WebAPIKey:  s.webAPIKey,
 		SteamID:    user.UID,
@@ -39,7 +50,7 @@ func (s *steam) NextDemo(ctx context.Context, user model.User) (nextDemoResp, er
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(body); err != nil {
-		return nextDemoResp{}, fmt.Errorf("encode body %w", err)
+		return NextDemo{}, fmt.Errorf("encode body %w", err)
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -49,7 +60,7 @@ func (s *steam) NextDemo(ctx context.Context, user model.User) (nextDemoResp, er
 	}()
 	req, err := http.NewRequestWithContext(ctx, "POST", s.steamServiceURL+"/steam/next-demo", &buf)
 	if err != nil {
-		return nextDemoResp{}, fmt.Errorf("create request %w", err)
+		return NextDemo{}, fmt.Errorf("create request %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -57,21 +68,35 @@ func (s *steam) NextDemo(ctx context.Context, user model.User) (nextDemoResp, er
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		if errors.Is(err, context.Canceled) {
-			return nextDemoResp{}, errors.New("steam service timed out")
+			return NextDemo{}, errors.New("steam service timed out")
 		}
-		return nextDemoResp{}, fmt.Errorf("do request %w", err)
+		return NextDemo{}, fmt.Errorf("do request %w", err)
 	}
 	defer func() {
 		_ = resp.Body.Close()
 	}()
 
 	if resp.StatusCode != 200 {
-		return nextDemoResp{}, fmt.Errorf("unknown response code %s", resp.Status)
+		return NextDemo{}, fmt.Errorf("unknown response code %s", resp.Status)
 	}
 
-	var demoResp nextDemoResp
-	if err := json.NewDecoder(resp.Body).Decode(&demoResp); err != nil {
-		return nextDemoResp{}, fmt.Errorf("decode response %w", err)
+	var demoRespService nextDemoResp
+	if err := json.NewDecoder(resp.Body).Decode(&demoRespService); err != nil {
+		return NextDemo{}, fmt.Errorf("decode response %w", err)
+	}
+
+	demoResp := NextDemo{
+		NextCode: demoRespService.NextCode,
+		DemoURL:  demoRespService.DemoURL,
+		Players:  demoRespService.Players,
+		Code:     demoRespService.Code,
+	}
+
+	if demoRespService.MatchTime != 0 {
+		demoResp.MatchTime = time.Unix(int64(demoRespService.MatchTime), 0)
+	}
+	if demoRespService.Error != "" {
+		demoResp.Error = errors.New(demoRespService.Error)
 	}
 
 	return demoResp, nil

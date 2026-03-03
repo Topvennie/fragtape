@@ -40,6 +40,8 @@ export class SteamService {
       }
 
       resp.demoUrl = this.extractDemoUrl(matchData);
+      resp.matchTime = this.extractMatchtime(matchData);
+      resp.players = this.extractPlayers(matchData);
 
       return resp;
     });
@@ -55,5 +57,26 @@ export class SteamService {
     }
 
     return ""
+  }
+
+  private extractMatchtime(matchData: GlobalOffensive.MatchesData) {
+    for (let match of matchData.matches) {
+      if (match.matchtime && match.matchtime !== 0) return match.matchtime as number
+    }
+
+    return 0
+  }
+
+  private extractPlayers(matchData: GlobalOffensive.MatchesData) {
+    let maxAccounts: number[] = []
+    for (let match of matchData.matches) {
+      for (let round of match.roundstatsall) {
+        const accountIds = round.reservation.account_ids
+
+        if (accountIds.length > maxAccounts.length) maxAccounts = accountIds
+      }
+    }
+
+    return maxAccounts
   }
 }

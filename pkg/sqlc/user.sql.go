@@ -99,7 +99,7 @@ SELECT
   s_u.id, s_u.user_id, s_u.steam_match_token, s_u.steam_authentication_token,
   COALESCE(d.id, 0),
   COALESCE(d.source, 'manual'),
-  d.source_id,
+  COALESCE(d.source_id, ''),
   d.created_at
 FROM users u
 LEFT JOIN setting_user s_u ON s_u.user_id = u.id
@@ -212,6 +212,40 @@ func (q *Queries) UserGetByUid(ctx context.Context, uid int32) (User, error) {
 		&i.Admin,
 	)
 	return i, err
+}
+
+const userGetByUids = `-- name: UserGetByUids :many
+SELECT id, uid, name, display_name, avatar_url, crosshair, admin
+FROM users
+WHERE uid = ANY($1::int[])
+`
+
+func (q *Queries) UserGetByUids(ctx context.Context, dollar_1 []int32) ([]User, error) {
+	rows, err := q.db.Query(ctx, userGetByUids, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Uid,
+			&i.Name,
+			&i.DisplayName,
+			&i.AvatarUrl,
+			&i.Crosshair,
+			&i.Admin,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const userGetFiltered = `-- name: UserGetFiltered :many

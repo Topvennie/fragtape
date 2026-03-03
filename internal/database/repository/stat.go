@@ -45,7 +45,7 @@ func (s *Stat) GetByDemos(ctx context.Context, demoIDs []int) ([]*model.Stat, er
 	return utils.SliceMap(stats, model.StatModel), nil
 }
 
-func (s *Stat) Create(ctx context.Context, stat *model.Stat) error {
+func (s *Stat) CreateUpdateAtomic(ctx context.Context, stat *model.Stat) error {
 	result := sqlc.NullResult{Valid: false}
 	if stat.Result != model.ResultUnknown {
 		result.Result = sqlc.Result(stat.Result)
@@ -57,7 +57,7 @@ func (s *Stat) Create(ctx context.Context, stat *model.Stat) error {
 		startTeam.Valid = true
 	}
 
-	id, err := s.repo.queries(ctx).StatCreate(ctx, sqlc.StatCreateParams{
+	id, err := s.repo.queries(ctx).StatCreateUpdateAtomic(ctx, sqlc.StatCreateUpdateAtomicParams{
 		DemoID:    int32(stat.DemoID),
 		UserID:    int32(stat.UserID),
 		Result:    result,
@@ -67,7 +67,7 @@ func (s *Stat) Create(ctx context.Context, stat *model.Stat) error {
 		Deaths:    toInt(stat.Deaths),
 	})
 	if err != nil {
-		return fmt.Errorf("create stat %+v | %w", *stat, err)
+		return fmt.Errorf("create update stat atomic %+v | %w", *stat, err)
 	}
 
 	stat.ID = int(id)
@@ -75,7 +75,7 @@ func (s *Stat) Create(ctx context.Context, stat *model.Stat) error {
 	return nil
 }
 
-func (s *Stat) Update(ctx context.Context, stat model.Stat) error {
+func (s *Stat) CreateNoConflict(ctx context.Context, stat *model.Stat) error {
 	result := sqlc.NullResult{Valid: false}
 	if stat.Result != model.ResultUnknown {
 		result.Result = sqlc.Result(stat.Result)
@@ -87,16 +87,20 @@ func (s *Stat) Update(ctx context.Context, stat model.Stat) error {
 		startTeam.Valid = true
 	}
 
-	if err := s.repo.queries(ctx).StatUpdate(ctx, sqlc.StatUpdateParams{
-		ID:        int32(stat.ID),
+	id, err := s.repo.queries(ctx).StatCreateNoConflict(ctx, sqlc.StatCreateNoConflictParams{
+		DemoID:    int32(stat.DemoID),
+		UserID:    int32(stat.UserID),
 		Result:    result,
 		StartTeam: startTeam,
 		Kills:     toInt(stat.Kills),
 		Assists:   toInt(stat.Assists),
 		Deaths:    toInt(stat.Deaths),
-	}); err != nil {
-		return fmt.Errorf("update stat %+v | %w", stat, err)
+	})
+	if err != nil {
+		return fmt.Errorf("create stat not conflict %+v | %w", *stat, err)
 	}
+
+	stat.ID = int(id)
 
 	return nil
 }

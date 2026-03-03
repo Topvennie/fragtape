@@ -6,6 +6,7 @@ import { FragtapeIcon } from "@/components/icons/FragtapeIcon"
 import { useDemoGetAll, useDemoUpload } from "@/lib/api/demo"
 import { useSettingGlobalGet } from "@/lib/api/setting_global"
 import { useSettingUserGet } from "@/lib/api/setting_user"
+import { Demo as DemoType } from "@/lib/types/demo"
 import { getErrorMessage } from "@/lib/utils"
 import { Button, Center, FileButton, Group, Stack } from "@mantine/core"
 import { notifications } from "@mantine/notifications"
@@ -43,11 +44,7 @@ export const Home = () => {
       </Center>
     )
     if (demos?.length === 0) return <NoDemos />
-    return (
-      <>
-        {demos?.map(d => <Demo key={d.id} demo={d} />)}
-      </>
-    )
+    return <Demos demos={demos ?? []} />
   }, [demos, isLoadingDemos])
 
   return (
@@ -91,7 +88,7 @@ const NoDemos = () => {
         <LuClock className="text-primary size-6" />
       </div>
       <p className="text-primary font-bold">No matches tracked yet</p>
-      <p className="text-secondary whitespace-pre-wrap text-balance max-w-xl">{`Once you finish a match with this Steam account it will automatically be visible here.\nOr you can manually upload an old demo`}</p>
+      <p className="text-secondary whitespace-pre-wrap text-balance max-w-xl">{`Once you finish a match with this Steam account it will automatically be visible here.`}</p>
       <Stack gap={0} align="start" pl="xl">
         <Group>
           <LuCircleCheckBig className="text-(--mantine-color-primary-6)" />
@@ -104,5 +101,9 @@ const NoDemos = () => {
       </Stack>
     </Stack>
   )
+}
+
+const Demos = ({ demos }: { demos: DemoType[] }) => {
+  return demos.map(d => <Demo key={d.id} demo={d} />)
 }
 

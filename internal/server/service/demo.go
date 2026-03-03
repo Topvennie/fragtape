@@ -145,7 +145,6 @@ func (d *Demo) GetAll(ctx context.Context, userID int) ([]dto.Demo, error) {
 }
 
 func (d *Demo) Upload(ctx context.Context, userID int, file []byte) error {
-	// TODO: Check if the demo already exists
 	demo := &model.Demo{
 		Source:   model.DemoSourceManual,
 		SourceID: time.Now().Format("%Y-%m-%d_%H-%M-%S") + strconv.Itoa(userID),
@@ -159,7 +158,7 @@ func (d *Demo) Upload(ctx context.Context, userID int, file []byte) error {
 			return fiber.ErrInternalServerError
 		}
 
-		if err := d.stat.Create(ctx, &model.Stat{
+		if err := d.stat.CreateUpdateAtomic(ctx, &model.Stat{
 			DemoID: demo.ID,
 			UserID: userID,
 		}); err != nil {

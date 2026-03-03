@@ -9,7 +9,6 @@ import (
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/worker/parse/demo"
 	"github.com/topvennie/fragtape/pkg/storage"
-	"github.com/topvennie/fragtape/pkg/utils"
 )
 
 func (m *Manager) getMatch(ctx context.Context, d *model.Demo) (*demo.Match, error) {
@@ -25,7 +24,7 @@ func (m *Manager) getMatch(ctx context.Context, d *model.Demo) (*demo.Match, err
 	var match *demo.Match
 
 	// Take into account that we might already have the data
-	// if it failed later in the data pipeline
+	// if the pipeline failed later on
 	if d.DataID == "" {
 		match, err = m.demoParser.Parse(file)
 		if err != nil {
@@ -120,11 +119,6 @@ func (m *Manager) saveStats(ctx context.Context, d model.Demo, match demo.Match)
 		return nil
 	}
 
-	statsDB, err := m.stat.GetByDemo(ctx, d.ID)
-	if err != nil {
-		return nil
-	}
-
 	stats := make(map[demo.PlayerID]*model.Stat)
 
 	for _, player := range match.Players {
@@ -141,7 +135,6 @@ func (m *Manager) saveStats(ctx context.Context, d model.Demo, match demo.Match)
 		if err != nil {
 			return err
 		}
-
 		if user == nil {
 			return errors.New("user not found")
 		}
@@ -159,11 +152,6 @@ func (m *Manager) saveStats(ctx context.Context, d model.Demo, match demo.Match)
 			DemoID: d.ID,
 			UserID: user.ID,
 			Result: result,
-		}
-
-		// Add id if it already exists
-		if statDB, ok := utils.SliceFind(statsDB, func(s *model.Stat) bool { return s.UserID == user.ID }); ok {
-			stat.ID = (*statDB).ID
 		}
 
 		stats[player.SteamID] = stat
@@ -189,14 +177,8 @@ func (m *Manager) saveStats(ctx context.Context, d model.Demo, match demo.Match)
 	}
 
 	for _, stat := range stats {
-		if stat.ID == 0 {
-			if err := m.stat.Create(ctx, stat); err != nil {
-				return err
-			}
-		} else {
-			if err := m.stat.Update(ctx, *stat); err != nil {
-				return err
-			}
+		if err := m.stat.CreateUpdateAtomic(ctx, stat); err != nil {
+			return err
 		}
 	}
 

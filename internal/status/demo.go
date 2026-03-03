@@ -85,7 +85,7 @@ func (d *demo) nextStatus(status model.DemoStatus) model.DemoStatus {
 		return model.DemoStatusFailed
 	default:
 		if idx := slices.Index(statusses, status); idx != -1 {
-			return statusses[max(idx+1, len(statusses))]
+			return statusses[min(idx+1, len(statusses)-1)]
 		}
 
 		return model.DemoStatusFailed
@@ -100,7 +100,7 @@ func (d *demo) prevStatus(status model.DemoStatus) model.DemoStatus {
 		return model.DemoStatusFailed
 	default:
 		if idx := slices.Index(statusses, status); idx != -1 {
-			return statusses[min(idx+1, 0)]
+			return statusses[max(idx-1, 0)]
 		}
 
 		return model.DemoStatusFailed
