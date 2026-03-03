@@ -45,6 +45,21 @@ func (d *Demo) GetByUser(ctx context.Context, userID int) ([]*model.Demo, error)
 	return utils.SliceMap(demos, model.DemoModel), nil
 }
 
+func (d *Demo) GetBySourceSourceID(ctx context.Context, source model.DemoSource, sourceID string) (*model.Demo, error) {
+	demo, err := d.repo.queries(ctx).DemoGetBySourceSourceID(ctx, sqlc.DemoGetBySourceSourceIDParams{
+		Source:   sqlc.DemoSource(source),
+		SourceID: sourceID,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get demo by source %s and source id %s | %w", source, sourceID, err)
+	}
+
+	return model.DemoModel(demo), nil
+}
+
 func (d *Demo) GetByStatus(ctx context.Context, status model.DemoStatus) ([]*model.Demo, error) {
 	demos, err := d.repo.queries(ctx).DemoGetByStatus(ctx, sqlc.DemoStatus(status))
 	if err != nil {
@@ -75,9 +90,11 @@ func (d *Demo) GetByStatusUpdateAtomic(ctx context.Context, oldStatus, newStatus
 
 func (d *Demo) Create(ctx context.Context, demo *model.Demo) error {
 	id, err := d.repo.queries(ctx).DemoCreate(ctx, sqlc.DemoCreateParams{
-		Source:   sqlc.DemoSource(demo.Source),
-		SourceID: toString(demo.SourceID),
-		FileID:   toString(demo.FileID),
+		Source:    sqlc.DemoSource(demo.Source),
+		SourceID:  demo.SourceID,
+		SourceUrl: toString(demo.SourceURL),
+		Status:    sqlc.DemoStatus(demo.Status),
+		FileID:    toString(demo.FileID),
 	})
 	if err != nil {
 		return fmt.Errorf("create demo %+v | %w", *demo, err)

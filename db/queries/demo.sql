@@ -10,6 +10,11 @@ LEFT JOIN stats s ON s.demo_id = d.id
 WHERE s.user_id = $1
 ORDER BY d.created_at DESC;
 
+-- name: DemoGetBySourceSourceID :one
+SELECT *
+FROM demos
+WHERE source = $1 AND source_id = $2;
+
 -- name: DemoGetByStatus :many
 SELECT *
 FROM demos
@@ -35,8 +40,8 @@ WHERE id in (SELECT id from cte)
 RETURNING *;
 
 -- name: DemoCreate :one
-INSERT INTO demos (source, source_id, file_id)
-VALUES ($1, $2, $3)
+INSERT INTO demos (source, source_id, source_url, status, file_id)
+VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT DO NOTHING
 RETURNING id;
 

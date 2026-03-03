@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (s *steam) downloadDemo(ctx context.Context, demoURL string) ([]byte, error) {
+func (s *steam) Download(ctx context.Context, demoURL string) ([]byte, error) {
 	zap.S().Debug("Downloading demo")
 	req, err := http.NewRequestWithContext(ctx, "GET", demoURL, http.NoBody)
 	if err != nil {

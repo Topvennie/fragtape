@@ -30,8 +30,8 @@ server:
 
 worker:
   fetcher:
-    interval_s: 60
-    cooldown_s: 300
+    interval_s: 300
+    cooldown_s: 600
     steam:
       username:
       password:
