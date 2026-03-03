@@ -103,6 +103,16 @@ func (h *Highlight) Update(ctx context.Context, highlight model.Highlight) error
 	return nil
 }
 
+// DeleteByDemo deletes highglights by their demo id
+// Segments are deleted by cascade
+func (h *Highlight) DeleteByDemo(ctx context.Context, demoID int) error {
+	if err := h.repo.queries(ctx).HighlightDeleteByDemo(ctx, int32(demoID)); err != nil {
+		return fmt.Errorf("delete highlight by demo %d | %w", demoID, err)
+	}
+
+	return nil
+}
+
 func (h *Highlight) DeleteFile(ctx context.Context, highlightID int) error {
 	if err := h.repo.queries(ctx).HighlightDeleteFile(ctx, int32(highlightID)); err != nil {
 		return fmt.Errorf("delete highlight file %d | %w", highlightID, err)

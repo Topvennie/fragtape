@@ -27,6 +27,10 @@ SET
   title = coalesce(sqlc.narg('title'), title)
 WHERE id = $1;
 
+-- name: HighlightDeleteByDemo :exec
+DELETE FROM highlights
+WHERE demo_id = $1;
+
 -- name: HighlightDeleteFile :exec
 UPDATE highlights
 SET file_id = NULL

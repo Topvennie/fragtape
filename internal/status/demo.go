@@ -7,6 +7,7 @@ import (
 
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
+	"github.com/topvennie/fragtape/pkg/storage"
 )
 
 var (
@@ -36,8 +37,16 @@ func Init(repo repository.Repository) {
 	}
 }
 
-func (d *demo) Get(ctx context.Context, status model.DemoStatus, amount int) ([]*model.Demo, error) {
-	return d.repo.GetByStatusUpdateAtomic(ctx, status, d.nextStatus(status), amount)
+func (d *demo) Get(ctx context.Context, status model.DemoStatus) (*model.Demo, error) {
+	demos, err := d.repo.GetByStatusUpdateAtomic(ctx, status, d.nextStatus(status), 1)
+	if err != nil {
+		return nil, err
+	}
+	if len(demos) == 0 {
+		return nil, nil
+	}
+
+	return demos[0], nil
 }
 
 func (d *demo) Succes(ctx context.Context, demo *model.Demo) error {
@@ -52,6 +61,13 @@ func (d *demo) Fail(ctx context.Context, demo *model.Demo, err error) error {
 	demo.Status = d.prevStatus(demo.Status)
 	if demo.Attempts > maxAttempts {
 		demo.Status = model.DemoStatusFailed
+
+		if demo.FileID != "" {
+			// Best effort
+			_ = storage.S.Delete(demo.FileID)
+			demo.FileID = ""
+			_ = d.repo.UpdateFile(ctx, *demo)
+		}
 	}
 
 	return d.repo.UpdateStatus(ctx, *demo)

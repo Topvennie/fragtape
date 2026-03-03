@@ -8,14 +8,13 @@ import (
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/internal/recorder/capture"
+	"github.com/topvennie/fragtape/internal/status"
 	"github.com/topvennie/fragtape/pkg/config"
 	"github.com/topvennie/fragtape/pkg/storage"
 	"go.uber.org/zap"
 )
 
-const maxAttempts = 3
-
-type Recorder struct {
+type Manager struct {
 	capturer capture.Capturer
 
 	demo      repository.Demo
@@ -24,13 +23,13 @@ type Recorder struct {
 	interval time.Duration
 }
 
-func New(repo repository.Repository) (*Recorder, error) {
+func New(repo repository.Repository) (*Manager, error) {
 	capturer, err := capture.New(repo)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Recorder{
+	return &Manager{
 		capturer:  *capturer,
 		demo:      *repo.NewDemo(),
 		highlight: *repo.NewHighlight(),
@@ -39,25 +38,31 @@ func New(repo repository.Repository) (*Recorder, error) {
 }
 
 // Start starts the loop to get new jobs and render them
-func (r *Recorder) Start(ctx context.Context) error {
-	if err := r.demo.ResetStatusAll(ctx, model.DemoStatusRendering, model.DemoStatusQueuedRender); err != nil {
+func (m *Manager) Start(ctx context.Context) error {
+	if err := status.Demo.Reset(ctx, model.DemoStatusQueuedRender); err != nil {
 		return err
 	}
 
 	// Start the loop
 	go func() {
-		ticker := time.NewTicker(r.interval)
-		defer ticker.Stop()
-
 		for {
-			if err := r.loop(ctx); err != nil {
+			empty, err := m.loop(ctx)
+			if err != nil {
 				zap.S().Error(err)
+			}
+
+			if empty {
+				select {
+				case <-ctx.Done():
+					return
+				case <-time.After(m.interval):
+				}
 			}
 
 			select {
 			case <-ctx.Done():
 				return
-			case <-ticker.C:
+			default:
 			}
 		}
 	}()
@@ -65,56 +70,42 @@ func (r *Recorder) Start(ctx context.Context) error {
 	return nil
 }
 
-func (r *Recorder) loop(ctx context.Context) error {
+// loop handles one demo
+// It returns a boolean indicating if there are potentially more demos to be handled
+func (m *Manager) loop(ctx context.Context) (bool, error) {
 	// Get demos
 	// Their attemps counter is increased by the query
-	demos, err := r.demo.GetByStatusUpdateAtomic(ctx, model.DemoStatusQueuedRender, model.DemoStatusRendering, 1)
+	demo, err := status.Demo.Get(ctx, model.DemoStatusQueuedRender)
 	if err != nil {
-		return err
+		return false, err
+	}
+	if demo == nil {
+		return true, nil
 	}
 
-	for len(demos) > 0 {
-		demo := demos[0]
+	// Do the logic
+	if err = func() error {
+		if captureErr := m.capturer.Capture(ctx, *demo); captureErr != nil {
+			// Best effort to clean up anything made
+			highlights, err := m.highlight.GetByDemo(ctx, demo.ID)
+			if err != nil {
+				return captureErr
+			}
 
-		err = r.capturer.Capture(ctx, *demo)
-		if err != nil {
-			// Something failed
-			// Clean up
-			if highlights, err := r.highlight.GetByDemo(ctx, demo.ID); err == nil {
-				for _, h := range highlights {
-					if h.FileID != "" {
-						_ = r.highlight.DeleteFile(ctx, h.ID)
-						_ = storage.S.Delete(h.FileID)
-					}
+			for _, h := range highlights {
+				if h.FileID != "" {
+					_ = storage.S.Delete(h.FileID)
+					_ = m.highlight.DeleteFile(ctx, h.ID)
 				}
 			}
 
-			// Reset status
-			demo.Error = err.Error()
-			demo.Status = model.DemoStatusQueuedRender
-			if demo.Attempts > maxAttempts {
-				if err := storage.S.Delete(demo.FileID); err != nil {
-					zap.S().Errorf("failed to delete demo file after max attempts reached for demo %+v | %w", *demo, err)
-				}
-
-				demo.Status = model.DemoStatusFailed
-			}
-		} else {
-			// No errors
-			// Go to the next step
-			demo.Status = model.DemoStatusQueuedFinalize
-			demo.Attempts = 0
+			return captureErr
 		}
 
-		if err := r.demo.UpdateStatus(ctx, *demo); err != nil {
-			return err
-		}
-
-		demos, err = r.demo.GetByStatusUpdateAtomic(ctx, model.DemoStatusQueuedRender, model.DemoStatusRendering, 1)
-		if err != nil {
-			return err
-		}
+		return nil
+	}(); err != nil {
+		return false, status.Demo.Fail(ctx, demo, err)
 	}
 
-	return nil
+	return false, status.Demo.Succes(ctx, demo)
 }

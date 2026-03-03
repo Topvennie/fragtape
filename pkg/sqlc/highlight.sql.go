@@ -38,6 +38,16 @@ func (q *Queries) HighlightCreate(ctx context.Context, arg HighlightCreateParams
 	return id, err
 }
 
+const highlightDeleteByDemo = `-- name: HighlightDeleteByDemo :exec
+DELETE FROM highlights
+WHERE demo_id = $1
+`
+
+func (q *Queries) HighlightDeleteByDemo(ctx context.Context, demoID int32) error {
+	_, err := q.db.Exec(ctx, highlightDeleteByDemo, demoID)
+	return err
+}
+
 const highlightDeleteFile = `-- name: HighlightDeleteFile :exec
 UPDATE highlights
 SET file_id = NULL
