@@ -21,8 +21,8 @@ type Manager struct {
 	repo repository.Repository
 	demo repository.Demo
 
-	concurrent int
 	interval   time.Duration
+	concurrent int
 
 	wg sync.WaitGroup
 }
@@ -31,8 +31,8 @@ func New(repo repository.Repository) *Manager {
 	return &Manager{
 		repo:       repo,
 		demo:       *repo.NewDemo(),
-		concurrent: config.GetDefaultInt("worker.downloader.concurrent", 8),
 		interval:   config.GetDefaultDurationS("worker.downloader.interval_s", 60),
+		concurrent: config.GetDefaultInt("worker.downloader.concurrent", 8),
 		wg:         sync.WaitGroup{},
 	}
 }
@@ -46,18 +46,24 @@ func (m *Manager) Start(ctx context.Context) error {
 	// Add the goroutines that will fetch downloads
 	for range m.concurrent {
 		m.wg.Go(func() {
-			ticker := time.NewTicker(m.interval)
-			defer ticker.Stop()
-
 			for {
-				if err := m.loop(ctx); err != nil {
+				empty, err := m.loop(ctx)
+				if err != nil {
 					zap.S().Error(err)
+				}
+
+				if empty {
+					select {
+					case <-ctx.Done():
+						return
+					case <-time.After(m.interval):
+					}
 				}
 
 				select {
 				case <-ctx.Done():
 					return
-				case <-ticker.C:
+				default:
 				}
 			}
 		})
@@ -66,17 +72,17 @@ func (m *Manager) Start(ctx context.Context) error {
 	return nil
 }
 
-func (m *Manager) loop(ctx context.Context) error {
+// loop handles one demo
+// It returns a boolean indicating if there are potentially more demos to be handled
+func (m *Manager) loop(ctx context.Context) (bool, error) {
 	// Get a new demo
-	demos, err := status.Demo.Get(ctx, model.DemoStatusQueuedDownload, 1)
+	demo, err := status.Demo.Get(ctx, model.DemoStatusQueuedDownload)
 	if err != nil {
-		return err
+		return false, err
 	}
-	if len(demos) == 0 {
-		return nil
+	if demo == nil {
+		return true, nil
 	}
-
-	demo := demos[0]
 
 	// Get the new demo
 	if err = func() error {
@@ -113,8 +119,8 @@ func (m *Manager) loop(ctx context.Context) error {
 			return nil
 		})
 	}(); err != nil {
-		return status.Demo.Fail(ctx, demo, err)
+		return false, status.Demo.Fail(ctx, demo, err)
 	}
 
-	return status.Demo.Succes(ctx, demo)
+	return false, status.Demo.Succes(ctx, demo)
 }

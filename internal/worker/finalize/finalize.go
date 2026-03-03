@@ -3,153 +3,93 @@ package finalize
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
+	"github.com/topvennie/fragtape/internal/status"
 	"github.com/topvennie/fragtape/pkg/config"
 	"github.com/topvennie/fragtape/pkg/storage"
 	"go.uber.org/zap"
 )
 
-const maxAttempts = 3
-
-type Finalizer struct {
+type Manager struct {
 	demo      repository.Demo
 	highlight repository.Highlight
 
 	interval   time.Duration
 	concurrent int
+
+	wg sync.WaitGroup
 }
 
-func New(repo repository.Repository) *Finalizer {
-	return &Finalizer{
+func New(repo repository.Repository) *Manager {
+	return &Manager{
 		demo:       *repo.NewDemo(),
 		highlight:  *repo.NewHighlight(),
 		interval:   config.GetDefaultDurationS("worker.finalizer.interval_s", 60),
 		concurrent: config.GetDefaultInt("worker.finalizer.concurrent", 8),
+		wg:         sync.WaitGroup{},
 	}
 }
 
-func (f *Finalizer) Start(ctx context.Context) error {
-	if err := f.demo.ResetStatusAll(ctx, model.DemoStatusFinalizing, model.DemoStatusQueuedFinalize); err != nil {
+func (m *Manager) Start(ctx context.Context) error {
+	if err := status.Demo.Reset(ctx, model.DemoStatusQueuedFinalize); err != nil {
 		return err
 	}
 
-	go func() {
-		ticker := time.NewTicker(f.interval)
-		defer ticker.Stop()
-
-		for {
-			if err := f.loop(ctx); err != nil {
-				zap.S().Error(err)
-			}
-
-			select {
-			case <-ctx.Done():
-				return
-			case <-ticker.C:
-			}
-		}
-	}()
-
-	return nil
-}
-
-type loopResult struct {
-	err error
-}
-
-func (f *Finalizer) loop(ctx context.Context) error {
-	// Get demos
-	// Their attempts counter is increased by the query
-	demos, err := f.demo.GetByStatusUpdateAtomic(ctx, model.DemoStatusQueuedFinalize, model.DemoStatusFinalizing, f.concurrent)
-	if err != nil {
-		return err
-	}
-
-	for len(demos) > 0 {
-		var wg sync.WaitGroup
-		var mu sync.Mutex
-
-		resultMap := make(map[int]loopResult)
-
-		for _, demo := range demos {
-			d := demo
-			wg.Go(func() {
-				err := f.loopOne(ctx, d)
-
-				result := loopResult{
-					err: err,
+	for range m.concurrent {
+		m.wg.Go(func() {
+			for {
+				empty, err := m.loop(ctx)
+				if err != nil {
+					zap.S().Error(err)
 				}
 
-				mu.Lock()
-				defer mu.Unlock()
-
-				resultMap[d.ID] = result
-			})
-		}
-
-		// Wait until everything is finished
-		wg.Wait()
-
-		// Update demo status
-		for _, demo := range demos {
-			result, ok := resultMap[demo.ID]
-			if !ok {
-				// Shouldn't happen
-				// But check just to be safe
-				continue
-			}
-
-			if result.err != nil {
-				// Something failed
-				// Reset status
-				demo.Error = result.err.Error()
-				demo.Status = model.DemoStatusQueuedFinalize
-				if demo.Attempts > maxAttempts {
-					if err := storage.S.Delete(demo.FileID); err != nil {
-						zap.S().Errorf("failed to delete demo file after max attempts reached for demo %+v | %w", *demo, err)
+				if empty {
+					select {
+					case <-ctx.Done():
+						return
+					case <-time.After(m.interval):
 					}
-
-					demo.Status = model.DemoStatusFailed
 				}
-			} else {
-				// No errors
-				// Go to the next step
-				demo.Status = model.DemoStatusFinished
-				demo.Attempts = 0
-			}
 
-			if err := f.demo.UpdateStatus(ctx, *demo); err != nil {
-				return err
+				select {
+				case <-ctx.Done():
+					return
+				default:
+				}
 			}
-		}
-
-		// Keep finalizing demo's until the database no longer has waiting demo's
-		demos, err = f.demo.GetByStatusUpdateAtomic(ctx, model.DemoStatusQueuedFinalize, model.DemoStatusFinalizing, f.concurrent)
-		if err != nil {
-			return err
-		}
+		})
 	}
 
 	return nil
 }
 
-func (f *Finalizer) loopOne(ctx context.Context, demo *model.Demo) error {
-	_, err := f.highlight.GetByDemo(ctx, demo.ID)
+// loop handles one demo
+// It returns a boolean indicating if there are potentially more demos to be handled
+func (m *Manager) loop(ctx context.Context) (bool, error) {
+	demo, err := status.Demo.Get(ctx, model.DemoStatusQueuedFinalize)
 	if err != nil {
-		return err
+		return false, err
+	}
+	if demo == nil {
+		return true, nil
 	}
 
-	// In the future generate thumbnail, convert to webm
-	// Send to discord, ...
+	if err = func() error {
+		if demo.FileID != "" {
+			// Best effort
+			_ = storage.S.Delete(demo.FileID)
+			demo.FileID = ""
+			_ = m.demo.UpdateFile(ctx, *demo)
+		}
 
-	if err := storage.S.Delete(demo.FileID); err != nil {
-		return fmt.Errorf("failed to delete demo file for demo %+v | %w", *demo, err)
+		return nil
+	}(); err != nil {
+		return false, status.Demo.Fail(ctx, demo, err)
 	}
 
-	return nil
+	return false, status.Demo.Succes(ctx, demo)
 }

@@ -8,18 +8,20 @@ import (
 	"github.com/topvennie/fragtape/internal/worker/parse/demo"
 )
 
-func (p *Parser) getHighlights(ctx context.Context, d model.Demo, m demo.Match) ([]*model.Highlight, error) {
-	// TODO: Delete existing highlights
+func (m *Manager) saveHighlights(ctx context.Context, d model.Demo, match demo.Match) error {
+	if err := m.highlight.DeleteByDemo(ctx, d.ID); err != nil {
+		return err
+	}
 
 	// Very simplified right now
 	// It gets all 4k's
 	highlights := []*model.Highlight{}
 
-	for _, r := range m.Rounds {
+	for _, r := range match.Rounds {
 		for player, stat := range r.PlayerStats {
-			user, err := p.user.GetByUID(ctx, int(player))
+			user, err := m.user.GetByUID(ctx, int(player))
 			if err != nil {
-				return nil, err
+				return err
 			}
 			if user == nil {
 				// Shouldn't be possible
@@ -47,12 +49,25 @@ func (p *Parser) getHighlights(ctx context.Context, d model.Demo, m demo.Match) 
 					UserID:   user.ID,
 					Title:    "4k",
 					Round:    r.Number,
-					Duration: time.Duration(duration/int(m.TickRate)) * time.Second,
+					Duration: time.Duration(duration/int(match.TickRate)) * time.Second,
 					Segments: segments,
 				})
 			}
 		}
 	}
 
-	return highlights, nil
+	for _, highlight := range highlights {
+		if err := m.highlight.Create(ctx, highlight); err != nil {
+			return err
+		}
+
+		for _, segment := range highlight.Segments {
+			segment.HighlightID = highlight.ID
+			if err := m.highlight.CreateSegment(ctx, &segment); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

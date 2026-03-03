@@ -12,7 +12,7 @@ import (
 	"github.com/topvennie/fragtape/pkg/utils"
 )
 
-func (p *Parser) getMatch(ctx context.Context, d *model.Demo) (*demo.Match, error) {
+func (m *Manager) getMatch(ctx context.Context, d *model.Demo) (*demo.Match, error) {
 	if d.FileID == "" {
 		return nil, errors.New("demo file deleted")
 	}
@@ -24,8 +24,10 @@ func (p *Parser) getMatch(ctx context.Context, d *model.Demo) (*demo.Match, erro
 
 	var match *demo.Match
 
+	// Take into account that we might already have the data
+	// if it failed later in the data pipeline
 	if d.DataID == "" {
-		match, err = p.demoParser.Parse(file)
+		match, err = m.demoParser.Parse(file)
 		if err != nil {
 			return nil, fmt.Errorf("parse demo file %w", err)
 		}
@@ -34,9 +36,9 @@ func (p *Parser) getMatch(ctx context.Context, d *model.Demo) (*demo.Match, erro
 			return nil, fmt.Errorf("compress parsed demo %w", err)
 		}
 
-		if err := p.repo.WithRollback(ctx, func(ctx context.Context) error {
+		if err := m.repo.WithRollback(ctx, func(ctx context.Context) error {
 			d.DataID = uuid.NewString()
-			if err := p.demo.UpdateData(ctx, *d); err != nil {
+			if err := m.demo.UpdateData(ctx, *d); err != nil {
 				return err
 			}
 			if err := storage.S.Set(d.DataID, compressed, 0); err != nil {
@@ -61,9 +63,9 @@ func (p *Parser) getMatch(ctx context.Context, d *model.Demo) (*demo.Match, erro
 	return match, nil
 }
 
-func (p *Parser) savePlayers(ctx context.Context, match demo.Match) error {
+func (m *Manager) savePlayers(ctx context.Context, match demo.Match) error {
 	for _, player := range match.Players {
-		user, err := p.user.GetByUID(ctx, int(player.SteamID))
+		user, err := m.user.GetByUID(ctx, int(player.SteamID))
 		if err != nil {
 			return err
 		}
@@ -74,14 +76,14 @@ func (p *Parser) savePlayers(ctx context.Context, match demo.Match) error {
 				DisplayName: player.Name,
 				Crosshair:   player.CrosshairCode,
 			}
-			if err := p.user.Create(ctx, user); err != nil {
+			if err := m.user.Create(ctx, user); err != nil {
 				return err
 			}
 		} else if user.DisplayName != player.Name || user.Crosshair != player.CrosshairCode {
 			user.DisplayName = player.Name
 			user.Crosshair = player.CrosshairCode
 
-			if err := p.user.Update(ctx, *user); err != nil {
+			if err := m.user.Update(ctx, *user); err != nil {
 				return err
 			}
 		}
@@ -90,42 +92,44 @@ func (p *Parser) savePlayers(ctx context.Context, match demo.Match) error {
 	return nil
 }
 
-func (p *Parser) getStatsDemo(ctx context.Context, d model.Demo, m demo.Match) (*model.StatsDemo, error) {
-	statDB, err := p.statsDemo.GetByDemo(ctx, d.ID)
+func (m *Manager) saveStatsDemo(ctx context.Context, d model.Demo, match demo.Match) error {
+	statDB, err := m.statsDemo.GetByDemo(ctx, d.ID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	stat := &model.StatsDemo{
 		DemoID:   d.ID,
-		Map:      m.Map,
-		RoundsCT: m.RoundsCT,
-		RoundsT:  m.RoundsT,
+		Map:      match.Map,
+		RoundsCT: match.RoundsCT,
+		RoundsT:  match.RoundsT,
 	}
 
 	// Add id if it already exists
 	if statDB != nil {
 		stat.ID = statDB.ID
+
+		return m.statsDemo.Update(ctx, *stat)
 	}
 
-	return stat, nil
+	return m.statsDemo.Create(ctx, stat)
 }
 
-func (p *Parser) getStats(ctx context.Context, d model.Demo, m demo.Match) ([]*model.Stat, error) {
-	if len(m.Rounds) == 0 {
-		return nil, nil
+func (m *Manager) saveStats(ctx context.Context, d model.Demo, match demo.Match) error {
+	if len(match.Rounds) == 0 {
+		return nil
 	}
 
-	statsDB, err := p.stat.GetByDemo(ctx, d.ID)
+	statsDB, err := m.stat.GetByDemo(ctx, d.ID)
 	if err != nil {
-		return nil, err
+		return nil
 	}
 
 	stats := make(map[demo.PlayerID]*model.Stat)
 
-	for _, player := range m.Players {
+	for _, player := range match.Players {
 		// Only add players that are in the ct or t team in the first round
-		demoStat, ok := m.Rounds[0].PlayerStats[player.SteamID]
+		demoStat, ok := match.Rounds[0].PlayerStats[player.SteamID]
 		if !ok {
 			continue
 		}
@@ -133,13 +137,13 @@ func (p *Parser) getStats(ctx context.Context, d model.Demo, m demo.Match) ([]*m
 			continue
 		}
 
-		user, err := p.user.GetByUID(ctx, int(player.SteamID))
+		user, err := m.user.GetByUID(ctx, int(player.SteamID))
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		if user == nil {
-			return nil, errors.New("user not found")
+			return errors.New("user not found")
 		}
 
 		result := model.ResultTie
@@ -165,7 +169,7 @@ func (p *Parser) getStats(ctx context.Context, d model.Demo, m demo.Match) ([]*m
 		stats[player.SteamID] = stat
 	}
 
-	for _, r := range m.Rounds {
+	for _, r := range match.Rounds {
 		for player, s := range stats {
 			if stat, ok := r.PlayerStats[player]; ok {
 				if r.Number == 1 {
@@ -184,5 +188,17 @@ func (p *Parser) getStats(ctx context.Context, d model.Demo, m demo.Match) ([]*m
 		}
 	}
 
-	return utils.MapValues(stats), nil
+	for _, stat := range stats {
+		if stat.ID == 0 {
+			if err := m.stat.Create(ctx, stat); err != nil {
+				return err
+			}
+		} else {
+			if err := m.stat.Update(ctx, *stat); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

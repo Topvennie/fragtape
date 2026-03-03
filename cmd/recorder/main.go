@@ -8,6 +8,7 @@ import (
 
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/internal/recorder"
+	"github.com/topvennie/fragtape/internal/status"
 	"github.com/topvennie/fragtape/pkg/config"
 	"github.com/topvennie/fragtape/pkg/db"
 	"github.com/topvennie/fragtape/pkg/logger"
@@ -64,6 +65,8 @@ func main() {
 	})
 
 	repo := repository.New(db)
+
+	status.Init(*repo)
 
 	recorder, err := recorder.New(*repo)
 	if err != nil {
