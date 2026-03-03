@@ -57,6 +57,8 @@ func (ns NullDemoSource) Value() (driver.Value, error) {
 type DemoStatus string
 
 const (
+	DemoStatusQueuedDownload DemoStatus = "queued_download"
+	DemoStatusDownloading    DemoStatus = "downloading"
 	DemoStatusQueuedParse    DemoStatus = "queued_parse"
 	DemoStatusParsing        DemoStatus = "parsing"
 	DemoStatusQueuedRender   DemoStatus = "queued_render"
@@ -190,7 +192,8 @@ func (ns NullTeam) Value() (driver.Value, error) {
 type Demo struct {
 	ID              int32
 	Source          DemoSource
-	SourceID        pgtype.Text
+	SourceID        string
+	SourceUrl       pgtype.Text
 	FileID          pgtype.Text
 	DataID          pgtype.Text
 	Status          DemoStatus

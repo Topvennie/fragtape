@@ -10,10 +10,7 @@ import (
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/pkg/config"
-	"go.uber.org/zap"
 )
-
-const steamSource = model.DemoSourceSteam
 
 var S *steam
 
@@ -51,27 +48,28 @@ func Init(repo repository.Repository) error {
 	return nil
 }
 
-func (s *steam) Fetch(ctx context.Context, user model.User) ([]byte, model.DemoSource, string, error) {
-	zap.S().Debug("Fetching steam")
+func (s *steam) Fetch(ctx context.Context, user model.User) (model.Demo, bool, error) {
+	demo := model.Demo{
+		Source: model.DemoSourceSteam,
+	}
+
 	if time.Now().Before(s.timeout) {
 		// We're still waiting a bit
-		zap.S().Debug("Too early")
-		return nil, steamSource, "", nil
+		return demo, false, nil
 	}
 
 	if user.Setting.SteamAuthenticationToken == "" || user.Setting.SteamMatchToken == "" {
-		zap.S().Debug("No steam configured")
-		return nil, steamSource, "", nil
+		// User doesn't have steam configured
+		return demo, false, nil
 	}
 
+	// Get next demo from the steam service
 	demoResp, err := s.NextDemo(ctx, user)
 	if err != nil {
-		zap.S().Debug("Couldnt fetch")
-		return nil, steamSource, "", err
+		return demo, false, err
 	}
 
 	if demoResp.Error != "" {
-		zap.S().Debug("Error with demo")
 		// Something went wrong
 		// First try to handle known codes
 		switch demoResp.Code {
@@ -81,46 +79,41 @@ func (s *steam) Fetch(ctx context.Context, user model.User) ([]byte, model.DemoS
 			user.Setting.SteamAuthenticationToken = ""
 			user.Setting.SteamMatchToken = ""
 			if err := s.setting.Update(ctx, user.Setting); err != nil {
-				return nil, steamSource, "", err
+				return demo, false, err
 			}
 
-			return nil, steamSource, "", nil
+			return demo, false, nil
 
 		case http.StatusTooManyRequests:
 		case http.StatusServiceUnavailable:
 			// Timeout received
 			s.timeout = time.Now().Add(10 * time.Second)
-			return nil, steamSource, "", nil
+			return demo, false, nil
 
 		case http.StatusInternalServerError:
 		case http.StatusGatewayTimeout:
 			// Something went wrong on valve's side
-			return nil, steamSource, "", nil
+			return demo, false, nil
 		}
 
 		// We have no idea what went wrong
-		return nil, steamSource, "", fmt.Errorf("steam service %w", err)
+		return demo, false, fmt.Errorf("steam service %w", err)
 	}
 
 	if demoResp.DemoURL == "" || demoResp.Code == 202 {
 		// No new demo yet
-		return nil, steamSource, "", nil
+		return demo, false, nil
 	}
 
 	// New demo!
-	demo, err := s.downloadDemo(ctx, demoResp.DemoURL)
-	if err != nil {
-		zap.S().Debug("Download failed")
-		return nil, steamSource, "", err
-	}
-
-	zap.S().Debug("Setting next code")
-
 	// Update next demo match code
 	user.Setting.SteamMatchToken = demoResp.NextCode
 	if err := s.setting.Update(ctx, user.Setting); err != nil {
-		return nil, steamSource, "", nil
+		return demo, false, err
 	}
 
-	return demo, steamSource, demoResp.NextCode, nil
+	demo.SourceID = demoResp.NextCode
+	demo.SourceURL = demoResp.DemoURL
+
+	return demo, true, nil
 }

@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/topvennie/fragtape/internal/database/repository"
+	"github.com/topvennie/fragtape/internal/status"
+	"github.com/topvennie/fragtape/internal/worker/download"
 	"github.com/topvennie/fragtape/internal/worker/fetch"
 	"github.com/topvennie/fragtape/internal/worker/fetch/steam"
 	"github.com/topvennie/fragtape/internal/worker/finalize"
@@ -17,10 +19,12 @@ import (
 )
 
 func main() {
+	// Config
 	if err := config.Init(); err != nil {
 		panic(fmt.Errorf("initialize config %w", err))
 	}
 
+	// Logging
 	loggerFile := config.GetDefaultString("worker.logger.file", "")
 	zapLogger, err := logger.New(logger.Config{
 		Console: true,
@@ -31,6 +35,7 @@ func main() {
 	}
 	zap.ReplaceGlobals(zapLogger)
 
+	// Database and object storage
 	db, err := db.NewPSQL(db.PostgresCfg{
 		Host:     config.GetDefaultString("worker.db.host", "db"),
 		Port:     config.GetDefaultInt("worker.db.port", 5432),
@@ -52,11 +57,16 @@ func main() {
 
 	repo := repository.New(db)
 
+	// Status helper
+	status.Init(*repo)
+
+	// Steam integration
 	if err := steam.Init(*repo); err != nil {
 		zap.S().Fatalf("Initialize steam %v", err)
 	}
 
-	fetcher, err := fetch.New(*repo)
+	// Fetcher
+	fetcher := fetch.New(*repo)
 	if err != nil {
 		zap.S().Fatalf("Init fetcher %w", err)
 	}
@@ -64,11 +74,19 @@ func main() {
 		zap.S().Fatalf("Starting fetcher failed %v", err)
 	}
 
+	// Downloader
+	downloader := download.New(*repo)
+	if err := downloader.Start(context.Background()); err != nil {
+		zap.S().Fatalf("Starting downloader failed %v", err)
+	}
+
+	// Parser
 	parser := parse.New(*repo)
 	if err := parser.Start(context.Background()); err != nil {
 		zap.S().Fatalf("Starting parser failed %v", err)
 	}
 
+	// Finalizer
 	finalizer := finalize.New(*repo)
 	if err := finalizer.Start(context.Background()); err != nil {
 		zap.S().Fatalf("Starting finalizer failed %v", err)

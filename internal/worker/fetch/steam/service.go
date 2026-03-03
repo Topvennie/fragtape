@@ -26,6 +26,9 @@ type nextDemoResp struct {
 	Error    string `json:"error"`
 }
 
+// NextDemo communicates with the steam service to get the next match
+// If error != nil then something unexpected happened on the golang side
+// If the resp.Error != "" then something unexpected happened on the typescript side
 func (s *steam) NextDemo(ctx context.Context, user model.User) (nextDemoResp, error) {
 	body := nextDemoReq{
 		WebAPIKey:  s.webAPIKey,

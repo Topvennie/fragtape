@@ -122,7 +122,7 @@ func (u *User) GetAllRealWithSettingLastDemo(ctx context.Context) ([]*model.User
 		user.Demo = model.Demo{
 			ID:        int(u.ID),
 			Source:    model.DemoSource(u.Source),
-			SourceID:  fromString(u.SourceID),
+			SourceID:  u.SourceID,
 			CreatedAt: fromTime(u.CreatedAt),
 		}
 		user.Setting = *model.SettingUserModel(u.SettingUser)

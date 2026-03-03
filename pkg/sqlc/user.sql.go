@@ -119,7 +119,7 @@ type UserGetAllRealWithSettingLastDemoRow struct {
 	SettingUser SettingUser
 	ID          int32
 	Source      DemoSource
-	SourceID    pgtype.Text
+	SourceID    string
 	CreatedAt   pgtype.Timestamptz
 }
 

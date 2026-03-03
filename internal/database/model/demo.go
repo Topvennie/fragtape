@@ -17,6 +17,8 @@ const (
 type DemoStatus string
 
 const (
+	DemoStatusQueuedDownload DemoStatus = "queued_download"
+	DemoStatusDownloading    DemoStatus = "downloading"
 	DemoStatusQueuedParse    DemoStatus = "queued_parse"
 	DemoStatusParsing        DemoStatus = "parsing"
 	DemoStatusQueuedRender   DemoStatus = "queued_render"
@@ -31,6 +33,7 @@ type Demo struct {
 	ID              int
 	Source          DemoSource
 	SourceID        string
+	SourceURL       string
 	Status          DemoStatus
 	FileID          string
 	DataID          string
@@ -44,7 +47,8 @@ func DemoModel(d sqlc.Demo) *Demo {
 	return &Demo{
 		ID:              int(d.ID),
 		Source:          DemoSource(d.Source),
-		SourceID:        fromString(d.SourceID),
+		SourceID:        d.SourceID,
+		SourceURL:       fromString(d.SourceUrl),
 		Status:          DemoStatus(d.Status),
 		FileID:          fromString(d.FileID),
 		DataID:          fromString(d.DataID),
