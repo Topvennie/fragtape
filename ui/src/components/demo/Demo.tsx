@@ -5,7 +5,7 @@ import { Result, resultString } from "@/lib/types/stat"
 import { formatDate } from "@/lib/utils"
 import { Button, Collapse } from "@mantine/core"
 import { useMediaQuery } from "@mantine/hooks"
-import { ReactNode, useMemo, useState } from "react"
+import { ReactNode, useEffect, useMemo, useState } from "react"
 import { LuChevronDown, LuClapperboard, LuTriangleAlert } from "react-icons/lu"
 import { Card } from "../atoms/Card"
 import { HighlightCarousel } from "../highlight/HighlightCarousel"
@@ -13,8 +13,11 @@ import { FragtapeIcon } from "../icons/FragtapeIcon"
 import { DemoThumbnail } from "./DemoThumbnail"
 
 type Props = {
-  demo: DemoType
+  demo: DemoType;
+  highlightFilter?: HighlightFilter;
 }
+
+export type HighlightFilter = "me" | "group" | "match"
 
 const resultColor: Record<Result, string> = {
   [Result.Win]: "text-green-400",
@@ -22,7 +25,7 @@ const resultColor: Record<Result, string> = {
   [Result.Tie]: "text-white",
 }
 
-export const Demo = ({ demo }: Props) => {
+export const Demo = ({ demo, highlightFilter }: Props) => {
   const content = useMemo(() => {
     switch (demo.status) {
       case DemoStatus.QueuedDownload:
@@ -38,11 +41,11 @@ export const Demo = ({ demo }: Props) => {
       case DemoStatus.QueuedFinalize:
       case DemoStatus.Finalize:
       case DemoStatus.Finished:
-        return <Finished demo={demo} />
+        return <Finished demo={demo} highlightFilter={highlightFilter} />
       case DemoStatus.Failed:
         return <Failed />
     }
-  }, [demo])
+  }, [demo, highlightFilter])
 
   return (
     <Card>
@@ -51,14 +54,29 @@ export const Demo = ({ demo }: Props) => {
   )
 }
 
-const Finished = ({ demo }: Props) => {
+const Finished = ({ demo, highlightFilter = "me" }: Props) => {
   const { user } = useAuth()
   const [showClips, setShowClips] = useState(false)
 
+  useEffect(() => setShowClips(false), [highlightFilter])
+
   const smPoint = useMediaQuery('(width >= 40em)')
 
-  const highlights = useMemo(() => demo.players.flatMap(p => p.highlights.filter(h => h.generated)), [demo])
   const player = demo.players.find(p => p.user.id === user?.id)
+  const group = [player] // TODO: Implement
+
+  const highlights = useMemo(() => demo.players.flatMap(p => p.highlights.filter(h => h.generated)), [demo])
+  const filteredHighlights = useMemo(() => {
+    switch (highlightFilter) {
+      case "me":
+        return player?.highlights ?? []
+      case "group":
+        return group.flatMap(p => p?.highlights.filter(h => h.generated) ?? [])
+      case "match":
+        return highlights
+    }
+  }, [demo, highlightFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!player) return null // Shouldn't really be possible
 
   const score = () => {
@@ -88,14 +106,14 @@ const Finished = ({ demo }: Props) => {
               D <span className="text-white">{player.stat.deaths}</span>
               A <span className="text-white">{player.stat.assists}</span>
             </div>
-            <ClipBadge demo={demo} highlights={highlights} />
+            <ClipBadge demo={demo} highlights={highlights} filtered={filteredHighlights} />
           </div>
           {smPoint && (
             <div className="flex flex-col items-end justify-between">
               <div>
                 <p className="text-secondary">{formatDate(demo.playedAt)}</p>
               </div>
-              {highlights.length > 0 && (
+              {filteredHighlights.length > 0 && (
                 <Button variant="subtle" color="muted" onClick={() => setShowClips(prev => !prev)} rightSection={<LuChevronDown className={`transform duration-300 ${showClips ? "rotate-180" : ""}`} />}>
                   {`${showClips ? "Hide" : "Show"} clips`}
                 </Button>
@@ -106,7 +124,7 @@ const Finished = ({ demo }: Props) => {
       </div>
       <Collapse in={showClips}>
         <div className="pt-8">
-          <HighlightCarousel highlights={highlights} />
+          <HighlightCarousel highlights={filteredHighlights} />
         </div>
       </Collapse>
     </div>
@@ -152,8 +170,8 @@ const Failed = () => {
   )
 }
 
-const ClipBadge = ({ demo, highlights }: { demo: DemoType, highlights: Highlight[] }) => {
-  if (DemoStatus.Finished && highlights.length === 0) {
+const ClipBadge = ({ demo, highlights, filtered }: { demo: DemoType, highlights: Highlight[], filtered: Highlight[] }) => {
+  if (demo.status === DemoStatus.Finished && highlights.length === 0) {
     return null
   }
 
@@ -166,7 +184,7 @@ const ClipBadge = ({ demo, highlights }: { demo: DemoType, highlights: Highlight
     text = "Clips are rendering"
     icon = <FragtapeIcon animated className="size-4 text-(--mantine-color-primary-6)" />
   } else {
-    text = `${highlights.length} Clip${highlights.length !== 1 ? 's' : ''} generated`
+    text = `${filtered.length} / ${highlights.length} Clip${highlights.length !== 1 ? 's' : ''} visibile`
     icon = <LuClapperboard className="text-(--mantine-color-primary-6)" />
   }
 
