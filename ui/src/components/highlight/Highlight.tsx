@@ -13,11 +13,11 @@ export const Highlight = ({ highlight }: Props) => {
       <div className="aspect-video">
         <LoadableVideo src={`/api/highlight/video/${highlight.id}`} />
       </div>
-      <div className="flex flex-col gap-2 p-4 bg-(--mantine-color-background-light)">
-        <p className="text-white text-xl font-bold">{highlight.title}</p>
+      <div className="flex flex-col lg:gap-2 px-4 py-2 lg:py-4 bg-(--mantine-color-background-light)">
+        <p className="text-white text-lg lg:text-xl font-bold">{highlight.title}</p>
         <div className="flex items-center gap-2">
           <LuClock className="text-secondary size-4" />
-          <p className="text-secondary text-md">{`Round ${highlight.round} · ${formatDurationS(highlight.durationS)}`}</p>
+          <p className="text-secondary text-sm lg:text-md">{`Round ${highlight.round} · ${formatDurationS(highlight.durationS)}`}</p>
         </div>
       </div>
     </div>

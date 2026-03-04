@@ -23,7 +23,7 @@ export enum DemoStatus {
   QueuedRender = "queued_render",
   Rendering = "rendering",
   QueuedFinalize = "queued_finalize",
-  Finalize = "finalize",
+  Finalize = "finalizing",
   Finished = "finished",
   Failed = "failed",
 }

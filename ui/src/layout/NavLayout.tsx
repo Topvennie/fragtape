@@ -71,7 +71,7 @@ export const NavLayout = ({ children }: Props) => {
       <AppShell.Header px="md" withBorder={false} bg="background.9">
         <Group h="100%" justify="space-between">
           <Group gap="xs" visibleFrom="md">
-            <Button onClick={handleHome} size="lg" c="white" variant="subtle" leftSection={<FragtapeIcon className="size-8 text-(--mantine-color-primary-6)" />}>
+            <Button onClick={handleHome} size="md" c="white" variant="subtle" leftSection={<FragtapeIcon className="size-8 text-(--mantine-color-primary-6)" />}>
               Fragtape
             </Button>
             {routes.map(r => <NavLink key={r.title} route={r} />)}

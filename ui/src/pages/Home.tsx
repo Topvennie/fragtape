@@ -1,8 +1,9 @@
 import { Alert } from "@/components/atoms/Alert"
 import { LinkButton } from "@/components/atoms/LinkButton"
 import { Title } from "@/components/atoms/Title"
-import { Demo } from "@/components/demo/Demo"
+import { Demo, HighlightFilter } from "@/components/demo/Demo"
 import { FragtapeIcon } from "@/components/icons/FragtapeIcon"
+import { Segment } from "@/components/molecules/Segment"
 import { useDemoGetAll, useDemoUpload } from "@/lib/api/demo"
 import { useSettingGlobalGet } from "@/lib/api/setting_global"
 import { useSettingUserGet } from "@/lib/api/setting_user"
@@ -70,7 +71,7 @@ const NoConnections = () => {
       icon={<LuTriangleAlert className="size-6 text-(--mantine-color-primary-6)" />}
       color="orange"
       border
-    >
+    >Round 3 · 00:33
       No accounts are linked to your profile. We cannot fetch your matches or generate highlights until you connect at least one account.
       <div className="mt-2">
         <LinkButton to="/setting" rightSection={<LuArrowRight />}>
@@ -104,6 +105,26 @@ const NoDemos = () => {
 }
 
 const Demos = ({ demos }: { demos: DemoType[] }) => {
-  return demos.map(d => <Demo key={d.id} demo={d} />)
+  const [highlightFilter, setHighlightFilter] = useState<HighlightFilter>("me")
+
+  const handleFilterChange = (value: string) => {
+    setHighlightFilter(value as HighlightFilter)
+  }
+
+  return (
+    <>
+      <Segment
+        data={[
+          { value: "me", label: "Only my clips" },
+          { value: "group", label: "Me + group" },
+          { value: "match", label: "Everyone" },
+        ]}
+        value={highlightFilter}
+        onChange={handleFilterChange}
+        className="ml-auto"
+      />
+      {demos.map(d => <Demo key={d.id} demo={d} highlightFilter={highlightFilter} />)}
+    </>
+  )
 }
 
