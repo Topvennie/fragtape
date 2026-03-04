@@ -77,7 +77,7 @@ const AddAdmin = () => {
   const [name, setName] = useState("")
   const [debouncedName] = useDebouncedValue(name, 200);
 
-  const { result, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useUserFiltered({ name: debouncedName, admin: false, real: false });
+  const { result, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useUserFiltered({ name: debouncedName, admin: false, real: true });
   const users = result.users.filter(u => !u.admin)
 
   const [sentryRef] = useInfiniteScroll({
