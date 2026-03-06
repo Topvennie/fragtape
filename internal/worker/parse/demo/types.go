@@ -122,7 +122,8 @@ type Round struct {
 //
 
 type Stat struct {
-	Team Team
+	SteamID PlayerID
+	Team    Team
 
 	MoneyStart int
 	MoneySpent int
