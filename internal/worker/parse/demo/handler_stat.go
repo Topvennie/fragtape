@@ -26,6 +26,7 @@ func (d *Demo) handleStatRoundStart(p demoinfocs.Parser, _ events.RoundStart) {
 		}
 
 		r.PlayerStats[PlayerID(player.SteamID64)] = &Stat{
+			SteamID:        PlayerID(player.SteamID64),
 			Team:           Team(player.Team),
 			MoneyStart:     player.Money(),
 			Positions:      []Position{},
