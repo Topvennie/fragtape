@@ -64,14 +64,14 @@ func (m *Manager) getMatch(ctx context.Context, d *model.Demo) (*demo.Match, err
 
 func (m *Manager) savePlayers(ctx context.Context, match demo.Match) error {
 	for _, player := range match.Players {
-		user, err := m.user.GetByUID(ctx, int(player.SteamID))
+		user, err := m.user.GetByUID(ctx, int64(player.SteamID))
 		if err != nil {
 			return err
 		}
 
 		if user == nil {
 			user = &model.User{
-				UID:         int(player.SteamID),
+				UID:         int64(player.SteamID),
 				DisplayName: player.Name,
 				Crosshair:   player.CrosshairCode,
 			}
@@ -131,7 +131,7 @@ func (m *Manager) saveStats(ctx context.Context, d model.Demo, match demo.Match)
 			continue
 		}
 
-		user, err := m.user.GetByUID(ctx, int(player.SteamID))
+		user, err := m.user.GetByUID(ctx, int64(player.SteamID))
 		if err != nil {
 			return err
 		}

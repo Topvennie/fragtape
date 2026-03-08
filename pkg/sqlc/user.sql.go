@@ -18,7 +18,7 @@ RETURNING id
 `
 
 type UserCreateParams struct {
-	Uid         int32
+	Uid         int64
 	Name        pgtype.Text
 	DisplayName string
 	AvatarUrl   pgtype.Text
@@ -199,7 +199,7 @@ FROM users
 WHERE uid = $1
 `
 
-func (q *Queries) UserGetByUid(ctx context.Context, uid int32) (User, error) {
+func (q *Queries) UserGetByUid(ctx context.Context, uid int64) (User, error) {
 	row := q.db.QueryRow(ctx, userGetByUid, uid)
 	var i User
 	err := row.Scan(
@@ -217,10 +217,10 @@ func (q *Queries) UserGetByUid(ctx context.Context, uid int32) (User, error) {
 const userGetByUids = `-- name: UserGetByUids :many
 SELECT id, uid, name, display_name, avatar_url, crosshair, admin
 FROM users
-WHERE uid = ANY($1::int[])
+WHERE uid = ANY($1::bigint[])
 `
 
-func (q *Queries) UserGetByUids(ctx context.Context, dollar_1 []int32) ([]User, error) {
+func (q *Queries) UserGetByUids(ctx context.Context, dollar_1 []int64) ([]User, error) {
 	rows, err := q.db.Query(ctx, userGetByUids, dollar_1)
 	if err != nil {
 		return nil, err

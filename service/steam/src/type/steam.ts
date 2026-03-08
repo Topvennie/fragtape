@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const nextMatchReq = z.object({
   webApiKey: z.string().min(1),
-  steamId: z.number(),
+  steamId: z.number().min(1),
   authToken: z.string().min(1),
   matchToken: z.string().min(1),
 })

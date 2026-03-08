@@ -57,7 +57,7 @@ func (r *Auth) loginCallback(c *fiber.Ctx) error {
 		return fiber.ErrInternalServerError
 	}
 
-	userID, err := strconv.Atoi(user.UserID)
+	userID, err := strconv.ParseInt(user.UserID, 10, 64)
 	if err != nil {
 		return fiber.ErrInternalServerError
 	}

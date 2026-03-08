@@ -11,7 +11,7 @@ WHERE uid = $1;
 -- name: UserGetByUids :many
 SELECT *
 FROM users
-WHERE uid = ANY($1::int[]);
+WHERE uid = ANY($1::bigint[]);
 
 -- name: UserGetByIds :many
 SELECT *

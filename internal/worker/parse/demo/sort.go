@@ -8,6 +8,7 @@ type Sortable interface {
 	GetTick() Tick
 }
 
+// Sort sorts (in place) in ascending tick order
 func Sort(t []Sortable) {
 	slices.SortFunc(t, func(a, b Sortable) int {
 		return int(a.GetTick()) - int(b.GetTick())

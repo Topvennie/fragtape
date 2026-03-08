@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
-  uid INTEGER NOT NULL,
+  uid BIGINT NOT NULL,
   name TEXT,
   display_name TEXT NOT NULL,
   avatar_url TEXT,
