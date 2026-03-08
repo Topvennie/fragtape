@@ -71,7 +71,7 @@ const NoConnections = () => {
       icon={<LuTriangleAlert className="size-6 text-(--mantine-color-primary-6)" />}
       color="orange"
       border
-    >Round 3 · 00:33
+    >
       No accounts are linked to your profile. We cannot fetch your matches or generate highlights until you connect at least one account.
       <div className="mt-2">
         <LinkButton to="/setting" rightSection={<LuArrowRight />}>

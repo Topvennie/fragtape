@@ -7,14 +7,6 @@ import (
 	"time"
 )
 
-func (m Match) formatDuration(t Tick) time.Duration {
-	return time.Second * time.Duration(t/m.TickRate)
-}
-
-func (m Match) formatRelative(zero Tick, t Tick) time.Duration {
-	return m.formatDuration(t) - m.formatDuration(zero)
-}
-
 func fmtDur(d time.Duration) string {
 	return d.Round(10 * time.Millisecond).String()
 }
@@ -57,11 +49,11 @@ func (m Match) printPlayers(playerMap map[PlayerID]Player) {
 		fmt.Printf("\tWon: %s | Crosshair: %s\n", wonStr, p.CrosshairCode)
 		fmt.Print("\tConnects: ")
 		for _, c := range p.Connects {
-			fmt.Printf("%s ", m.formatDuration(c))
+			fmt.Printf("%s ", m.TickDuration(c))
 		}
 		fmt.Print("\n\tDisconnects: ")
 		for _, d := range p.Disconnects {
-			fmt.Printf("%s ", m.formatDuration(d))
+			fmt.Printf("%s ", m.TickDuration(d))
 		}
 		fmt.Println()
 	}
@@ -73,8 +65,8 @@ func (m Match) printRounds(playerMap map[PlayerID]Player, rounds []int) {
 			continue
 		}
 		fmt.Printf("Round %d\n", r.Number)
-		fmt.Printf("\tStart %s | Freeze End %s\n", m.formatDuration(r.Start), m.formatRelative(r.Start, r.FreezeEnd))
-		fmt.Printf("\tEnd Announcement %s | End Official %s | End Reason %s\n", m.formatRelative(r.Start, r.EndAnnouncement), m.formatRelative(r.Start, r.EndOfficial), r.EndReason)
+		fmt.Printf("\tStart %s | Freeze End %s\n", m.TickDuration(r.Start), m.TickDurationRel(r.Start, r.FreezeEnd))
+		fmt.Printf("\tEnd Announcement %s | End Official %s | End Reason %s\n", m.TickDurationRel(r.Start, r.EndAnnouncement), m.TickDurationRel(r.Start, r.EndOfficial), r.EndReason)
 		fmt.Printf("\tWinner %s\n", r.Winner)
 		fmt.Printf("\tMVP %s\n", playerMap[r.Mvp].Name)
 
@@ -105,7 +97,7 @@ func (m Match) printBomb(playerMap map[PlayerID]Player, r *Round) {
 
 	for _, e := range events {
 		t := e.GetTick()
-		ts := m.formatRelative(r.Start, t)
+		ts := m.TickDurationRel(r.Start, t)
 
 		switch v := e.(type) {
 		case *BombDrop:
@@ -116,11 +108,11 @@ func (m Match) printBomb(playerMap map[PlayerID]Player, r *Round) {
 
 		case *BombPlant:
 			fmt.Printf("\t\t[%s] Plant started by %s site=%s end=%s planted=%t pos=%s\n",
-				ts, playerMap[v.Planter].Name, v.Site, m.formatRelative(t, v.End), v.Planted, v.Position)
+				ts, playerMap[v.Planter].Name, v.Site, m.TickDurationRel(t, v.End), v.Planted, v.Position)
 
 		case *BombDefuse:
 			fmt.Printf("\t\t[%s] Defuse started by %s kit=%t end=%s defused=%t\n",
-				ts, playerMap[v.Defuser].Name, v.HasKit, m.formatRelative(t, v.End), v.Defused)
+				ts, playerMap[v.Defuser].Name, v.HasKit, m.TickDurationRel(t, v.End), v.Defused)
 		}
 	}
 }
@@ -145,15 +137,15 @@ func (m Match) printHostages(playerMap map[PlayerID]Player, r *Round) {
 			for _, e := range events {
 				switch v := e.(type) {
 				case *HostageCarry:
-					fmt.Printf("\t\t\t[%s] Picked up by %s at %s\n", m.formatRelative(r.Start, v.Start), playerMap[v.Carryer].Name, v.StartPosition)
+					fmt.Printf("\t\t\t[%s] Picked up by %s at %s\n", m.TickDurationRel(r.Start, v.Start), playerMap[v.Carryer].Name, v.StartPosition)
 					if v.End != 0 {
-						fmt.Printf("\t\t\t[%s] Dropped at %s\n", m.formatRelative(r.Start, v.End), v.EndPosition)
+						fmt.Printf("\t\t\t[%s] Dropped at %s\n", m.TickDurationRel(r.Start, v.End), v.EndPosition)
 					}
 				}
 			}
 
 			if h.Rescue != nil {
-				fmt.Printf("\t\t\t[%s] Rescued by %s at %s\n", m.formatRelative(r.Start, h.Rescue.Tick), playerMap[h.Rescue.Rescuer].Name, h.Rescue.Position)
+				fmt.Printf("\t\t\t[%s] Rescued by %s at %s\n", m.TickDurationRel(r.Start, h.Rescue.Tick), playerMap[h.Rescue.Rescuer].Name, h.Rescue.Position)
 			}
 		}
 	}
@@ -193,7 +185,7 @@ func (m Match) printPlayerItems(r *Round, v *Stat, playerMap map[PlayerID]Player
 
 	for _, e := range events {
 		t := e.GetTick()
-		ts := m.formatRelative(r.Start, t)
+		ts := m.TickDurationRel(r.Start, t)
 
 		switch v := e.(type) {
 		case *ItemPurchase:
@@ -261,7 +253,7 @@ func (m Match) printPlayerActions(r *Round, v *Stat, playerMap map[PlayerID]Play
 
 	for _, e := range events {
 		t := e.GetTick()
-		ts := m.formatRelative(r.Start, t)
+		ts := m.TickDurationRel(r.Start, t)
 
 		if s, ok := e.(Shot); ok {
 			if shotCount > 0 && s.Weapon != shotWeapon {
@@ -271,7 +263,7 @@ func (m Match) printPlayerActions(r *Round, v *Stat, playerMap map[PlayerID]Play
 			shotCount++
 
 			if shotCount == 1 {
-				fmt.Printf("\t\t\t\t[%s] Shoots %s ", m.formatRelative(r.Start, s.Tick), s.Weapon)
+				fmt.Printf("\t\t\t\t[%s] Shoots %s ", m.TickDurationRel(r.Start, s.Tick), s.Weapon)
 			}
 			continue
 		}
@@ -311,7 +303,7 @@ func (m Match) printPlayerActions(r *Round, v *Stat, playerMap map[PlayerID]Play
 			fmt.Printf("\t\t\t\t[%s] Died to %s (%s)\n", ts, playerMap[v.Killer].Name, v.Weapon)
 
 		case *Flash:
-			fmt.Printf("\t\t\t\t[%s] Flash bounces=%d pops=%s trajectory=%d", ts, v.Bounces, m.formatRelative(v.Start, v.End), len(v.Trajectory))
+			fmt.Printf("\t\t\t\t[%s] Flash bounces=%d pops=%s trajectory=%d", ts, v.Bounces, m.TickDurationRel(v.Start, v.End), len(v.Trajectory))
 			if len(v.Victims) > 0 {
 				fmt.Printf(" hits=")
 				for _, v := range v.Victims {
@@ -321,10 +313,10 @@ func (m Match) printPlayerActions(r *Round, v *Stat, playerMap map[PlayerID]Play
 			fmt.Println()
 
 		case *Smoke:
-			fmt.Printf("\t\t\t\t[%s] Smoke bounces=%d blooms=%s pops=%s trajectory=%d\n", ts, v.Bounces, m.formatRelative(v.Start, v.Bloom), m.formatRelative(v.Start, v.End), len(v.Trajectory))
+			fmt.Printf("\t\t\t\t[%s] Smoke bounces=%d blooms=%s pops=%s trajectory=%d\n", ts, v.Bounces, m.TickDurationRel(v.Start, v.Bloom), m.TickDurationRel(v.Start, v.End), len(v.Trajectory))
 
 		case *He:
-			fmt.Printf("\t\t\t\t[%s] HE bounces=%d pops=%s trajectory=%d", m.formatRelative(r.Start, v.Start), v.Bounces, m.formatRelative(v.Start, v.End), len(v.Trajectory))
+			fmt.Printf("\t\t\t\t[%s] HE bounces=%d pops=%s trajectory=%d", m.TickDurationRel(r.Start, v.Start), v.Bounces, m.TickDurationRel(v.Start, v.End), len(v.Trajectory))
 			if len(v.Victims) > 0 {
 				fmt.Printf(" hits=")
 				for _, v := range v.Victims {
@@ -334,7 +326,7 @@ func (m Match) printPlayerActions(r *Round, v *Stat, playerMap map[PlayerID]Play
 			fmt.Println()
 
 		case *Decoy:
-			fmt.Printf("\t\t\t\t[%s] Decoy bounces=%d pops=%s trajectory=%d", ts, v.Bounces, m.formatRelative(v.Start, v.End), len(v.Trajectory))
+			fmt.Printf("\t\t\t\t[%s] Decoy bounces=%d pops=%s trajectory=%d", ts, v.Bounces, m.TickDurationRel(v.Start, v.End), len(v.Trajectory))
 			if len(v.Victims) > 0 {
 				fmt.Printf(" hits=")
 				for _, v := range v.Victims {
@@ -344,7 +336,7 @@ func (m Match) printPlayerActions(r *Round, v *Stat, playerMap map[PlayerID]Play
 			fmt.Println()
 
 		case *Incendiary:
-			fmt.Printf("\t\t\t\t[%s] Incendiary bounces=%d pops=%s trajectory=%d", ts, v.Bounces, m.formatRelative(v.Start, v.End), len(v.Trajectory))
+			fmt.Printf("\t\t\t\t[%s] Incendiary bounces=%d pops=%s trajectory=%d", ts, v.Bounces, m.TickDurationRel(v.Start, v.End), len(v.Trajectory))
 			if len(v.Victims) > 0 {
 				damageMap := make(map[PlayerID]int)
 				for _, v := range v.Victims {
@@ -358,7 +350,7 @@ func (m Match) printPlayerActions(r *Round, v *Stat, playerMap map[PlayerID]Play
 			fmt.Println()
 
 		case *Molotov:
-			fmt.Printf("\t\t\t\t[%s] Molotov bounces=%d pops=%s trajectory=%d", ts, v.Bounces, m.formatRelative(v.Start, v.End), len(v.Trajectory))
+			fmt.Printf("\t\t\t\t[%s] Molotov bounces=%d pops=%s trajectory=%d", ts, v.Bounces, m.TickDurationRel(v.Start, v.End), len(v.Trajectory))
 			if len(v.Victims) > 0 {
 				damageMap := make(map[PlayerID]int)
 				for _, v := range v.Victims {
@@ -372,10 +364,10 @@ func (m Match) printPlayerActions(r *Round, v *Stat, playerMap map[PlayerID]Play
 			fmt.Println()
 
 		case *Spot:
-			fmt.Printf("\t\t\t\t[%s] Spot %s (%s)\n", ts, playerMap[v.Spotted].Name, m.formatRelative(v.Start, v.End))
+			fmt.Printf("\t\t\t\t[%s] Spot %s (%s)\n", ts, playerMap[v.Spotted].Name, m.TickDurationRel(v.Start, v.End))
 
 		case *SpottedBy:
-			fmt.Printf("\t\t\t\t[%s] Spotted by %s (%s)\n", ts, playerMap[v.Spotter].Name, m.formatRelative(v.Start, v.End))
+			fmt.Printf("\t\t\t\t[%s] Spotted by %s (%s)\n", ts, playerMap[v.Spotter].Name, m.TickDurationRel(v.Start, v.End))
 
 		case Reload:
 			fmt.Printf("\t\t\t\t[%s] reload %s with %d bullets remaining\n", ts, v.Weapon, v.BulletsRemaining)
@@ -422,7 +414,7 @@ func (m Match) printChat(playerMap map[PlayerID]Player, r *Round) {
 	for _, e := range events {
 		v := e.(message)
 
-		fmt.Printf("\t\t[%s] %s: %s\n", m.formatRelative(r.Start, v.tick), v.author.Name, v.text)
+		fmt.Printf("\t\t[%s] %s: %s\n", m.TickDurationRel(r.Start, v.tick), v.author.Name, v.text)
 	}
 }
 

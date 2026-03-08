@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/topvennie/fragtape/internal/database/model"
+	"github.com/topvennie/fragtape/pkg/utils"
 )
 
 type nextDemoReq struct {
@@ -20,19 +21,19 @@ type nextDemoReq struct {
 }
 
 type nextDemoResp struct {
-	NextCode  string `json:"nextCode"`
-	DemoURL   string `json:"demoUrl"`
-	MatchTime int    `json:"matchTime"`
-	Players   []int  `json:"players"`
-	Code      int    `json:"code"`
-	Error     string `json:"error"`
+	NextCode  string  `json:"nextCode"`
+	DemoURL   string  `json:"demoUrl"`
+	MatchTime int     `json:"matchTime"`
+	Players   []int32 `json:"players"`
+	Code      int     `json:"code"`
+	Error     string  `json:"error"`
 }
 
 type NextDemo struct {
 	NextCode  string
 	DemoURL   string
 	MatchTime time.Time
-	Players   []int
+	Players   []int64
 	Code      int
 	Error     error
 }
@@ -43,7 +44,7 @@ type NextDemo struct {
 func (s *steam) NextDemo(ctx context.Context, user model.User) (NextDemo, error) {
 	body := nextDemoReq{
 		WebAPIKey:  s.webAPIKey,
-		SteamID:    user.UID,
+		SteamID:    int(int32(user.UID)), // Steam expect 32 bit version
 		AuthToken:  user.Setting.SteamAuthenticationToken,
 		MatchToken: user.Setting.SteamMatchToken,
 	}
@@ -88,7 +89,7 @@ func (s *steam) NextDemo(ctx context.Context, user model.User) (NextDemo, error)
 	demoResp := NextDemo{
 		NextCode: demoRespService.NextCode,
 		DemoURL:  demoRespService.DemoURL,
-		Players:  demoRespService.Players,
+		Players:  utils.SliceMap(demoRespService.Players, func(p int32) int64 { return steamID32To64(p) }),
 		Code:     demoRespService.Code,
 	}
 
@@ -100,4 +101,10 @@ func (s *steam) NextDemo(ctx context.Context, user model.User) (NextDemo, error)
 	}
 
 	return demoResp, nil
+}
+
+const steamID64Base int64 = 76561197960265728
+
+func steamID32To64(id int32) int64 {
+	return steamID64Base + int64(id)
 }

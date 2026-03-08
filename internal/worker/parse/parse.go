@@ -17,6 +17,7 @@ import (
 type Manager struct {
 	demo      repository.Demo
 	highlight repository.Highlight
+	setting   repository.SettingGlobal
 	stat      repository.Stat
 	statsDemo repository.StatsDemo
 	user      repository.User
@@ -34,6 +35,7 @@ func New(repo repository.Repository) *Manager {
 	return &Manager{
 		demo:      *repo.NewDemo(),
 		highlight: *repo.NewHighlight(),
+		setting:   *repo.NewSettingGlobal(),
 		stat:      *repo.NewStat(),
 		statsDemo: *repo.NewStatsDemo(),
 		user:      *repo.NewUser(),

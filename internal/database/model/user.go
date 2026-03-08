@@ -5,7 +5,7 @@ import "github.com/topvennie/fragtape/pkg/sqlc"
 
 type User struct {
 	ID          int
-	UID         int
+	UID         int64
 	Name        string
 	DisplayName string
 	AvatarURL   string
@@ -20,13 +20,18 @@ type User struct {
 func UserModel(user sqlc.User) *User {
 	return &User{
 		ID:          int(user.ID),
-		UID:         int(user.Uid),
+		UID:         user.Uid,
 		Name:        fromString(user.Name),
 		DisplayName: user.DisplayName,
 		AvatarURL:   fromString(user.AvatarUrl),
 		Crosshair:   fromString(user.Crosshair),
 		Admin:       user.Admin,
 	}
+}
+
+// IsReal returns if the user ever logged in to the frontend
+func (u *User) IsReal() bool {
+	return u.Name != ""
 }
 
 // EqualEntry returns true if all non unique values are equal

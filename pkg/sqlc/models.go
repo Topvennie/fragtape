@@ -258,7 +258,7 @@ type StatsDemo struct {
 
 type User struct {
 	ID          int32
-	Uid         int32
+	Uid         int64
 	Name        pgtype.Text
 	DisplayName string
 	AvatarUrl   pgtype.Text

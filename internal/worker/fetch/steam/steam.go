@@ -100,7 +100,7 @@ func (s *steam) Fetch(ctx context.Context, user model.User) (model.Demo, bool, e
 		}
 
 		// We have no idea what went wrong
-		return demo, false, fmt.Errorf("steam service %w", err)
+		return demo, false, fmt.Errorf("steam service %w", demoResp.Error)
 	}
 
 	if demoResp.DemoURL == "" || demoResp.Code == 202 {

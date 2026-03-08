@@ -33,8 +33,8 @@ func (u *User) Get(ctx context.Context, id int) (*model.User, error) {
 	return model.UserModel(user), nil
 }
 
-func (u *User) GetByUID(ctx context.Context, uid int) (*model.User, error) {
-	user, err := u.repo.queries(ctx).UserGetByUid(ctx, int32(uid))
+func (u *User) GetByUID(ctx context.Context, uid int64) (*model.User, error) {
+	user, err := u.repo.queries(ctx).UserGetByUid(ctx, uid)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -45,8 +45,8 @@ func (u *User) GetByUID(ctx context.Context, uid int) (*model.User, error) {
 	return model.UserModel(user), nil
 }
 
-func (u *User) GetByUIDs(ctx context.Context, uids []int) ([]*model.User, error) {
-	users, err := u.repo.queries(ctx).UserGetByUids(ctx, utils.SliceMap(uids, func(id int) int32 { return int32(id) }))
+func (u *User) GetByUIDs(ctx context.Context, uids []int64) ([]*model.User, error) {
+	users, err := u.repo.queries(ctx).UserGetByUids(ctx, uids)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -145,7 +145,7 @@ func (u *User) GetAllRealWithSettingLastDemo(ctx context.Context) ([]*model.User
 
 func (u *User) Create(ctx context.Context, user *model.User) error {
 	id, err := u.repo.queries(ctx).UserCreate(ctx, sqlc.UserCreateParams{
-		Uid:         int32(user.UID),
+		Uid:         int64(user.UID),
 		Name:        toString(user.Name),
 		DisplayName: user.DisplayName,
 		AvatarUrl:   toString(user.AvatarURL),

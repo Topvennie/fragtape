@@ -41,7 +41,7 @@ worker:
 
   downloader:
     interval_s: 60
-    concurrent: 1
+    concurrent: 4
 
   parser:
     interval_s: 10

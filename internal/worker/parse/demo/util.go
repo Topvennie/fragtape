@@ -3,6 +3,7 @@ package demo
 import (
 	"math"
 	"slices"
+	"time"
 
 	"github.com/golang/geo/r3"
 	"github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs/common"
@@ -25,6 +26,18 @@ func closest[T any](center Vector, items []T, fn func(t T) Vector) T {
 	}
 
 	return minItem
+}
+
+// Tick
+
+// FormatDuration returns the duration since the start of the match
+func (m Match) TickDuration(t Tick) time.Duration {
+	return time.Second * time.Duration(t/m.TickRate)
+}
+
+// TickDurationRel returns the duration since the zero value
+func (m Match) TickDurationRel(zero Tick, t Tick) time.Duration {
+	return m.TickDuration(t) - m.TickDuration(zero)
 }
 
 // Demo

@@ -1,5 +1,7 @@
 package utils
 
+import "math/rand/v2"
+
 // SliceMap maps a slice of type T to a slice of type U
 func SliceMap[T any, U any](input []T, mapFunc func(T) U) []U {
 	result := make([]U, len(input))
@@ -159,9 +161,21 @@ func SliceLast[T any](slice []T) T {
 	return slice[len(slice)-1]
 }
 
-// SliceRemove removes the item at a given index
+// SliceRemove removes the first occurence of toRemove
 // It does not keep order
-func SliceRemove[T any](slice []T, idx int) []T {
+func SliceRemove[T comparable](slice []T, toRemove T) []T {
+	for idx := range slice {
+		if slice[idx] == toRemove {
+			return SliceRemoveIndex(slice, idx)
+		}
+	}
+
+	return slice
+}
+
+// SliceRemoveIndex removes the item at a given index
+// It does not keep order
+func SliceRemoveIndex[T any](slice []T, idx int) []T {
 	if len(slice) == 0 {
 		return slice
 	}
@@ -174,4 +188,27 @@ func SliceRemove[T any](slice []T, idx int) []T {
 	slice = slice[:len(slice)-1]
 
 	return slice
+}
+
+// SliceAll returns true if the condition holds
+// for every element in the slice
+func SliceAll[T any](slice []T, cond func(t T) bool) bool {
+	for idx := range slice {
+		if !cond(slice[idx]) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// SliceRandom returns a random value in the slice
+// If the slice is empty than the zero value of t is returned
+func SliceRandom[T any](slice []T) T {
+	if len(slice) == 0 {
+		var t T
+		return t
+	}
+
+	return slice[rand.IntN(len(slice))]
 }
