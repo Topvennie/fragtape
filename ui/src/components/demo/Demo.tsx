@@ -124,7 +124,8 @@ const Finished = ({ demo, highlightFilter = "me" }: Props) => {
       </div>
       <Collapse in={showClips}>
         <div className="pt-8">
-          <HighlightCarousel highlights={filteredHighlights} />
+          {/* Prevent the carousel to preload the video's unless asked */}
+          {showClips && <HighlightCarousel highlights={filteredHighlights} />}
         </div>
       </Collapse>
     </div>
