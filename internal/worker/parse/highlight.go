@@ -9,7 +9,6 @@ import (
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/worker/parse/demo"
 	"github.com/topvennie/fragtape/pkg/utils"
-	"go.uber.org/zap"
 )
 
 func (m *Manager) saveHighlights(ctx context.Context, d model.Demo, match demo.Match) error {
@@ -17,20 +16,13 @@ func (m *Manager) saveHighlights(ctx context.Context, d model.Demo, match demo.M
 		return err
 	}
 
-	zap.S().Debugf("%+v", utils.SliceMap(match.Players, func(p *demo.Player) int { return int(p.SteamID) }))
-
 	// Get all users
 	users, err := m.user.GetByUIDs(ctx, utils.SliceMap(match.Players, func(p *demo.Player) int64 { return int64(p.SteamID) }))
 	if err != nil {
 		return err
 	}
-	zap.S().Debugf("%+v", users)
-	for _, u := range users {
-		zap.S().Debugf("%+v", *u)
-	}
 	// Only keep the real users
 	users = utils.SliceFilter(users, func(u *model.User) bool { return u.IsReal() })
-	zap.S().Debugf("%+v", users)
 
 	settings, err := m.setting.Get(ctx)
 	if err != nil {
@@ -45,10 +37,8 @@ func (m *Manager) saveHighlights(ctx context.Context, d model.Demo, match demo.M
 	// Go over round
 	for _, round := range rounds {
 		for _, user := range users {
-			zap.S().Debugf("Checking highlight for %s | %+v", user.Name, user)
 			player, ok := round.players[demo.PlayerID(user.UID)]
 			if !ok {
-				zap.S().Debug("Not found")
 				// User didnt play this round
 				continue
 			}
@@ -118,7 +108,6 @@ func killOne(_ round, _ player, _ []int) string {
 }
 
 func killTwo(round round, player player, killIdx []int) string {
-	zap.S().Debug("Checking 2k")
 	kills := utils.SliceMap(killIdx, func(idx int) kill { return player.kills[idx] })
 
 	// Not all 2k's lead to a highlight
@@ -236,7 +225,6 @@ func killTwo(round round, player player, killIdx []int) string {
 }
 
 func killThree(round round, p player, killIdx []int) string {
-	zap.S().Debug("Checking 3k")
 	kills := utils.SliceMap(killIdx, func(idx int) kill { return p.kills[idx] })
 
 	// Not all 3k's lead to a highlight
@@ -437,7 +425,6 @@ func killThree(round round, p player, killIdx []int) string {
 }
 
 func killFour(round round, player player, killIdx []int) string {
-	zap.S().Debug("Checking 4k")
 	kills := utils.SliceMap(killIdx, func(idx int) kill { return player.kills[idx] })
 
 	// 4 kills always lead to a highlight
@@ -588,7 +575,6 @@ func killFour(round round, player player, killIdx []int) string {
 }
 
 func killFive(round round, player player, killIdx []int) string {
-	zap.S().Debug("Checking 5k")
 	kills := utils.SliceMap(killIdx, func(idx int) kill { return player.kills[idx] })
 
 	// 5 kills always lead to a highlight
@@ -687,7 +673,6 @@ func killFive(round round, player player, killIdx []int) string {
 }
 
 func special(player player, setting model.SettingGlobal) string {
-	zap.S().Debug("Checking special")
 	kills := player.kills
 
 	// Knife
@@ -782,7 +767,7 @@ func constructHighlight(user model.User, demo model.Demo, match demo.Match, roun
 	// Construct the highlight
 	var duration time.Duration = 0
 	for _, seg := range segments {
-		duration += time.Duration((seg.EndTick - seg.StartTick) * int(match.TickRate))
+		duration += time.Second * time.Duration((seg.EndTick-seg.StartTick)/int(match.TickRate))
 	}
 
 	return &model.Highlight{

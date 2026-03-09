@@ -78,8 +78,6 @@ func (m *Manager) loop(ctx context.Context) (bool, error) {
 		return true, nil
 	}
 
-	zap.S().Debug("Finalizing")
-
 	if err = func() error {
 		if demo.FileID != "" {
 			// Best effort
