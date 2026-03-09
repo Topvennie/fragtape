@@ -1,12 +1,12 @@
-import { useAuth } from "@/lib/hooks/useAuth"
-import { Forbidden } from "./Forbidden"
-import { Center, Stack } from "@mantine/core"
-import { Title } from "@/components/atoms/Title"
-import { AdminTeam } from "@/components/admin/AdminTeam"
 import { AdminConfiguration } from "@/components/admin/AdminConfiguration"
+import { AdminTeam } from "@/components/admin/AdminTeam"
+import { Page, PageTitle } from "@/components/atoms/Page"
 import { FragtapeIcon } from "@/components/icons/FragtapeIcon"
 import { useSettingGlobalGet } from "@/lib/api/setting_global"
 import { useUserAdmin } from "@/lib/api/user"
+import { useAuth } from "@/lib/hooks/useAuth"
+import { Center } from "@mantine/core"
+import { Forbidden } from "./Forbidden"
 
 export const Admin = () => {
   const { user } = useAuth()
@@ -25,13 +25,15 @@ export const Admin = () => {
   }
 
   return (
-    <Stack gap="xl">
-      <Title order={2} className="font-bold">Admin Settings</Title>
-      <p className="text-secondary mb-4">Manage global platform configuration, permissions and admin access.</p>
+    <Page>
+      <PageTitle
+        title="Admin Settings"
+        description="Manage global platform configuration, permissions and admin access."
+      />
 
       <AdminTeam />
 
       <AdminConfiguration />
-    </Stack>
+    </Page>
   )
 }

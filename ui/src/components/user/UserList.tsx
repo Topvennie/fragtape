@@ -5,11 +5,11 @@ import { FragtapeIcon } from "../icons/FragtapeIcon";
 
 type Props = {
   users: UserType[];
-  leftSection?: (user: UserType) => ReactNode;
+  rightSection?: (user: UserType) => ReactNode;
   isLoading?: boolean;
 }
 
-export const UserList = ({ users, leftSection = () => null, isLoading = false }: Props) => {
+export const UserList = ({ users, rightSection = () => null, isLoading = false }: Props) => {
   if (!users.length) {
     return <p className="text-secondary text-center">No users</p>
   }
@@ -18,13 +18,13 @@ export const UserList = ({ users, leftSection = () => null, isLoading = false }:
     <div className="divide-y divide-gray-800">
       {isLoading
         ? <FragtapeIcon animated className="size-12" />
-        : users.map(u => <User key={u.id} user={u} left={leftSection(u)} />)
+        : users.map(u => <User key={u.id} user={u} right={rightSection(u)} />)
       }
     </div>
   )
 }
 
-const User = ({ user, left }: { user: UserType, left: ReactNode }) => {
+const User = ({ user, right }: { user: UserType, right: ReactNode }) => {
   return (
     <div className="flex items-center justify-between py-2">
       <div className="flex items-center gap-2">
@@ -34,7 +34,7 @@ const User = ({ user, left }: { user: UserType, left: ReactNode }) => {
           <p className="text-secondary text-sm/3">{user.displayName}</p>
         </div>
       </div>
-      {left}
+      {right}
     </div>
   )
 }

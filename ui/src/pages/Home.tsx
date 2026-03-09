@@ -1,6 +1,6 @@
 import { Alert } from "@/components/atoms/Alert"
 import { LinkButton } from "@/components/atoms/LinkButton"
-import { Title } from "@/components/atoms/Title"
+import { Page, PageTitle, Section } from "@/components/atoms/Page"
 import { Demo, HighlightFilter } from "@/components/demo/Demo"
 import { FragtapeIcon } from "@/components/icons/FragtapeIcon"
 import { Segment } from "@/components/molecules/Segment"
@@ -49,18 +49,20 @@ export const Home = () => {
   }, [demos, isLoadingDemos])
 
   return (
-    <Stack>
-      {!settingUser?.connectedSteam && <NoConnections />}
-      <Group justify="space-between">
-        <Title order={2} className="font-bold">Recent Matches</Title>
-        {settingGlobal?.demoUpload && (
+    <Page>
+      <PageTitle
+        title="Recent Matches"
+        rightSection={settingGlobal?.demoUpload && (
           <FileButton onChange={handleUpload}>
             {props => <Button loading={uploading} {...props}>Upload</Button>}
           </FileButton>
         )}
-      </Group>
+      />
+
+      {!settingUser?.connectedSteam && <NoConnections />}
+
       {content}
-    </Stack>
+    </Page>
   )
 }
 
@@ -112,19 +114,22 @@ const Demos = ({ demos }: { demos: DemoType[] }) => {
   }
 
   return (
-    <>
-      <Segment
-        data={[
-          { value: "me", label: "Only my clips" },
-          { value: "group", label: "Me + group" },
-          { value: "match", label: "Everyone" },
-        ]}
-        value={highlightFilter}
-        onChange={handleFilterChange}
-        className="ml-auto"
-      />
+    <Section
+      rightSection={(
+        <Segment
+          data={[
+            { value: "me", label: "Only my clips" },
+            { value: "group", label: "Me + group" },
+            { value: "match", label: "Everyone" },
+          ]}
+          value={highlightFilter}
+          onChange={handleFilterChange}
+          className="ml-auto"
+        />
+      )}
+    >
       {demos.map(d => <Demo key={d.id} demo={d} highlightFilter={highlightFilter} />)}
-    </>
+    </Section>
   )
 }
 

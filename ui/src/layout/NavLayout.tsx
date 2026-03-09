@@ -2,7 +2,7 @@ import { LinkButton } from "@/components/atoms/LinkButton";
 import { FragtapeIcon } from "@/components/icons/FragtapeIcon";
 import { UserIcon } from "@/components/user/UserIcon";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { ActionIcon, AppShell, Burger, Button, Container, Group, Stack } from "@mantine/core";
+import { ActionIcon, AppShell, Burger, Button, Group, Stack } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { LinkProps, useNavigate } from "@tanstack/react-router";
 import { ComponentProps } from "react";
@@ -64,9 +64,7 @@ export const NavLayout = ({ children }: Props) => {
   return (
     <AppShell
       header={{ height: 60 }}
-      footer={{ height: 60 }}
       navbar={{ width: 300, breakpoint: "md", collapsed: { desktop: true, mobile: !opened } }}
-      className="max-h-screen overflow-auto"
     >
       <AppShell.Header px="md" withBorder={false} bg="background.9">
         <Group h="100%" justify="space-between">
@@ -83,7 +81,7 @@ export const NavLayout = ({ children }: Props) => {
             hiddenFrom="md"
           />
           <Group>
-            <p className="text-primary font-semibold">{user!.displayName}</p>
+            <p className="text-primary font-semibold hidden md:block">{user!.displayName}</p>
             <UserIcon user={user!} />
             <ActionIcon onClick={logout} color="red" size="xl" variant="subtle">
               <LuLogOut />
@@ -96,11 +94,13 @@ export const NavLayout = ({ children }: Props) => {
           {routes.map(r => <NavLink key={r.title} route={r} close={close} />)}
         </Stack>
       </AppShell.Navbar>
-      <AppShell.Main>
-        <Container fluid className="container mx-auto pt-20">
+      <AppShell.Main className="flex flex-col justify-between">
+        <div className="container mx-auto">
           {children}
-        </Container>
+        </div>
+        {/* TODO: Add footer here */}
       </AppShell.Main>
+
     </AppShell>
   )
 }

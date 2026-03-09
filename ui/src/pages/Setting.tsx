@@ -1,8 +1,8 @@
-import { Title } from "@/components/atoms/Title"
+import { Page, PageTitle } from "@/components/atoms/Page"
 import { FragtapeIcon } from "@/components/icons/FragtapeIcon"
 import { SettingSteam } from "@/components/setting/SettingSteam"
 import { useSettingUserGet } from "@/lib/api/setting_user"
-import { Center, Stack } from "@mantine/core"
+import { Center } from "@mantine/core"
 
 export const Setting = () => {
   const { isLoading } = useSettingUserGet()
@@ -16,11 +16,13 @@ export const Setting = () => {
   }
 
   return (
-    <Stack gap="xl">
-      <Title order={2} className="font-bold">User Settings</Title>
-      <p className="text-secondary mb-4">Manage your external integrarions and account connections.</p>
+    <Page>
+      <PageTitle
+        title="User Settings"
+        description="Manage your account connections."
+      />
 
       <SettingSteam />
-    </Stack>
+    </Page>
   )
 }
