@@ -54,6 +54,7 @@ export const useUserFiltered = (filter?: UserFilter) => {
       return lastPage.users.length < PAGE_LIMIT ? undefined : allPages.length + 1
     },
     staleTime: STALE_TIME.MIN_5,
+    retry: 0,
     throwOnError: true,
   })
 
