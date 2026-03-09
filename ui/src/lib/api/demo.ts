@@ -17,8 +17,6 @@ export const useDemoGetAll = () => {
       const poll = demos.some(d => ![DemoStatus.Finished, DemoStatus.Failed].includes(d.status))
       return poll ? STALE_TIME.SEC_5 : false
     },
-    retry: 0,
-    throwOnError: true,
   })
 }
 
