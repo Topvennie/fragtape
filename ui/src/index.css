@@ -23,6 +23,7 @@
   --color-secondary: #B7C7D6;
 
   --animate-pulse-extreme: pulse-extreme 5s ease-in-out infinite;
+  --animate-slow-ping: slow-ping 2s ease-in-out infinite;
 
   @keyframes pulse-extreme {
     0% {

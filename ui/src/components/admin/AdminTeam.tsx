@@ -2,16 +2,15 @@ import { useUserAdmin, useUserCreateAdmin, useUserDeleteAdmin, useUserFiltered }
 import { useAuth } from "@/lib/hooks/useAuth"
 import { User } from "@/lib/types/user"
 import { getErrorMessage } from "@/lib/utils"
-import { ActionIcon, Button } from "@mantine/core"
+import { ActionIcon, Button, Group, Stack } from "@mantine/core"
 import { useDebouncedValue, useDisclosure } from "@mantine/hooks"
 import { notifications } from "@mantine/notifications"
 import { useState } from "react"
 import { LuPlus, LuTrash2, LuUserRoundPlus } from "react-icons/lu"
 import useInfiniteScroll from "react-infinite-scroll-hook"
 import { BottomOfPage } from "../atoms/ButtomOfPage"
-import { Card } from "../atoms/Card"
-import { ModalCenter } from "../atoms/ModalCenter"
-import { Title } from "../atoms/Title"
+import { Modal } from "../atoms/Modal"
+import { Section } from "../atoms/Page"
 import { Search } from "../molecules/Search"
 import { UserList } from "../user/UserList"
 
@@ -37,38 +36,37 @@ export const AdminTeam = () => {
 
   const [opened, { open, close }] = useDisclosure()
 
-
   return (
     <>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Title order={3}>Admin Team</Title>
+      <Section
+        title="Team"
+        rightSection={(
           <Button onClick={open} leftSection={<LuPlus />}>
             Add Admin
           </Button>
-        </div>
-        <Card>
-          <UserList
-            users={admins ?? []}
-            leftSection={(u) => {
-              if (u.id === user?.id) return <p className="text-secondary">(You)</p>
+        )}
+      >
+        <UserList
+          users={admins ?? []}
+          rightSection={(u) => {
+            if (u.id === user?.id) return <p className="text-secondary">(You)</p>
 
-              return (
-                <ActionIcon onClick={() => handleDelete(u)} variant="subtle" color="muted" loading={deleting}>
-                  <LuTrash2 />
-                </ActionIcon>
-              )
-            }}
-          />
-        </Card>
-      </div>
-      <ModalCenter
+            return (
+              <ActionIcon onClick={() => handleDelete(u)} variant="subtle" color="muted" loading={deleting}>
+                <LuTrash2 />
+              </ActionIcon>
+            )
+          }}
+        />
+      </Section>
+
+      <Modal
         withCloseButton={false}
         opened={opened}
         onClose={close}
       >
         <AddAdmin />
-      </ModalCenter>
+      </Modal>
     </>
   )
 }
@@ -108,8 +106,8 @@ const AddAdmin = () => {
   }
 
   return (
-    <div>
-      <div className="flex gap-4 items-center py-2 sticky top-0 z-50 bg-(--mantine-color-background-8)">
+    <Stack>
+      <Group className="sticky top-0 z-50">
         <Search
           placeholder="Filter by username..."
           value={name}
@@ -117,10 +115,10 @@ const AddAdmin = () => {
           className="grow"
         />
         <p className="text-secondary">{`${result.total} users`}</p>
-      </div>
+      </Group>
       <UserList
         users={users ?? []}
-        leftSection={(u) => (
+        rightSection={(u) => (
           <ActionIcon variant="subtle" color="muted" onClick={() => handleCreate(u)} loading={creating.includes(u.id)}>
             <LuUserRoundPlus />
           </ActionIcon>
@@ -128,6 +126,6 @@ const AddAdmin = () => {
         isLoading={isLoading}
       />
       <BottomOfPage ref={sentryRef} showLoading={isFetchingNextPage} hasNextPage={hasNextPage} />
-    </div>
+    </Stack>
   )
 }

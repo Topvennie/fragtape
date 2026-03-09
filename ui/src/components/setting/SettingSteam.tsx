@@ -1,41 +1,33 @@
 import { useSettingUserGet, useSettingUserSteamConnect, useSettingUserSteamDisconnect } from "@/lib/api/setting_user"
-import { Card } from "../atoms/Card"
-import { Ping } from "../atoms/Ping"
-import { Alert } from "../atoms/Alert"
-import { LuArrowRight, LuCircleCheckBig, LuInfo, LuTrash2 } from "react-icons/lu"
-import { Button, Stack } from "@mantine/core"
-import { TextInput } from "../atoms/TextInput"
-import { useForm } from "@mantine/form"
 import { settingUserSteamSchema, SettingUserSteamSchema } from "@/lib/types/setting_user"
+import { getErrorMessage } from "@/lib/utils"
+import { Button, Stack } from "@mantine/core"
+import { useForm } from "@mantine/form"
+import { notifications } from "@mantine/notifications"
 import { zod4Resolver } from "mantine-form-zod-resolver"
 import { useState } from "react"
-import { notifications } from "@mantine/notifications"
-import { getErrorMessage } from "@/lib/utils"
+import { LuArrowRight, LuCircleCheckBig, LuInfo, LuTrash2 } from "react-icons/lu"
+import { Alert } from "../atoms/Alert"
+import { Section } from "../atoms/Page"
+import { Ping } from "../atoms/Ping"
+import { TextInput } from "../atoms/TextInput"
 
 export const SettingSteam = () => {
   const { data: setting } = useSettingUserGet()
 
   return (
-    <Card>
-      <Stack>
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <p className="font-semibold text-white">Steam Integration</p>
-            <p className="text-secondary">Automatically fetch your matchmaking matches</p>
-          </div>
-          <div className="rounded-lg">
-            {setting?.connectedSteam
-              ? <ConnectedBadge />
-              : <DisconnectedBadge />
-            }
-          </div>
-        </div>
-        {setting?.connectedSteam
-          ? <Connected />
-          : <Disconnected />
-        }
-      </Stack>
-    </Card>
+    <Section
+      title="Steam Integration"
+      rightSection={setting?.connectedSteam
+        ? <ConnectedBadge />
+        : <DisconnectedBadge />
+      }
+    >
+      {setting?.connectedSteam
+        ? <Connected />
+        : <Disconnected />
+      }
+    </Section>
   )
 }
 
@@ -46,7 +38,7 @@ const Connected = () => {
   const handleSubmit = () => {
     setSubmitting(true)
 
-    steamDisconnect.mutate(undefined, {
+    steamDisconnect.mutateAsync(undefined, {
       onSuccess: () => notifications.show({ message: "Steam disconnected" }),
       onError: async (error) => {
         const msg = await getErrorMessage(error)
@@ -57,20 +49,20 @@ const Connected = () => {
   }
 
   return (
-    <>
+    <Stack>
       <Alert
         color="green"
         icon={<LuCircleCheckBig className="size-4 text-green-500" />}
-        className="text-xs"
+        className="text-xs whitespace-pre-wrap"
       >
-        Steam integration is live. New matches will automatically appear in your overview shortly after you finish playing.
+        {`Steam integration is live.\nNew matches will automatically appear in your overview shortly after you finish playing.`}
       </Alert>
       <div className="ml-auto">
         <Button onClick={handleSubmit} color="red" c="black" size="xs" leftSection={<LuTrash2 className="size-4" />} loading={submitting}>
           Disconnect Steam
         </Button>
       </div>
-    </>
+    </Stack>
   )
 }
 
@@ -113,13 +105,13 @@ const Disconnected = () => {
   }
 
   return (
-    <>
+    <Stack>
       <Alert
         color="blue"
         icon={<LuInfo className="size-6 text-white" />}
         className="text-xs"
       >
-        <div className="space-y-2">
+        <Stack gap={0}>
           <p>
             <span>To enable automatic match tracking, you need to provide your Steam Match Token and Authentication Token. </span>
             <a
@@ -143,7 +135,7 @@ const Disconnected = () => {
               Leetify blog post.
             </a>
           </p>
-        </div>
+        </Stack>
       </Alert>
       <div>
         <p className="text-white">Steam Match Token</p>
@@ -153,12 +145,12 @@ const Disconnected = () => {
         <p className="text-white">Steam Authentication Token</p>
         <TextInput placeholder="AAAA-BBBBB-CCCC" {...form.getInputProps("authentication_token")} />
       </div>
-      <div>
+      <div className="ml-auto">
         <Button onClick={handleSubmit} loading={submitting}>
           Save Steam Settings
         </Button>
       </div>
-    </>
+    </Stack>
   )
 }
 
