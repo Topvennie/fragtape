@@ -10,8 +10,6 @@ export const useSettingUserGet = () => {
     queryKey: ["setting", "user"],
     queryFn: async () => (await apiGet(ENDPOINT, convertSettingUser)).data,
     staleTime: STALE_TIME.MIN_30,
-    retry: 0,
-    throwOnError: true,
   })
 }
 

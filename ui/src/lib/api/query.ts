@@ -3,7 +3,14 @@ import { camelToSnake } from "../utils";
 import { JSONBody } from "../types/general";
 import { CONTENT_TYPE } from "../types/contentType";
 
-export const queryClient = new QueryClient();
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 0,
+      throwOnError: true,
+    }
+  }
+});
 
 export const NO_DATA: JSONBody = {}
 export const NO_CONVERTER = undefined

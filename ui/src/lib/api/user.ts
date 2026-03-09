@@ -12,7 +12,7 @@ export const useUser = () => {
   return useQuery({
     queryKey: ["user"],
     queryFn: async () => (await apiGet(`${ENDPOINT_USER}/me`, convertUser)).data,
-    retry: 0,
+    throwOnError: false,
     staleTime: STALE_TIME.MIN_30,
   })
 }
@@ -22,8 +22,6 @@ export const useUserAdmin = () => {
     queryKey: ["user", "admin"],
     queryFn: async () => (await apiGet(`${ENDPOINT_USER}/admin`, convertUsers)).data,
     staleTime: STALE_TIME.MIN_30,
-    retry: 0,
-    throwOnError: true,
   })
 }
 
@@ -54,8 +52,6 @@ export const useUserFiltered = (filter?: UserFilter) => {
       return lastPage.users.length < PAGE_LIMIT ? undefined : allPages.length + 1
     },
     staleTime: STALE_TIME.MIN_5,
-    retry: 0,
-    throwOnError: true,
   })
 
   const result: UserFilterResult = { users: data?.pages.flatMap(p => p.users) ?? [], total: data?.pages?.[0].total ?? 0 }

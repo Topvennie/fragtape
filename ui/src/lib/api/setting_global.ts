@@ -10,8 +10,6 @@ export const useSettingGlobalGet = () => {
     queryKey: ["setting", "global"],
     queryFn: async () => (await apiGet(ENDPOINT, convertSettingGlobal)).data,
     staleTime: STALE_TIME.MIN_30,
-    retry: 0,
-    throwOnError: true,
   })
 }
 
