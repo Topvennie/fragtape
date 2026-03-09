@@ -106,9 +106,8 @@ const Demos = () => {
       rightSection={(
         <Segment
           data={[
-            { value: "me", label: "Only my clips" },
-            { value: "group", label: "Me + group" },
-            { value: "match", label: "Everyone" },
+            { value: "me", label: "My clips" },
+            { value: "group", label: "Group" },
           ]}
           value={highlightFilter}
           onChange={handleFilterChange}
