@@ -128,7 +128,7 @@ func killTwo(round round, player player, killIdx []int) string {
 	}
 
 	// Collateral
-	if kills[0].tickRel == kills[1].tickRel {
+	if kills[0].tick == kills[1].tick {
 		return utils.SliceRandom([]string{
 			"Collateral",
 			"Two For One",
