@@ -2,15 +2,15 @@ import { useAuth } from "@/lib/hooks/useAuth"
 import { DemoStatus, Demo as DemoType } from "@/lib/types/demo"
 import { Highlight } from "@/lib/types/highlight"
 import { Result, resultString } from "@/lib/types/stat"
-import { formatDate } from "@/lib/utils"
-import { Button, Collapse } from "@mantine/core"
+import { cn, formatDate } from "@/lib/utils"
+import { Button, Collapse, Group, Stack } from "@mantine/core"
 import { useMediaQuery } from "@mantine/hooks"
 import { ReactNode, useEffect, useMemo, useState } from "react"
 import { LuChevronDown, LuClapperboard, LuTriangleAlert } from "react-icons/lu"
 import { Card } from "../atoms/Card"
-import { HighlightCarousel } from "../highlight/HighlightCarousel"
 import { FragtapeIcon } from "../icons/FragtapeIcon"
 import { DemoThumbnail } from "./DemoThumbnail"
+import { HighlightCarousel } from "../highlight/HighlightCarousel"
 
 type Props = {
   demo: DemoType;
@@ -60,24 +60,13 @@ const Finished = ({ demo, highlightFilter = "me" }: Props) => {
 
   useEffect(() => setShowClips(false), [highlightFilter])
 
-  const smPoint = useMediaQuery('(width >= 40em)')
+  const mdPoint = useMediaQuery('(width >= 48em)')
 
   const player = demo.players.find(p => p.user.id === user?.id)
-  const group = [player] // TODO: Implement
-
-  const highlights = useMemo(() => demo.players.flatMap(p => p.highlights.filter(h => h.generated)), [demo])
-  const filteredHighlights = useMemo(() => {
-    switch (highlightFilter) {
-      case "me":
-        return player?.highlights ?? []
-      case "group":
-        return group.flatMap(p => p?.highlights.filter(h => h.generated) ?? [])
-      case "match":
-        return highlights
-    }
-  }, [demo, highlightFilter]) // eslint-disable-line react-hooks/exhaustive-deps
-
   if (!player) return null // Shouldn't really be possible
+
+  const highlights = demo.players.flatMap(p => p.highlights)
+  const filteredHighlights = highlightFilter === "me" ? player?.highlights ?? [] : highlights
 
   const score = () => {
     const winnerRounds = Math.max(demo.stats.roundsCt, demo.stats.roundsT)
@@ -90,45 +79,45 @@ const Finished = ({ demo, highlightFilter = "me" }: Props) => {
   }
 
   return (
-    <div className="flex flex-col">
-      <div className="flex items-center gap-4">
+    <Stack>
+      <Group align="stretch" wrap="nowrap">
         <div className="w-16 xs:w-32 sm:w-42 lg:w-64 aspect-square sm:aspect-video shrink-0 rounded-md overflow-hidden h-fit">
           <DemoThumbnail demo={demo} />
         </div>
-        <div className="flex justify-between w-full">
-          <div className="flex flex-col gap-2 justify-center">
-            <div className="flex items-center gap-4">
-              <p className={`text-lg sm:text-xl lg:text-2xl font-bold uppercase ${resultColor[player.stat.result]}`}>{resultString[player.stat.result]}</p>
-              <p className="sm:text-lg lg:text-xl text-white">{score()}</p>
-            </div>
-            <div className="space-x-4 text-secondary">
-              K <span className="text-white">{player.stat.kills}</span>
-              D <span className="text-white">{player.stat.deaths}</span>
-              A <span className="text-white">{player.stat.assists}</span>
-            </div>
-            <ClipBadge demo={demo} highlights={highlights} filtered={filteredHighlights} />
-          </div>
-          {smPoint && (
-            <div className="flex flex-col items-end justify-between">
-              <div>
-                <p className="text-secondary">{formatDate(demo.playedAt)}</p>
-              </div>
+        <Stack gap={0} w="100%" justify="space-between">
+          <Group justify="space-between" align="start">
+            <Stack gap={0}>
+              <Group>
+                <p className={`text-lg sm:text-xl lg:text-2xl font-bold uppercase ${resultColor[player.stat.result]}`}>{resultString[player.stat.result]}</p>
+                <p className="sm:text-lg lg:text-xl text-white">{score()}</p>
+              </Group>
+              <Group className="text-secondary">
+                <p>K <span className="text-white">{player.stat.kills}</span></p>
+                <p>D <span className="text-white">{player.stat.deaths}</span></p>
+                <p>A <span className="text-white">{player.stat.assists}</span></p>
+              </Group>
+            </Stack>
+            {mdPoint && <p className="text-secondary">{formatDate(demo.playedAt)}</p>}
+          </Group>
+          {mdPoint && (
+            <Group justify="space-between">
+              <ClipBadge demo={demo} highlights={highlights} filtered={filteredHighlights} className="mt-auto" />
               {filteredHighlights.length > 0 && (
                 <Button variant="subtle" color="muted" onClick={() => setShowClips(prev => !prev)} rightSection={<LuChevronDown className={`transform duration-300 ${showClips ? "rotate-180" : ""}`} />}>
                   {`${showClips ? "Hide" : "Show"} clips`}
                 </Button>
               )}
-            </div>
+            </Group>
           )}
-        </div>
-      </div>
+        </Stack>
+      </Group>
       <Collapse in={showClips}>
         <div className="pt-8">
           {/* Prevent the carousel to preload the video's unless asked */}
           {showClips && <HighlightCarousel highlights={filteredHighlights} />}
         </div>
       </Collapse>
-    </div>
+    </Stack>
   )
 }
 
@@ -171,28 +160,25 @@ const Failed = () => {
   )
 }
 
-const ClipBadge = ({ demo, highlights, filtered }: { demo: DemoType, highlights: Highlight[], filtered: Highlight[] }) => {
+const ClipBadge = ({ demo, highlights, filtered, className }: { demo: DemoType, highlights: Highlight[], filtered: Highlight[], className: string }) => {
   if (demo.status === DemoStatus.Finished && highlights.length === 0) {
     return null
   }
 
-  const rendering = [DemoStatus.QueuedRender, DemoStatus.Rendering].includes(demo.status)
+  const rendering = filtered.some(h => !h.generated)
 
-  let text: string;
-  let icon: ReactNode;
+  let icon: ReactNode
 
   if (rendering) {
-    text = "Clips are rendering"
     icon = <FragtapeIcon animated className="size-4 text-(--mantine-color-primary-6)" />
   } else {
-    text = `${filtered.length} / ${highlights.length} Clip${highlights.length !== 1 ? 's' : ''} visibile`
     icon = <LuClapperboard className="text-(--mantine-color-primary-6)" />
   }
 
   return (
-    <div className="flex items-center gap-2 bg-(--mantine-color-primary-light) rounded-lg py-1 lg:py-2 px-2 lg:px-4 w-fit">
+    <Group className={cn("bg-(--mantine-color-primary-light) rounded-lg py-1 lg:py-2 px-2 lg:px-4 w-fit", className)}>
       {icon}
-      <p className="text-white text-sm">{text}</p>
-    </div>
+      <p className="text-white text-sm">{filtered.length} <span className="text-[0.65rem] align-top text-secondary">{`/ ${highlights.length}`}</span>{` Clip${highlights.length !== 1 ? 's' : ''}`}</p>
+    </Group>
   )
 }

@@ -9,10 +9,10 @@ import { useDemoGetFiltered, useDemoUpload } from "@/lib/api/demo"
 import { useSettingGlobalGet } from "@/lib/api/setting_global"
 import { useSettingUserGet } from "@/lib/api/setting_user"
 import { getErrorMessage } from "@/lib/utils"
-import { Button, FileButton, Group, Stack } from "@mantine/core"
+import { Button, Center, FileButton, Group, Stack } from "@mantine/core"
 import { notifications } from "@mantine/notifications"
 import { useState } from "react"
-import { LuArrowRight, LuCircleCheckBig, LuClock, LuTriangleAlert } from "react-icons/lu"
+import { LuArrowRight, LuCircleCheckBig, LuClock, LuFilter, LuTriangleAlert } from "react-icons/lu"
 import useInfiniteScroll from "react-infinite-scroll-hook"
 
 export const Overview = () => {
@@ -22,7 +22,7 @@ export const Overview = () => {
   const [uploading, setUploading] = useState(false)
 
   // Preload first demo data
-  const { isLoading } = useDemoGetFiltered()
+  const { result, isLoading } = useDemoGetFiltered()
   const demoUpload = useDemoUpload()
 
   if (isLoading) return <Loading />
@@ -55,7 +55,10 @@ export const Overview = () => {
         )}
       />
 
-      <Demos />
+      {result.demos.length > 0
+        ? <Demos />
+        : <NoDemos />
+      }
 
     </Page>
   )
@@ -113,7 +116,10 @@ const Demos = () => {
         />
       )}
     >
-      {demos.map(d => <Demo key={d.id} demo={d} highlightFilter={highlightFilter} />)}
+      {demos.length > 0
+        ? demos.map(d => <Demo key={d.id} demo={d} highlightFilter={highlightFilter} />)
+        : <NoDemosFiltered />
+      }
 
       <Loading isFetchingNextPage={isFetchingNextPage} hasNextPage={hasNextPage} />
 
@@ -122,24 +128,39 @@ const Demos = () => {
   )
 }
 
+const NoDemosFiltered = () => {
+  return (
+    <Stack align="center" className="text-center text-secondary">
+      <LuFilter className="text-primary size-6" />
+      <p className="text-primary font-bold">No demos match your current filters</p>
+      <p className="whitespace-pre-wrap text-balance max-w-xl">{`We couldn't find any matches with the filters you selected\nTry loosening your filters to include more demos`}</p>
+      <Button className="mt-2">
+        Clear Filters
+      </Button>
+    </Stack>
+  )
+}
+
 const NoDemos = () => {
   return (
-    <Section>
-      <div className="p-4 rounded-full bg-(--mantine-color-background-8)">
-        <LuClock className="text-primary size-6" />
-      </div>
-      <p className="text-primary font-bold">No matches tracked yet</p>
-      <p className="text-secondary whitespace-pre-wrap text-balance max-w-xl">{`Once you finish a match with this Steam account it will automatically be visible here.`}</p>
-      <Stack gap={0} align="start" pl="xl">
-        <Group>
-          <LuCircleCheckBig className="text-(--mantine-color-primary-6)" />
-          <p className="text-secondary">Make sure your next game code is correct</p>
-        </Group>
-        <Group>
-          <LuCircleCheckBig className="text-(--mantine-color-primary-6)" />
-          <p className="text-secondary">{`Play a match, we'll handle the rest automatically`}</p>
-        </Group>
-      </Stack>
+    <Section align="center">
+      <Center>
+        <Stack align="center" className="text-center text-secondary">
+          <LuClock className="text-primary size-6" />
+          <p className="text-primary font-bold">No matches tracked yet</p>
+          <p className="whitespace-pre-wrap text-balance max-w-xl">{`Once you finish a match with this Steam account it will automatically be visible here.`}</p>
+          <Stack gap={0} align="start" pl="xl">
+            <Group>
+              <LuCircleCheckBig className="text-(--mantine-color-primary-6)" />
+              <p>Make sure you have an account linked</p>
+            </Group>
+            <Group>
+              <LuCircleCheckBig className="text-(--mantine-color-primary-6)" />
+              <p>{`Play a match, we handle the rest automatically`}</p>
+            </Group>
+          </Stack>
+        </Stack>
+      </Center>
     </Section>
   )
 }
