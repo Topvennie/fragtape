@@ -17,7 +17,7 @@ type Props = {
   highlightFilter?: HighlightFilter;
 }
 
-export type HighlightFilter = "me" | "group" | "match"
+export type HighlightFilter = "me" | "group"
 
 const resultColor: Record<Result, string> = {
   [Result.Win]: "text-green-400",
