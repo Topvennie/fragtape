@@ -1,18 +1,19 @@
 import { Alert } from "@/components/atoms/Alert"
+import { BottomOfPage } from "@/components/atoms/ButtomOfPage"
 import { LinkButton } from "@/components/atoms/LinkButton"
 import { Loading } from "@/components/atoms/Loading"
 import { Page, PageTitle, Section } from "@/components/atoms/Page"
 import { Demo, HighlightFilter } from "@/components/demo/Demo"
 import { Segment } from "@/components/molecules/Segment"
-import { useDemoGetAll, useDemoUpload } from "@/lib/api/demo"
+import { useDemoGetFiltered, useDemoUpload } from "@/lib/api/demo"
 import { useSettingGlobalGet } from "@/lib/api/setting_global"
 import { useSettingUserGet } from "@/lib/api/setting_user"
-import { Demo as DemoType } from "@/lib/types/demo"
 import { getErrorMessage } from "@/lib/utils"
 import { Button, FileButton, Group, Stack } from "@mantine/core"
 import { notifications } from "@mantine/notifications"
 import { useState } from "react"
 import { LuArrowRight, LuCircleCheckBig, LuClock, LuTriangleAlert } from "react-icons/lu"
+import useInfiniteScroll from "react-infinite-scroll-hook"
 
 export const Overview = () => {
   const { data: settingGlobal } = useSettingGlobalGet()
@@ -20,7 +21,8 @@ export const Overview = () => {
 
   const [uploading, setUploading] = useState(false)
 
-  const { data: demos, isLoading } = useDemoGetAll()
+  // Preload first demo data
+  const { isLoading } = useDemoGetFiltered()
   const demoUpload = useDemoUpload()
 
   if (isLoading) return <Loading />
@@ -53,10 +55,7 @@ export const Overview = () => {
         )}
       />
 
-      {demos?.length ?? 0 > 0
-        ? <Demos demos={demos ?? []} />
-        : <NoDemos />
-      }
+      <Demos />
 
     </Page>
   )
@@ -77,6 +76,49 @@ const NoConnections = () => {
         </LinkButton>
       </div>
     </Alert>
+  )
+}
+
+const Demos = () => {
+  const { result, isFetchingNextPage, hasNextPage, fetchNextPage } = useDemoGetFiltered()
+  const demos = result.demos
+
+  const [sentryRef] = useInfiniteScroll({
+    loading: isFetchingNextPage,
+    hasNextPage: Boolean(hasNextPage),
+    onLoadMore: fetchNextPage,
+    rootMargin: "0px",
+  });
+
+  const [highlightFilter, setHighlightFilter] = useState<HighlightFilter>("me")
+
+  const handleFilterChange = (value: string) => {
+    setHighlightFilter(value as HighlightFilter)
+  }
+
+  if (demos.length === 0) return <NoDemos />
+
+  return (
+    <Section
+      rightSection={(
+        <Segment
+          data={[
+            { value: "me", label: "Only my clips" },
+            { value: "group", label: "Me + group" },
+            { value: "match", label: "Everyone" },
+          ]}
+          value={highlightFilter}
+          onChange={handleFilterChange}
+          className="ml-auto"
+        />
+      )}
+    >
+      {demos.map(d => <Demo key={d.id} demo={d} highlightFilter={highlightFilter} />)}
+
+      <Loading isFetchingNextPage={isFetchingNextPage} hasNextPage={hasNextPage} />
+
+      <BottomOfPage ref={sentryRef} showLoading={isFetchingNextPage} hasNextPage={hasNextPage} />
+    </Section>
   )
 }
 
@@ -101,31 +143,3 @@ const NoDemos = () => {
     </Section>
   )
 }
-
-const Demos = ({ demos }: { demos: DemoType[] }) => {
-  const [highlightFilter, setHighlightFilter] = useState<HighlightFilter>("me")
-
-  const handleFilterChange = (value: string) => {
-    setHighlightFilter(value as HighlightFilter)
-  }
-
-  return (
-    <Section
-      rightSection={(
-        <Segment
-          data={[
-            { value: "me", label: "Only my clips" },
-            { value: "group", label: "Me + group" },
-            { value: "match", label: "Everyone" },
-          ]}
-          value={highlightFilter}
-          onChange={handleFilterChange}
-          className="ml-auto"
-        />
-      )}
-    >
-      {demos.map(d => <Demo key={d.id} demo={d} highlightFilter={highlightFilter} />)}
-    </Section>
-  )
-}
-

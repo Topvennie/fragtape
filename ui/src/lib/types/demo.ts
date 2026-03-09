@@ -44,6 +44,14 @@ export interface DemoPlayer {
   highlights: Highlight[];
 }
 
+export const convertDemoPlayer = (p: API.DemoPlayer): DemoPlayer => {
+  return {
+    user: convertUser(p.user),
+    stat: convertStat(p.stat),
+    highlights: (p.highlights ?? []).map(convertHighlight)
+  }
+}
+
 export const convertDemo = (d: API.Demo): Demo => {
   return {
     id: d.id,
@@ -60,10 +68,16 @@ export const convertDemos = (d: API.Demo[]): Demo[] => {
   return d.map(convertDemo)
 }
 
-export const convertDemoPlayer = (p: API.DemoPlayer): DemoPlayer => {
+export interface DemoFilterResult {
+  demos: Demo[];
+  total: number;
+}
+
+export const convertDemoFilterResult = (d: API.DemoFilterResult) => {
   return {
-    user: convertUser(p.user),
-    stat: convertStat(p.stat),
-    highlights: (p.highlights ?? []).map(convertHighlight)
+    demos: convertDemos(d.demos),
+    total: d.total
   }
 }
+
+export interface DemoFilter { }

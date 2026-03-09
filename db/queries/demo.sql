@@ -3,12 +3,16 @@ SELECT *
 FROM demos
 WHERE id = $1;
 
--- name: DemoGetByUser :many
-SELECT d.*
+-- name: DemoGetByUserFiltered :many
+SELECT
+  sqlc.embed(d),
+  COUNT(*) OVER()::bigint AS total_count
 FROM demos d
 LEFT JOIN stats s ON s.demo_id = d.id
-WHERE s.user_id = $1
-ORDER BY d.created_at DESC;
+WHERE 
+  (s.user_id = @user_id)
+ORDER BY d.played_at DESC
+LIMIT $1 OFFSET $2;
 
 -- name: DemoGetBySourceSourceID :one
 SELECT *

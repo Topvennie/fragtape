@@ -36,19 +36,24 @@ func (s *Service) NewDemo() *Demo {
 	}
 }
 
-func (d *Demo) GetAll(ctx context.Context, userID int) ([]dto.Demo, error) {
-	demosModel, err := d.demo.GetByUser(ctx, userID)
+func (d *Demo) GetFiltered(ctx context.Context, filter dto.DemoFilter) (dto.DemoFilterResult, error) {
+	filterModel := filter.ToModel()
+
+	result, err := d.demo.GetByUserFiltered(ctx, *filterModel)
 	if err != nil {
 		zap.S().Error(err)
-		return nil, fiber.ErrInternalServerError
+		return dto.DemoFilterResult{}, fiber.ErrInternalServerError
+	}
+	if result == nil {
+		return dto.DemoFilterResult{Demos: []dto.Demo{}}, nil
 	}
 
-	demoIDs := utils.SliceMap(demosModel, func(d *model.Demo) int { return d.ID })
+	demoIDs := utils.SliceMap(result.Demos, func(d model.Demo) int { return d.ID })
 
 	statsDemosModel, err := d.statsDemo.GetByDemos(ctx, demoIDs)
 	if err != nil {
 		zap.S().Error(err)
-		return nil, fiber.ErrInternalServerError
+		return dto.DemoFilterResult{}, fiber.ErrInternalServerError
 	}
 
 	statsDemosMap := make(map[int]*model.StatsDemo)
@@ -59,7 +64,7 @@ func (d *Demo) GetAll(ctx context.Context, userID int) ([]dto.Demo, error) {
 	statsModel, err := d.stat.GetByDemos(ctx, demoIDs)
 	if err != nil {
 		zap.S().Error(err)
-		return nil, fiber.ErrInternalServerError
+		return dto.DemoFilterResult{}, fiber.ErrInternalServerError
 	}
 
 	statMap := make(map[int][]*model.Stat)
@@ -76,7 +81,7 @@ func (d *Demo) GetAll(ctx context.Context, userID int) ([]dto.Demo, error) {
 	highlightsModel, err := d.highlight.GetByDemos(ctx, demoIDs)
 	if err != nil {
 		zap.S().Error(err)
-		return nil, fiber.ErrInternalServerError
+		return dto.DemoFilterResult{}, fiber.ErrInternalServerError
 	}
 
 	highlightMap := make(map[int]map[int][]*model.Highlight)
@@ -98,7 +103,7 @@ func (d *Demo) GetAll(ctx context.Context, userID int) ([]dto.Demo, error) {
 	users, err := d.user.GetByIDs(ctx, utils.SliceUnique(utils.SliceMap(statsModel, func(s *model.Stat) int { return s.UserID })))
 	if err != nil {
 		zap.S().Error(err)
-		return nil, fiber.ErrInternalServerError
+		return dto.DemoFilterResult{}, fiber.ErrInternalServerError
 	}
 
 	userMap := make(map[int]*model.User)
@@ -106,9 +111,9 @@ func (d *Demo) GetAll(ctx context.Context, userID int) ([]dto.Demo, error) {
 		userMap[u.ID] = u
 	}
 
-	demos := make([]dto.Demo, 0, len(demosModel))
-	for _, demoModel := range demosModel {
-		demo := dto.DemoDTO(demoModel)
+	demos := make([]dto.Demo, 0, len(result.Demos))
+	for _, demoModel := range result.Demos {
+		demo := dto.DemoDTO(&demoModel)
 		if stat, ok := statsDemosMap[demo.ID]; ok {
 			demo.Stats = dto.StatsDemoDTO(stat)
 		}
@@ -141,7 +146,10 @@ func (d *Demo) GetAll(ctx context.Context, userID int) ([]dto.Demo, error) {
 		demos = append(demos, demo)
 	}
 
-	return demos, nil
+	return dto.DemoFilterResult{
+		Demos: demos,
+		Total: result.Total,
+	}, nil
 }
 
 func (d *Demo) Upload(ctx context.Context, userID int, file []byte) error {

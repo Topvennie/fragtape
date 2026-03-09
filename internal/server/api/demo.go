@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/topvennie/fragtape/internal/server/dto"
 	"github.com/topvennie/fragtape/internal/server/service"
 	"go.uber.org/zap"
 )
@@ -25,17 +26,27 @@ func NewDemo(router fiber.Router, service service.Service) *Demo {
 }
 
 func (d *Demo) createRoutes() {
-	d.router.Get("/", d.getAll)
+	d.router.Get("/filtered", d.getFiltered)
 	d.router.Post("/upload", d.upload)
 }
 
-func (d *Demo) getAll(c *fiber.Ctx) error {
+func (d *Demo) getFiltered(c *fiber.Ctx) error {
 	userID, ok := c.Locals("userID").(int)
 	if !ok {
 		return fiber.ErrUnauthorized
 	}
 
-	demos, err := d.demo.GetAll(c.Context(), userID)
+	limit := c.QueryInt("limit", 10)
+	page := c.QueryInt("page", 1)
+	if limit < 1 || page < 1 {
+		return fiber.ErrBadRequest
+	}
+
+	demos, err := d.demo.GetFiltered(c.Context(), dto.DemoFilter{
+		UserID: userID,
+		Limit:  limit,
+		Offset: (page - 1) * limit,
+	})
 	if err != nil {
 		return err
 	}
