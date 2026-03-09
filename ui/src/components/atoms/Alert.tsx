@@ -28,7 +28,7 @@ export const Alert = ({ color, icon = null, title = "", border = false, children
       {icon}
       <div className="flex flex-col gap-2">
         {title && <div className="font-bold text-white">{title}</div>}
-        <div className="text-secondary">{children}</div>
+        <div className="text-secondary whitespace-pre-wrap">{children}</div>
       </div>
     </div>
   )

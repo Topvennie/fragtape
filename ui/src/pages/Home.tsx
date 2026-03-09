@@ -72,8 +72,8 @@ const NoConnections = () => {
       color="orange"
       border
     >
-      No accounts are linked to your profile. We cannot fetch your matches or generate highlights until you connect at least one account.
-      <div className="mt-2">
+      {`Your profile has no connections.\nWe cannot fetch your matches or generate highlights until you add at least one connection.`}
+      <div className="mt-4">
         <LinkButton to="/setting" rightSection={<LuArrowRight />}>
           Go to Settings
         </LinkButton>

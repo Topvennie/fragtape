@@ -1,3 +1,4 @@
+// Package steam communicates with steam with either their api or the steam typescript service
 package steam
 
 import (
@@ -77,6 +78,7 @@ func (s *steam) Fetch(ctx context.Context, user model.User) (model.Demo, bool, e
 		// First try to handle known codes
 		switch demoResp.Code {
 		case http.StatusForbidden:
+			fallthrough
 		case http.StatusPreconditionFailed:
 			// User has an invalid match token / auth token
 			user.Setting.SteamAuthenticationToken = ""
@@ -88,29 +90,25 @@ func (s *steam) Fetch(ctx context.Context, user model.User) (model.Demo, bool, e
 			return demo, false, nil
 
 		case http.StatusTooManyRequests:
+			fallthrough
 		case http.StatusServiceUnavailable:
 			// Timeout received
 			s.timeout = time.Now().Add(10 * time.Second)
 			return demo, false, nil
 
 		case http.StatusInternalServerError:
+			fallthrough
 		case http.StatusGatewayTimeout:
 			// Something went wrong on valve's side
 			return demo, false, nil
-		}
 
-		// We have no idea what went wrong
-		return demo, false, fmt.Errorf("steam service %w", demoResp.Error)
+		default:
+			return demo, false, fmt.Errorf("steam service %w", demoResp.Error)
+		}
 	}
 
 	if demoResp.DemoURL == "" || demoResp.Code == 202 {
 		// No new demo yet
-		return demo, false, nil
-	}
-
-	// Sanity check
-	if demoResp.NextCode == user.Demo.SourceID {
-		// User already has this demo
 		return demo, false, nil
 	}
 
