@@ -195,36 +195,52 @@ func (q *Queries) DemoGetByStatusUpdateAtomic(ctx context.Context, arg DemoGetBy
 	return items, nil
 }
 
-const demoGetByUser = `-- name: DemoGetByUser :many
-SELECT d.id, d.source, d.source_id, d.source_url, d.file_id, d.data_id, d.status, d.attempts, d.error, d.played_at, d.status_updated_at, d.created_at
+const demoGetByUserFiltered = `-- name: DemoGetByUserFiltered :many
+SELECT
+  d.id, d.source, d.source_id, d.source_url, d.file_id, d.data_id, d.status, d.attempts, d.error, d.played_at, d.status_updated_at, d.created_at,
+  COUNT(*) OVER()::bigint AS total_count
 FROM demos d
 LEFT JOIN stats s ON s.demo_id = d.id
-WHERE s.user_id = $1
-ORDER BY d.created_at DESC
+WHERE 
+  (s.user_id = $3)
+ORDER BY d.played_at DESC
+LIMIT $1 OFFSET $2
 `
 
-func (q *Queries) DemoGetByUser(ctx context.Context, userID int32) ([]Demo, error) {
-	rows, err := q.db.Query(ctx, demoGetByUser, userID)
+type DemoGetByUserFilteredParams struct {
+	Limit  int32
+	Offset int32
+	UserID int32
+}
+
+type DemoGetByUserFilteredRow struct {
+	Demo       Demo
+	TotalCount int64
+}
+
+func (q *Queries) DemoGetByUserFiltered(ctx context.Context, arg DemoGetByUserFilteredParams) ([]DemoGetByUserFilteredRow, error) {
+	rows, err := q.db.Query(ctx, demoGetByUserFiltered, arg.Limit, arg.Offset, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Demo
+	var items []DemoGetByUserFilteredRow
 	for rows.Next() {
-		var i Demo
+		var i DemoGetByUserFilteredRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.Source,
-			&i.SourceID,
-			&i.SourceUrl,
-			&i.FileID,
-			&i.DataID,
-			&i.Status,
-			&i.Attempts,
-			&i.Error,
-			&i.PlayedAt,
-			&i.StatusUpdatedAt,
-			&i.CreatedAt,
+			&i.Demo.ID,
+			&i.Demo.Source,
+			&i.Demo.SourceID,
+			&i.Demo.SourceUrl,
+			&i.Demo.FileID,
+			&i.Demo.DataID,
+			&i.Demo.Status,
+			&i.Demo.Attempts,
+			&i.Demo.Error,
+			&i.Demo.PlayedAt,
+			&i.Demo.StatusUpdatedAt,
+			&i.Demo.CreatedAt,
+			&i.TotalCount,
 		); err != nil {
 			return nil, err
 		}

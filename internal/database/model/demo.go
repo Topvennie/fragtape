@@ -63,3 +63,14 @@ func DemoModel(d sqlc.Demo) *Demo {
 		CreatedAt:       d.CreatedAt.Time,
 	}
 }
+
+type DemoFilterResult struct {
+	Demos []Demo
+	Total int
+}
+
+type DemoFilter struct {
+	UserID int
+	Limit  int
+	Offset int
+}

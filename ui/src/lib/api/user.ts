@@ -6,7 +6,7 @@ import { apiDelete, apiGet, apiPost } from "./query";
 const ENDPOINT_AUTH = "auth"
 const ENDPOINT_USER = "user"
 
-const PAGE_LIMIT = 5
+const PAGE_LIMIT = 20
 
 export const useUser = () => {
   return useQuery({

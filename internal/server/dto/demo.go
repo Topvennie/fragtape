@@ -38,3 +38,22 @@ type DemoPlayer struct {
 
 	Highlights []Highlight `json:"highlights,omitzero"`
 }
+
+type DemoFilterResult struct {
+	Demos []Demo `json:"demos"`
+	Total int    `json:"total"`
+}
+
+type DemoFilter struct {
+	UserID int
+	Limit  int
+	Offset int
+}
+
+func (d *DemoFilter) ToModel() *model.DemoFilter {
+	return &model.DemoFilter{
+		UserID: d.UserID,
+		Limit:  d.Limit,
+		Offset: d.Offset,
+	}
+}

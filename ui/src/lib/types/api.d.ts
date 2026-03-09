@@ -32,6 +32,11 @@ export namespace API {
     highlights?: Highlight[];
   }
 
+  export interface DemoFilterResult {
+    demos: Demo[];
+    total: number;
+  }
+
   export interface Stat {
     result: string;
     start_team: string;

@@ -13,6 +13,7 @@ import { Modal } from "../atoms/Modal"
 import { Section } from "../atoms/Page"
 import { Search } from "../molecules/Search"
 import { UserList } from "../user/UserList"
+import { Loading } from "../atoms/Loading"
 
 export const AdminTeam = () => {
   const { user } = useAuth()
@@ -116,6 +117,7 @@ const AddAdmin = () => {
         />
         <p className="text-secondary">{`${result.total} users`}</p>
       </Group>
+
       <UserList
         users={users ?? []}
         rightSection={(u) => (
@@ -125,6 +127,9 @@ const AddAdmin = () => {
         )}
         isLoading={isLoading}
       />
+
+      <Loading isFetchingNextPage={isFetchingNextPage} hasNextPage={hasNextPage} />
+
       <BottomOfPage ref={sentryRef} showLoading={isFetchingNextPage} hasNextPage={hasNextPage} />
     </Stack>
   )

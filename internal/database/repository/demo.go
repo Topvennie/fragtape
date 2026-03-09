@@ -33,16 +33,30 @@ func (d *Demo) Get(ctx context.Context, demoID int) (*model.Demo, error) {
 	return model.DemoModel(demo), nil
 }
 
-func (d *Demo) GetByUser(ctx context.Context, userID int) ([]*model.Demo, error) {
-	demos, err := d.repo.queries(ctx).DemoGetByUser(ctx, int32(userID))
+func (d *Demo) GetByUserFiltered(ctx context.Context, filter model.DemoFilter) (*model.DemoFilterResult, error) {
+	params := sqlc.DemoGetByUserFilteredParams{
+		UserID: int32(filter.UserID),
+		Limit:  int32(filter.Limit),
+		Offset: int32(filter.Offset),
+	}
+
+	demosDB, err := d.repo.queries(ctx).DemoGetByUserFiltered(ctx, params)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("get demos by user %d | %w", userID, err)
+		return nil, fmt.Errorf("get demos by user filtered %+v | %w", filter, err)
 	}
 
-	return utils.SliceMap(demos, model.DemoModel), nil
+	demos := utils.SliceMap(demosDB, func(d sqlc.DemoGetByUserFilteredRow) model.Demo { return *model.DemoModel(d.Demo) })
+	if len(demos) == 0 {
+		return nil, nil
+	}
+
+	return &model.DemoFilterResult{
+		Demos: demos,
+		Total: int(demosDB[0].TotalCount),
+	}, nil
 }
 
 func (d *Demo) GetBySourceSourceID(ctx context.Context, source model.DemoSource, sourceID string) (*model.Demo, error) {
