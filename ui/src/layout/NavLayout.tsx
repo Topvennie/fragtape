@@ -27,7 +27,7 @@ const allRoutes: Route[] = [
   },
   {
     title: "Admin",
-    link: { to: "/admin" },
+    link: { to: "/admin/setting" },
     admin: true,
   },
 ];

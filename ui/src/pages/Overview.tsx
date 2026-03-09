@@ -1,27 +1,29 @@
 import { Alert } from "@/components/atoms/Alert"
 import { LinkButton } from "@/components/atoms/LinkButton"
+import { Loading } from "@/components/atoms/Loading"
 import { Page, PageTitle, Section } from "@/components/atoms/Page"
 import { Demo, HighlightFilter } from "@/components/demo/Demo"
-import { FragtapeIcon } from "@/components/icons/FragtapeIcon"
 import { Segment } from "@/components/molecules/Segment"
 import { useDemoGetAll, useDemoUpload } from "@/lib/api/demo"
 import { useSettingGlobalGet } from "@/lib/api/setting_global"
 import { useSettingUserGet } from "@/lib/api/setting_user"
 import { Demo as DemoType } from "@/lib/types/demo"
 import { getErrorMessage } from "@/lib/utils"
-import { Button, Center, FileButton, Group, Stack } from "@mantine/core"
+import { Button, FileButton, Group, Stack } from "@mantine/core"
 import { notifications } from "@mantine/notifications"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { LuArrowRight, LuCircleCheckBig, LuClock, LuTriangleAlert } from "react-icons/lu"
 
-export const Home = () => {
-  const { data: demos, isLoading: isLoadingDemos } = useDemoGetAll()
-  const demoUpload = useDemoUpload()
+export const Overview = () => {
+  const { data: settingGlobal } = useSettingGlobalGet()
+  const { data: settingUser } = useSettingUserGet()
 
   const [uploading, setUploading] = useState(false)
 
-  const { data: settingGlobal } = useSettingGlobalGet()
-  const { data: settingUser } = useSettingUserGet()
+  const { data: demos, isLoading } = useDemoGetAll()
+  const demoUpload = useDemoUpload()
+
+  if (isLoading) return <Loading />
 
   const handleUpload = (file: File | null) => {
     if (!file) return
@@ -38,18 +40,10 @@ export const Home = () => {
     })
   }
 
-  const content = useMemo(() => {
-    if (isLoadingDemos) return (
-      <Center className="mt-48">
-        <FragtapeIcon animated className="size-36 text-(--mantine-color-primary-6)" />
-      </Center>
-    )
-    if (demos?.length === 0) return <NoDemos />
-    return <Demos demos={demos ?? []} />
-  }, [demos, isLoadingDemos])
-
   return (
     <Page>
+      {!settingUser?.connectedSteam && <NoConnections />}
+
       <PageTitle
         title="Recent Matches"
         rightSection={settingGlobal?.demoUpload && (
@@ -59,9 +53,11 @@ export const Home = () => {
         )}
       />
 
-      {!settingUser?.connectedSteam && <NoConnections />}
+      {demos?.length ?? 0 > 0
+        ? <Demos demos={demos ?? []} />
+        : <NoDemos />
+      }
 
-      {content}
     </Page>
   )
 }
@@ -86,7 +82,7 @@ const NoConnections = () => {
 
 const NoDemos = () => {
   return (
-    <Stack align="center" className="text-center">
+    <Section>
       <div className="p-4 rounded-full bg-(--mantine-color-background-8)">
         <LuClock className="text-primary size-6" />
       </div>
@@ -102,7 +98,7 @@ const NoDemos = () => {
           <p className="text-secondary">{`Play a match, we'll handle the rest automatically`}</p>
         </Group>
       </Stack>
-    </Stack>
+    </Section>
   )
 }
 

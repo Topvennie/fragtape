@@ -3,13 +3,16 @@ import { App } from "./App";
 import { Index } from "./pages/Index";
 import { Error404 } from "./pages/404";
 import { Error } from "./pages/Error";
-import { Home } from "./pages/Home";
-import { Admin } from "./pages/Admin";
-import { Setting } from "./pages/Setting";
+import { Overview } from "./pages/Overview";
+import { SettingUser } from "./pages/SettingUser";
+import { Admin } from "./pages/admin/Admin";
+import { SettingGlobal } from "./pages/admin/SettingGlobal";
 
 const root = createRootRouteWithContext()({
   component: App,
 })
+
+// Public (still behind auth)
 
 const index = createRoute({
   getParentRoute: () => root,
@@ -17,11 +20,19 @@ const index = createRoute({
   component: Index,
 })
 
-const home = createRoute({
+const overview = createRoute({
   getParentRoute: () => index,
   path: "/",
-  component: Home,
+  component: Overview,
 })
+
+const settingUser = createRoute({
+  getParentRoute: () => index,
+  path: "/setting",
+  component: SettingUser,
+})
+
+// Admin
 
 const admin = createRoute({
   getParentRoute: () => index,
@@ -29,17 +40,20 @@ const admin = createRoute({
   component: Admin,
 })
 
-const setting = createRoute({
-  getParentRoute: () => index,
+const settingGlobal = createRoute({
+  getParentRoute: () => admin,
   path: "/setting",
-  component: Setting,
+  component: SettingGlobal,
 })
+
 
 const routeTree = root.addChildren([
   index.addChildren([
-    home,
-    admin,
-    setting,
+    overview,
+    settingUser,
+    admin.addChildren([
+      settingGlobal,
+    ]),
   ]),
 ])
 
