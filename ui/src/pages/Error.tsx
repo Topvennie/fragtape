@@ -1,11 +1,11 @@
+import Smoke from "@/assets/smoke.webm";
+import { FragtapeIcon } from "@/components/icons/FragtapeIcon";
 import { isResponseNot200Error } from "@/lib/api/query";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { Button, Center, Container, Stack, Title } from "@mantine/core";
+import { Button, Center, Stack, Title } from "@mantine/core";
 import { ErrorComponentProps, useNavigate } from "@tanstack/react-router";
-import { Error404 } from "./404";
-import Smoke from "@/assets/smoke.webm"
 import { LuArrowLeft } from "react-icons/lu";
-import { FragtapeIcon } from "@/components/icons/FragtapeIcon";
+import { Error404 } from "./404";
 
 export const Error = ({ error, reset }: ErrorComponentProps) => {
   const { logout } = useAuth()
@@ -13,12 +13,7 @@ export const Error = ({ error, reset }: ErrorComponentProps) => {
 
   if (isResponseNot200Error(error)) {
     switch (error.response.status) {
-      case 404:
-        return (
-          <Container fluid className="pt-[10%]">
-            <Error404 />
-          </Container>
-        )
+      case 404: return <Error404 />
       case 401:
         logout()
         navigate({ to: "/" })
@@ -39,7 +34,7 @@ export const Error = ({ error, reset }: ErrorComponentProps) => {
         muted
         playsInline
         preload="auto"
-        className="absolute object-cover"
+        className="absolute object-cover h-full"
       >
         <source src={Smoke} type="video/webm" />
       </video>
