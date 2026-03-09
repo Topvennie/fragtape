@@ -19,5 +19,7 @@ RETURNING id;
 -- name: StatCreateNoConflict :one
 INSERT INTO stats (demo_id, user_id, result, start_team, kills, assists, deaths)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-ON CONFLICT DO NOTHING
+ON CONFLICT (demo_id, user_id)
+DO UPDATE SET
+  user_id = stats.user_id
 RETURNING id;

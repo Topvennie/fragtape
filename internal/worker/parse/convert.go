@@ -189,33 +189,45 @@ func getWeaponOnDeath(rounds []*demo.Round, roundIdx int, playerID demo.PlayerID
 		}
 		demo.Sort(events)
 
+		pickup := func(weapon demo.EquipmentType) {
+			if weaponPrimary(weapon) {
+				primary = weapon
+			}
+			if weaponSecondary(weapon) {
+				secondary = weapon
+			}
+			if weaponZeus(weapon) {
+				hasZeus = true
+			}
+		}
+
+		removal := func(weapon demo.EquipmentType, tick demo.Tick) {
+			// Only remove weapons if it happens before the player died (in that round)
+			if died && tick >= stat.Death.Tick {
+				return
+			}
+
+			if weaponPrimary(weapon) {
+				primary = 0
+			}
+			if weaponSecondary(weapon) {
+				secondary = 0
+			}
+			if weaponZeus(weapon) {
+				hasZeus = false
+			}
+		}
+
 		for _, e := range events {
 			switch v := e.(type) {
 			case *demo.ItemPurchase:
+				pickup(v.Weapon)
 			case *demo.ItemPickup:
-				if weaponPrimary(v.Weapon) {
-					primary = v.Weapon
-				}
-				if weaponSecondary(v.Weapon) {
-					secondary = v.Weapon
-				}
-				if weaponZeus(v.Weapon) {
-					hasZeus = true
-				}
+				pickup(v.Weapon)
 			case *demo.ItemRefund:
+				removal(v.Weapon, v.Tick)
 			case *demo.ItemDrop:
-				// Only remove weapons if it happens before the player died (in that round)
-				if died && stat.Death.Tick > v.Tick {
-					if weaponPrimary(v.Weapon) {
-						primary = 0
-					}
-					if weaponSecondary(v.Weapon) {
-						secondary = 0
-					}
-					if weaponZeus(v.Weapon) {
-						hasZeus = false
-					}
-				}
+				removal(v.Weapon, v.Tick)
 			}
 		}
 
