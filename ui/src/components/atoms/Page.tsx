@@ -31,9 +31,10 @@ export const PageTitle = ({ title, description, rightSection, ...props }: PageTi
 type SectionProps = {
   title?: string;
   rightSection?: ReactNode;
+  card?: boolean;
 } & StackProps
 
-export const Section = ({ title, rightSection, className, children, ...props }: SectionProps) => {
+export const Section = ({ title, rightSection, card = true, className, children, ...props }: SectionProps) => {
   return (
     <Stack className={cn("", className)} {...props}>
       <Group justify="space-between">
@@ -41,9 +42,10 @@ export const Section = ({ title, rightSection, className, children, ...props }: 
         {rightSection}
       </Group>
 
-      <Card>
-        {children}
-      </Card>
+      {card
+        ? <Card>{children}</Card>
+        : children
+      }
     </Stack>
   )
 }

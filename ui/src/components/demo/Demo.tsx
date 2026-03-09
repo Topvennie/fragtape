@@ -101,7 +101,7 @@ const Finished = ({ demo, highlightFilter = "me" }: Props) => {
           </Group>
           {mdPoint && (
             <Group justify="space-between">
-              <ClipBadge demo={demo} highlights={highlights} filtered={filteredHighlights} className="mt-auto" />
+              {highlights.length > 0 && <ClipBadge highlights={highlights} filtered={filteredHighlights} className="mt-auto" />}
               {filteredHighlights.length > 0 && (
                 <Button variant="subtle" color="muted" onClick={() => setShowClips(prev => !prev)} rightSection={<LuChevronDown className={`transform duration-300 ${showClips ? "rotate-180" : ""}`} />}>
                   {`${showClips ? "Hide" : "Show"} clips`}
@@ -160,11 +160,7 @@ const Failed = () => {
   )
 }
 
-const ClipBadge = ({ demo, highlights, filtered, className }: { demo: DemoType, highlights: Highlight[], filtered: Highlight[], className: string }) => {
-  if (demo.status === DemoStatus.Finished && highlights.length === 0) {
-    return null
-  }
-
+const ClipBadge = ({ highlights, filtered, className }: { highlights: Highlight[], filtered: Highlight[], className: string }) => {
   const rendering = filtered.some(h => !h.generated)
 
   let icon: ReactNode

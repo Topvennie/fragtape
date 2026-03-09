@@ -26,7 +26,7 @@ export const useDemoGetFiltered = (filter?: DemoFilter) => {
     staleTime: STALE_TIME.MIN_5,
     refetchInterval: (query) => {
       const data = query.state.data
-      if (data?.pages.length ?? 0 === 0) return false
+      if ((data?.pages.length ?? 0) === 0) return false
 
       const poll = data?.pages.flatMap(d => d.demos).some(d => ![DemoStatus.Finished, DemoStatus.Failed].includes(d.status))
       return poll ? STALE_TIME.SEC_5 : false

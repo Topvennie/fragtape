@@ -1,5 +1,6 @@
 import { Alert } from "@/components/atoms/Alert"
 import { BottomOfPage } from "@/components/atoms/ButtomOfPage"
+import { Card } from "@/components/atoms/Card"
 import { LinkButton } from "@/components/atoms/LinkButton"
 import { Loading } from "@/components/atoms/Loading"
 import { Page, PageTitle, Section } from "@/components/atoms/Page"
@@ -103,6 +104,7 @@ const Demos = () => {
 
   return (
     <Section
+      card={false}
       rightSection={(
         <Segment
           data={[
@@ -129,14 +131,16 @@ const Demos = () => {
 
 const NoDemosFiltered = () => {
   return (
-    <Stack align="center" className="text-center text-secondary">
-      <LuFilter className="text-primary size-6" />
-      <p className="text-primary font-bold">No demos match your current filters</p>
-      <p className="whitespace-pre-wrap text-balance max-w-xl">{`We couldn't find any matches with the filters you selected\nTry loosening your filters to include more demos`}</p>
-      <Button className="mt-2">
-        Clear Filters
-      </Button>
-    </Stack>
+    <Card>
+      <Stack align="center" className="text-center text-secondary">
+        <LuFilter className="text-primary size-6" />
+        <p className="text-primary font-bold">No demos match your current filters</p>
+        <p className="whitespace-pre-wrap text-balance max-w-xl">{`We couldn't find any matches with the filters you selected\nTry loosening your filters to include more demos`}</p>
+        <Button className="mt-2">
+          Clear Filters
+        </Button>
+      </Stack>
+    </Card>
   )
 }
 

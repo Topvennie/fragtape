@@ -40,7 +40,7 @@ worker:
       service_url: http://steam:3002
 
   downloader:
-    interval_s: 60
+    interval_s: 10
     concurrent: 4
 
   parser:
