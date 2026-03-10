@@ -2,21 +2,25 @@ package service
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/internal/server/dto"
+	"github.com/topvennie/fragtape/internal/worker/fetch/steam"
 	"go.uber.org/zap"
 )
 
 type SettingUser struct {
 	setting repository.SettingUser
+	user    repository.User
 }
 
 func (s *Service) NewSettingUser() *SettingUser {
 	return &SettingUser{
 		setting: *s.repo.NewSettingUser(),
+		user:    *s.repo.NewUser(),
 	}
 }
 
@@ -56,7 +60,13 @@ func (s *SettingUser) CreateIfNotExist(ctx context.Context, userID int) error {
 	return nil
 }
 
-func (s *SettingUser) SteamConnect(ctx context.Context, steam dto.SettingUserSteam, userID int) error {
+func (s *SettingUser) SteamConnect(ctx context.Context, settingSteam dto.SettingUserSteam, userID int) error {
+	user, err := s.user.Get(ctx, userID)
+	if err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+
 	setting, err := s.setting.GetByUser(ctx, userID)
 	if err != nil {
 		zap.S().Error(err)
@@ -65,9 +75,31 @@ func (s *SettingUser) SteamConnect(ctx context.Context, steam dto.SettingUserSte
 	if setting == nil {
 		return fiber.ErrInternalServerError
 	}
+	if setting.SteamMatchToken != "" || setting.SteamAuthenticationToken != "" {
+		return fiber.NewError(fiber.StatusBadRequest, "Steam is already configured")
+	}
 
-	setting.SteamMatchToken = steam.MatchToken
-	setting.SteamAuthenticationToken = steam.AuthenticationToken
+	setting.SteamMatchToken = settingSteam.MatchToken
+	setting.SteamAuthenticationToken = settingSteam.AuthenticationToken
+
+	user.Setting = *setting
+
+	// Verify the credentials
+
+	nextDemo, err := steam.S.NextDemo(ctx, *user)
+	if err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+
+	if nextDemo.Error != nil {
+		if nextDemo.Code == http.StatusForbidden || nextDemo.Code == http.StatusPreconditionFailed {
+			// Invalid credentials
+			return fiber.NewError(fiber.StatusBadRequest, "invalid steam credentials")
+		}
+	}
+
+	// Credentials verified
 
 	if err := s.setting.Update(ctx, *setting); err != nil {
 		zap.S().Error(err)

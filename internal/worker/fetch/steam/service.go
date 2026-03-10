@@ -44,7 +44,7 @@ type NextDemo struct {
 func (s *steam) NextDemo(ctx context.Context, user model.User) (NextDemo, error) {
 	body := nextDemoReq{
 		WebAPIKey:  s.webAPIKey,
-		SteamID:    int(int32(user.UID)), // Steam expect 32 bit version
+		SteamID:    int(int32(user.UID)), // Steam expects 32 bit version
 		AuthToken:  user.Setting.SteamAuthenticationToken,
 		MatchToken: user.Setting.SteamMatchToken,
 	}
