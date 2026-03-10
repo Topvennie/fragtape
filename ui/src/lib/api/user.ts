@@ -34,15 +34,9 @@ export const useUserFiltered = (filter?: UserFilter) => {
         limit: PAGE_LIMIT.toString(),
       })
 
-      if (filter?.name !== undefined && filter.name !== "") {
-        queryParams.append("name", filter.name)
-      }
-      if (filter?.admin !== undefined) {
-        queryParams.append("admin", String(filter.admin))
-      }
-      if (filter?.real !== undefined) {
-        queryParams.append("real", String(filter.real))
-      }
+      if (filter?.name !== undefined && filter.name !== "") queryParams.append("name", filter.name)
+      if (filter?.admin !== undefined) queryParams.append("admin", String(filter.admin))
+      if (filter?.real !== undefined) queryParams.append("real", String(filter.real))
 
       const url = `${ENDPOINT_USER}/filtered?${queryParams.toString()}`
       return (await apiGet(url, convertUserFilterResult)).data

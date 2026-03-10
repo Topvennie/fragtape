@@ -5,12 +5,11 @@ import { Result, resultString } from "@/lib/types/stat"
 import { cn, formatDate } from "@/lib/utils"
 import { Button, Collapse, Group, Stack } from "@mantine/core"
 import { useMediaQuery } from "@mantine/hooks"
-import { ReactNode, useEffect, useMemo, useState } from "react"
+import { ReactNode, useEffect, useState } from "react"
 import { LuChevronDown, LuClapperboard, LuTriangleAlert } from "react-icons/lu"
-import { Card } from "../atoms/Card"
+import { HighlightCarousel } from "../highlight/HighlightCarousel"
 import { FragtapeIcon } from "../icons/FragtapeIcon"
 import { DemoThumbnail } from "./DemoThumbnail"
-import { HighlightCarousel } from "../highlight/HighlightCarousel"
 
 type Props = {
   demo: DemoType;
@@ -26,32 +25,24 @@ const resultColor: Record<Result, string> = {
 }
 
 export const Demo = ({ demo, highlightFilter }: Props) => {
-  const content = useMemo(() => {
-    switch (demo.status) {
-      case DemoStatus.QueuedDownload:
-        return <DownloadQueued />
-      case DemoStatus.Downloading:
-        return <Download />
-      case DemoStatus.QueuedParse:
-        return <ParseQueued />
-      case DemoStatus.Parsing:
-        return <Parse />
-      case DemoStatus.QueuedRender:
-      case DemoStatus.Rendering:
-      case DemoStatus.QueuedFinalize:
-      case DemoStatus.Finalize:
-      case DemoStatus.Finished:
-        return <Finished demo={demo} highlightFilter={highlightFilter} />
-      case DemoStatus.Failed:
-        return <Failed />
-    }
-  }, [demo, highlightFilter])
-
-  return (
-    <Card>
-      {content}
-    </Card>
-  )
+  switch (demo.status) {
+    case DemoStatus.QueuedDownload:
+      return <DownloadQueued />
+    case DemoStatus.Downloading:
+      return <Download />
+    case DemoStatus.QueuedParse:
+      return <ParseQueued />
+    case DemoStatus.Parsing:
+      return <Parse />
+    case DemoStatus.QueuedRender:
+    case DemoStatus.Rendering:
+    case DemoStatus.QueuedFinalize:
+    case DemoStatus.Finalize:
+    case DemoStatus.Finished:
+      return <Finished demo={demo} highlightFilter={highlightFilter} />
+    case DemoStatus.Failed:
+      return <Failed />
+  }
 }
 
 const Finished = ({ demo, highlightFilter = "me" }: Props) => {

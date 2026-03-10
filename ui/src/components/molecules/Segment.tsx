@@ -1,18 +1,26 @@
-import { SegmentedControl, SegmentedControlProps } from "@mantine/core";
-import classes from "./segment.module.css"
+import { SegmentedControl, SegmentedControlProps, Stack } from "@mantine/core";
+import classes from "./segment.module.css";
 
-type Props = SegmentedControlProps
+type Props = {
+  label?: string;
+} & SegmentedControlProps
 
-export const Segment = (props: Props) => {
-  return <SegmentedControl
-    withItemsBorders={false}
-    color="primary.6"
-    styles={{
-      root: {
-        background: "var(--mantine-color-background-9)",
-      },
-    }}
-    classNames={classes}
-    {...props}
-  />
+export const Segment = ({ label, ...props }: Props) => {
+  return (
+    <Stack gap={2}>
+      <p className="text-white font-semibold text-sm">{label}</p>
+      <SegmentedControl
+        withItemsBorders={false}
+        color="primary.6"
+        styles={{
+          root: {
+            background: "var(--mantine-color-background-9)",
+          },
+        }}
+        classNames={classes}
+        {...props}
+      />
+
+    </Stack>
+  )
 }

@@ -34,10 +34,17 @@ func (d *Demo) Get(ctx context.Context, demoID int) (*model.Demo, error) {
 }
 
 func (d *Demo) GetByUserFiltered(ctx context.Context, filter model.DemoFilter) (*model.DemoFilterResult, error) {
+	source := model.DemoSourceSteam
+	if filter.Source != nil {
+		source = *filter.Source
+	}
+
 	params := sqlc.DemoGetByUserFilteredParams{
-		UserID: int32(filter.UserID),
-		Limit:  int32(filter.Limit),
-		Offset: int32(filter.Offset),
+		Source:       sqlc.DemoSource(source),
+		FilterSource: filter.Source != nil,
+		UserID:       int32(filter.UserID),
+		Limit:        int32(filter.Limit),
+		Offset:       int32(filter.Offset),
 	}
 
 	demosDB, err := d.repo.queries(ctx).DemoGetByUserFiltered(ctx, params)

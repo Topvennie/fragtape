@@ -10,7 +10,8 @@ SELECT
 FROM demos d
 LEFT JOIN stats s ON s.demo_id = d.id
 WHERE 
-  (s.user_id = @user_id)
+  (s.user_id = @user_id) AND
+  (d.source = @source::DEMO_SOURCE OR NOT @filter_source::bool)
 ORDER BY d.played_at DESC
 LIMIT $1 OFFSET $2;
 

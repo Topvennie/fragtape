@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/server/dto"
 	"github.com/topvennie/fragtape/internal/server/service"
 	"go.uber.org/zap"
@@ -36,6 +37,18 @@ func (d *Demo) getFiltered(c *fiber.Ctx) error {
 		return fiber.ErrUnauthorized
 	}
 
+	var source *model.DemoSource
+	if v := c.Query("source"); v != "" {
+		switch model.DemoSource(v) {
+		case model.DemoSourceManual,
+			model.DemoSourceSteam,
+			model.DemoSourceFaceit:
+
+			s := model.DemoSource(v)
+			source = &s
+		}
+	}
+
 	limit := c.QueryInt("limit", 10)
 	page := c.QueryInt("page", 1)
 	if limit < 1 || page < 1 {
@@ -44,6 +57,7 @@ func (d *Demo) getFiltered(c *fiber.Ctx) error {
 
 	demos, err := d.demo.GetFiltered(c.Context(), dto.DemoFilter{
 		UserID: userID,
+		Source: source,
 		Limit:  limit,
 		Offset: (page - 1) * limit,
 	})
