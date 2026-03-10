@@ -1,6 +1,6 @@
 import { API } from "./api";
 import { convertHighlight, Highlight } from "./highlight";
-import { convertStat, Stat } from "./stat";
+import { convertStat, Result, Stat } from "./stat";
 import { convertStatsDemo, StatsDemo } from "./stats_demo";
 import { convertUser, User } from "./user";
 
@@ -82,4 +82,8 @@ export const convertDemoFilterResult = (d: API.DemoFilterResult) => {
 
 export interface DemoFilter {
   source?: DemoSource;
+  result?: Result;
+  PlayedAtStart?: Date;
+  PlayedAtEnd?: Date;
+  HasHighlight?: boolean;
 }

@@ -39,12 +39,30 @@ func (d *Demo) GetByUserFiltered(ctx context.Context, filter model.DemoFilter) (
 		source = *filter.Source
 	}
 
+	result := model.ResultWin
+	if filter.Result != nil {
+		result = *filter.Result
+	}
+
+	hasHighlight := false
+	if filter.HasHighlight != nil {
+		hasHighlight = *filter.HasHighlight
+	}
+
 	params := sqlc.DemoGetByUserFilteredParams{
-		Source:       sqlc.DemoSource(source),
-		FilterSource: filter.Source != nil,
-		UserID:       int32(filter.UserID),
-		Limit:        int32(filter.Limit),
-		Offset:       int32(filter.Offset),
+		Source:              sqlc.DemoSource(source),
+		FilterSource:        filter.Source != nil,
+		Result:              sqlc.Result(result),
+		FilterResult:        filter.Result != nil,
+		HasHighlight:        hasHighlight,
+		PlayedAtStart:       toTime(filter.PlayedAtStart),
+		FilterPlayedAtStart: !filter.PlayedAtStart.IsZero(),
+		PlayedAtEnd:         toTime(filter.PlayedAtEnd),
+		FilterPlayedAtEnd:   !filter.PlayedAtEnd.IsZero(),
+		FilterHasHighlight:  filter.HasHighlight != nil,
+		UserID:              int32(filter.UserID),
+		Limit:               int32(filter.Limit),
+		Offset:              int32(filter.Offset),
 	}
 
 	demosDB, err := d.repo.queries(ctx).DemoGetByUserFiltered(ctx, params)

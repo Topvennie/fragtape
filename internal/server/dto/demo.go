@@ -45,17 +45,25 @@ type DemoFilterResult struct {
 }
 
 type DemoFilter struct {
-	UserID int
-	Source *model.DemoSource
-	Limit  int
-	Offset int
+	UserID        int
+	Source        *model.DemoSource
+	Result        *model.Result
+	PlayedAtStart time.Time
+	PlayedAtEnd   time.Time
+	HasHighlight  *bool
+	Limit         int
+	Offset        int
 }
 
 func (d *DemoFilter) ToModel() *model.DemoFilter {
 	return &model.DemoFilter{
-		UserID: d.UserID,
-		Source: d.Source,
-		Limit:  d.Limit,
-		Offset: d.Offset,
+		UserID:        d.UserID,
+		Source:        d.Source,
+		Result:        d.Result,
+		PlayedAtStart: d.PlayedAtStart,
+		PlayedAtEnd:   d.PlayedAtEnd,
+		HasHighlight:  d.HasHighlight,
+		Limit:         d.Limit,
+		Offset:        d.Offset,
 	}
 }

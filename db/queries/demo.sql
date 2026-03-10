@@ -11,7 +11,11 @@ FROM demos d
 LEFT JOIN stats s ON s.demo_id = d.id
 WHERE 
   (s.user_id = @user_id) AND
-  (d.source = @source::DEMO_SOURCE OR NOT @filter_source::bool)
+  (NOT @filter_source::bool OR d.source = @source::DEMO_SOURCE) AND
+  (NOT @filter_result::bool OR s.result = @result::RESULT) AND
+  (NOT @filter_played_at_start::bool OR d.played_at >= @played_at_start::timestamptz) AND
+  (NOT @filter_played_at_end::bool OR d.played_at <= @played_at_end::timestamptz) AND
+(NOT @filter_has_highlight::bool OR EXISTS (SELECT 1 FROM highlights h WHERE h.demo_id = d.id AND h.user_id = @user_id) = @has_highlight::bool)
 ORDER BY d.played_at DESC
 LIMIT $1 OFFSET $2;
 

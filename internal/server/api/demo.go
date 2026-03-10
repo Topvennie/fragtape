@@ -2,6 +2,8 @@ package api
 
 import (
 	"io"
+	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/topvennie/fragtape/internal/database/model"
@@ -49,6 +51,39 @@ func (d *Demo) getFiltered(c *fiber.Ctx) error {
 		}
 	}
 
+	var result *model.Result
+	if v := c.Query("result"); v != "" {
+		switch model.Result(v) {
+		case model.ResultWin,
+			model.ResultLoss,
+			model.ResultTie:
+
+			r := model.Result(v)
+			result = &r
+		}
+	}
+
+	var playedAtStart time.Time
+	if v := c.Query("played_at_start", ""); v != "" {
+		if t, err := time.Parse("2006-01-02T15:04:05.000Z", v); err == nil {
+			playedAtStart = t
+		}
+	}
+
+	var playedAtEnd time.Time
+	if v := c.Query("played_at_end", ""); v != "" {
+		if t, err := time.Parse("2006-01-02T15:04:05.000Z", v); err == nil {
+			playedAtEnd = t
+		}
+	}
+
+	var hasHighlight *bool
+	if v := c.Query("has_highlight"); v != "" {
+		if b, err := strconv.ParseBool(v); err == nil {
+			hasHighlight = &b
+		}
+	}
+
 	limit := c.QueryInt("limit", 10)
 	page := c.QueryInt("page", 1)
 	if limit < 1 || page < 1 {
@@ -56,10 +91,14 @@ func (d *Demo) getFiltered(c *fiber.Ctx) error {
 	}
 
 	demos, err := d.demo.GetFiltered(c.Context(), dto.DemoFilter{
-		UserID: userID,
-		Source: source,
-		Limit:  limit,
-		Offset: (page - 1) * limit,
+		UserID:        userID,
+		Source:        source,
+		Result:        result,
+		PlayedAtStart: playedAtStart,
+		PlayedAtEnd:   playedAtEnd,
+		HasHighlight:  hasHighlight,
+		Limit:         limit,
+		Offset:        (page - 1) * limit,
 	})
 	if err != nil {
 		return err
