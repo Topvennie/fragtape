@@ -93,12 +93,13 @@ const Disconnected = () => {
     }
 
     setSubmitting(true)
+    const id = notifications.show({ message: "Testing Connection...", autoClose: false, loading: true })
 
     steamConnect.mutate(form.getValues(), {
-      onSuccess: () => notifications.show({ message: "Steam connected" }),
+      onSuccess: () => notifications.update({ id, message: "Steam connected", autoClose: true, loading: false }),
       onError: async (error) => {
         const msg = await getErrorMessage(error)
-        notifications.show({ color: "red", message: msg })
+        notifications.update({ id, color: "red", message: msg, autoClose: true, loading: false })
       },
       onSettled: () => setSubmitting(false),
     })
