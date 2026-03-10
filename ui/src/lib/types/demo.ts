@@ -80,4 +80,6 @@ export const convertDemoFilterResult = (d: API.DemoFilterResult) => {
   }
 }
 
-export interface DemoFilter { } // eslint-disable-line @typescript-eslint/no-empty-object-type
+export interface DemoFilter {
+  source?: DemoSource;
+}

@@ -71,6 +71,7 @@ type DemoFilterResult struct {
 
 type DemoFilter struct {
 	UserID int
+	Source *DemoSource
 	Limit  int
 	Offset int
 }

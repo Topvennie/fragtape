@@ -1,19 +1,19 @@
-import { Alert } from "@/components/atoms/Alert"
 import { BottomOfPage } from "@/components/atoms/ButtomOfPage"
 import { Card } from "@/components/atoms/Card"
-import { LinkButton } from "@/components/atoms/LinkButton"
 import { Loading } from "@/components/atoms/Loading"
 import { Page, PageTitle, Section } from "@/components/atoms/Page"
 import { Demo, HighlightFilter } from "@/components/demo/Demo"
 import { Segment } from "@/components/molecules/Segment"
+import { SettingNoConnections } from "@/components/setting/SettingNoConnections"
 import { useDemoGetFiltered, useDemoUpload } from "@/lib/api/demo"
 import { useSettingGlobalGet } from "@/lib/api/setting_global"
 import { useSettingUserGet } from "@/lib/api/setting_user"
+import { DemoFilter, DemoSource } from "@/lib/types/demo"
 import { getErrorMessage } from "@/lib/utils"
-import { Button, Center, FileButton, Group, Stack } from "@mantine/core"
+import { Button, Center, Collapse, FileButton, Group, Stack } from "@mantine/core"
 import { notifications } from "@mantine/notifications"
-import { useState } from "react"
-import { LuArrowRight, LuCircleCheckBig, LuClock, LuFilter, LuTriangleAlert } from "react-icons/lu"
+import { Dispatch, SetStateAction, useState } from "react"
+import { LuCircleCheckBig, LuClock, LuEyeOff, LuFilter } from "react-icons/lu"
 import useInfiniteScroll from "react-infinite-scroll-hook"
 
 export const Overview = () => {
@@ -45,7 +45,7 @@ export const Overview = () => {
 
   return (
     <Page>
-      {!settingUser?.connectedSteam && <NoConnections />}
+      {!settingUser?.connectedSteam && <SettingNoConnections />}
 
       <PageTitle
         title="Recent Matches"
@@ -65,26 +65,11 @@ export const Overview = () => {
   )
 }
 
-const NoConnections = () => {
-  return (
-    <Alert
-      title="Missing Account Connections"
-      icon={<LuTriangleAlert className="size-6 text-(--mantine-color-primary-6)" />}
-      color="orange"
-      border
-    >
-      {`Your profile has no connections.\nWe cannot fetch your matches or generate highlights until you add at least one connection.`}
-      <div className="mt-4">
-        <LinkButton to="/setting" rightSection={<LuArrowRight />}>
-          Go to Settings
-        </LinkButton>
-      </div>
-    </Alert>
-  )
-}
-
 const Demos = () => {
-  const { result, isFetchingNextPage, hasNextPage, fetchNextPage } = useDemoGetFiltered()
+  const [demoFilter, setDemoFilter] = useState<DemoFilter>({})
+  const [highlightFilter, setHighlightFilter] = useState<HighlightFilter>("me")
+
+  const { result, isFetchingNextPage, hasNextPage, fetchNextPage } = useDemoGetFiltered(demoFilter)
   const demos = result.demos
 
   const [sentryRef] = useInfiniteScroll({
@@ -94,49 +79,112 @@ const Demos = () => {
     rootMargin: "0px",
   });
 
-  const [highlightFilter, setHighlightFilter] = useState<HighlightFilter>("me")
+  return (
+    <>
+      <DemosFilter highlight={highlightFilter} setHighlight={setHighlightFilter} demo={demoFilter} setDemo={setDemoFilter} />
 
-  const handleFilterChange = (value: string) => {
-    setHighlightFilter(value as HighlightFilter)
+      <Section
+        card={false}
+      >
+
+        {demos.length > 0
+          ? demos.map(d => <Card key={d.id}><Demo demo={d} highlightFilter={highlightFilter} /></Card>)
+          : <NoDemosFiltered clearFilters={() => setDemoFilter({})} />
+        }
+
+        <Loading isFetchingNextPage={isFetchingNextPage} hasNextPage={hasNextPage} />
+
+        <BottomOfPage ref={sentryRef} showLoading={isFetchingNextPage} hasNextPage={hasNextPage} />
+      </Section>
+    </>
+  )
+}
+
+type DemosFilterProps = {
+  highlight: HighlightFilter;
+  setHighlight: Dispatch<SetStateAction<HighlightFilter>>;
+  demo: DemoFilter;
+  setDemo: Dispatch<SetStateAction<DemoFilter>>;
+}
+
+type DemosFilterType = "highlight" | "demo" | "none"
+
+type DemoFilterKeys = keyof DemoFilter
+type DemoFilterValues = DemoFilter[DemoFilterKeys]
+
+const DemosFilter = ({ highlight, setHighlight, demo, setDemo }: DemosFilterProps) => {
+  const [filter, setFilter] = useState<DemosFilterType>("highlight")
+
+  const { data: settings } = useSettingGlobalGet()
+
+  const sources = [
+    { value: "all", label: "All" },
+    { value: DemoSource.Steam, label: "Steam" },
+  ]
+  if (settings?.demoUpload) sources.push({ value: DemoSource.Manual, label: "Manual" })
+
+  const handleDemoChange = (k: DemoFilterKeys, v: DemoFilterValues) => {
+    setDemo(prev => ({ ...prev, [k]: v }))
   }
-
-  if (demos.length === 0) return <NoDemos />
 
   return (
     <Section
+      title="Filters"
       card={false}
-      rightSection={(
+      rightSection={
         <Segment
           data={[
-            { value: "me", label: "My clips" },
-            { value: "group", label: "Group" },
+            { value: "highlight", label: "Clips" },
+            { value: "demo", label: "Matches" },
+            { value: "none", label: <LuEyeOff className="size-5" /> }
           ]}
-          value={highlightFilter}
-          onChange={handleFilterChange}
+          value={filter}
+          onChange={e => setFilter(e as DemosFilterType)}
           className="ml-auto"
         />
-      )}
-    >
-      {demos.length > 0
-        ? demos.map(d => <Demo key={d.id} demo={d} highlightFilter={highlightFilter} />)
-        : <NoDemosFiltered />
       }
+    >
+      <Collapse in={filter !== "none"}>
+        <Card>
+          {filter === "highlight" && (
+            <Group>
+              <Segment
+                data={[
+                  { value: "me", label: "My clips" },
+                  { value: "group", label: "Group" },
+                ]}
+                value={highlight}
+                onChange={e => setHighlight(e as HighlightFilter)}
+                label="Visible Clips"
+              />
+            </Group>
+          )}
 
-      <Loading isFetchingNextPage={isFetchingNextPage} hasNextPage={hasNextPage} />
-
-      <BottomOfPage ref={sentryRef} showLoading={isFetchingNextPage} hasNextPage={hasNextPage} />
+          {filter === "demo" && (
+            <Group>
+              <Segment
+                data={sources}
+                value={!demo.source ? "all" : demo.source}
+                onChange={e => handleDemoChange("source", e !== "all" ? e as DemoSource : undefined)}
+                label="Match Source"
+              />
+            </Group>
+          )}
+        </Card>
+      </Collapse>
     </Section>
   )
 }
 
-const NoDemosFiltered = () => {
+// The user has demos but not with the current filters
+const NoDemosFiltered = ({ clearFilters }: { clearFilters: () => void }) => {
   return (
     <Card>
       <Stack align="center" className="text-center text-secondary">
         <LuFilter className="text-primary size-6" />
         <p className="text-primary font-bold">No demos match your current filters</p>
         <p className="whitespace-pre-wrap text-balance max-w-xl">{`We couldn't find any matches with the filters you selected\nTry loosening your filters to include more demos`}</p>
-        <Button className="mt-2">
+        <Button onClick={clearFilters} className="mt-2">
           Clear Filters
         </Button>
       </Stack>
@@ -144,6 +192,7 @@ const NoDemosFiltered = () => {
   )
 }
 
+// The user doesn't have any demos yet
 const NoDemos = () => {
   return (
     <Section align="center">

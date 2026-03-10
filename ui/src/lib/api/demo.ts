@@ -16,6 +16,8 @@ export const useDemoGetFiltered = (filter?: DemoFilter) => {
         limit: PAGE_LIMIT.toString(),
       })
 
+      if (filter?.source !== undefined) queryParams.append("source", filter?.source)
+
       const url = `${ENDPOINT}/filtered?${queryParams.toString()}`
       return (await apiGet(url, convertDemoFilterResult)).data
     },

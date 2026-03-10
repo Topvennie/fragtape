@@ -202,15 +202,18 @@ SELECT
 FROM demos d
 LEFT JOIN stats s ON s.demo_id = d.id
 WHERE 
-  (s.user_id = $3)
+  (s.user_id = $3) AND
+  (d.source = $4::DEMO_SOURCE OR NOT $5::bool)
 ORDER BY d.played_at DESC
 LIMIT $1 OFFSET $2
 `
 
 type DemoGetByUserFilteredParams struct {
-	Limit  int32
-	Offset int32
-	UserID int32
+	Limit        int32
+	Offset       int32
+	UserID       int32
+	Source       DemoSource
+	FilterSource bool
 }
 
 type DemoGetByUserFilteredRow struct {
@@ -219,7 +222,13 @@ type DemoGetByUserFilteredRow struct {
 }
 
 func (q *Queries) DemoGetByUserFiltered(ctx context.Context, arg DemoGetByUserFilteredParams) ([]DemoGetByUserFilteredRow, error) {
-	rows, err := q.db.Query(ctx, demoGetByUserFiltered, arg.Limit, arg.Offset, arg.UserID)
+	rows, err := q.db.Query(ctx, demoGetByUserFiltered,
+		arg.Limit,
+		arg.Offset,
+		arg.UserID,
+		arg.Source,
+		arg.FilterSource,
+	)
 	if err != nil {
 		return nil, err
 	}
