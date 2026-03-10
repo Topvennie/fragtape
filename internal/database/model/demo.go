@@ -70,8 +70,12 @@ type DemoFilterResult struct {
 }
 
 type DemoFilter struct {
-	UserID int
-	Source *DemoSource
-	Limit  int
-	Offset int
+	UserID        int
+	Source        *DemoSource
+	Result        *Result
+	PlayedAtStart time.Time
+	PlayedAtEnd   time.Time
+	HasHighlight  *bool
+	Limit         int
+	Offset        int
 }

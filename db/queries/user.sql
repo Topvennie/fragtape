@@ -30,8 +30,8 @@ SELECT
 FROM users u
 WHERE
   (u.name ILIKE '%' || @name::text || '%' OR u.display_name ILIKE '%' || @name::text || '%') AND
-  (u.admin = @admin::bool OR NOT @filter_admin::bool) AND
-  (u.name != '' OR NOT @filter_real::bool)
+  (NOT @filter_admin::bool OR u.admin = @admin::bool) AND
+  (NOT @filter_real::bool OR u.name != '')
 ORDER BY u.name, u.display_name
 LIMIT $1 OFFSET $2;
 

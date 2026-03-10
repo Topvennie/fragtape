@@ -255,8 +255,8 @@ SELECT
 FROM users u
 WHERE
   (u.name ILIKE '%' || $3::text || '%' OR u.display_name ILIKE '%' || $3::text || '%') AND
-  (u.admin = $4::bool OR NOT $5::bool) AND
-  (u.name != '' OR NOT $6::bool)
+  (NOT $4::bool OR u.admin = $5::bool) AND
+  (NOT $6::bool OR u.name != '')
 ORDER BY u.name, u.display_name
 LIMIT $1 OFFSET $2
 `
@@ -265,8 +265,8 @@ type UserGetFilteredParams struct {
 	Limit       int32
 	Offset      int32
 	Name        string
-	Admin       bool
 	FilterAdmin bool
+	Admin       bool
 	FilterReal  bool
 }
 
@@ -280,8 +280,8 @@ func (q *Queries) UserGetFiltered(ctx context.Context, arg UserGetFilteredParams
 		arg.Limit,
 		arg.Offset,
 		arg.Name,
-		arg.Admin,
 		arg.FilterAdmin,
+		arg.Admin,
 		arg.FilterReal,
 	)
 	if err != nil {

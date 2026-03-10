@@ -203,17 +203,29 @@ FROM demos d
 LEFT JOIN stats s ON s.demo_id = d.id
 WHERE 
   (s.user_id = $3) AND
-  (d.source = $4::DEMO_SOURCE OR NOT $5::bool)
+  (NOT $4::bool OR d.source = $5::DEMO_SOURCE) AND
+  (NOT $6::bool OR s.result = $7::RESULT) AND
+  (NOT $8::bool OR d.played_at >= $9::timestamptz) AND
+  (NOT $10::bool OR d.played_at <= $11::timestamptz) AND
+(NOT $12::bool OR EXISTS (SELECT 1 FROM highlights h WHERE h.demo_id = d.id AND h.user_id = $3) = $13::bool)
 ORDER BY d.played_at DESC
 LIMIT $1 OFFSET $2
 `
 
 type DemoGetByUserFilteredParams struct {
-	Limit        int32
-	Offset       int32
-	UserID       int32
-	Source       DemoSource
-	FilterSource bool
+	Limit               int32
+	Offset              int32
+	UserID              int32
+	FilterSource        bool
+	Source              DemoSource
+	FilterResult        bool
+	Result              Result
+	FilterPlayedAtStart bool
+	PlayedAtStart       pgtype.Timestamptz
+	FilterPlayedAtEnd   bool
+	PlayedAtEnd         pgtype.Timestamptz
+	FilterHasHighlight  bool
+	HasHighlight        bool
 }
 
 type DemoGetByUserFilteredRow struct {
@@ -226,8 +238,16 @@ func (q *Queries) DemoGetByUserFiltered(ctx context.Context, arg DemoGetByUserFi
 		arg.Limit,
 		arg.Offset,
 		arg.UserID,
-		arg.Source,
 		arg.FilterSource,
+		arg.Source,
+		arg.FilterResult,
+		arg.Result,
+		arg.FilterPlayedAtStart,
+		arg.PlayedAtStart,
+		arg.FilterPlayedAtEnd,
+		arg.PlayedAtEnd,
+		arg.FilterHasHighlight,
+		arg.HasHighlight,
 	)
 	if err != nil {
 		return nil, err

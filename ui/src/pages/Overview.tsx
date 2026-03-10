@@ -1,6 +1,7 @@
 import { BottomOfPage } from "@/components/atoms/ButtomOfPage"
 import { Card } from "@/components/atoms/Card"
 import { Loading } from "@/components/atoms/Loading"
+import { LoadingOverlay } from "@/components/atoms/LoadingOverlay"
 import { Page, PageTitle, Section } from "@/components/atoms/Page"
 import { Demo, HighlightFilter } from "@/components/demo/Demo"
 import { Segment } from "@/components/molecules/Segment"
@@ -9,6 +10,7 @@ import { useDemoGetFiltered, useDemoUpload } from "@/lib/api/demo"
 import { useSettingGlobalGet } from "@/lib/api/setting_global"
 import { useSettingUserGet } from "@/lib/api/setting_user"
 import { DemoFilter, DemoSource } from "@/lib/types/demo"
+import { Result, resultString } from "@/lib/types/stat"
 import { getErrorMessage } from "@/lib/utils"
 import { Button, Center, Collapse, FileButton, Group, Stack } from "@mantine/core"
 import { notifications } from "@mantine/notifications"
@@ -23,7 +25,7 @@ export const Overview = () => {
   const [uploading, setUploading] = useState(false)
 
   // Preload first demo data
-  const { result, isLoading } = useDemoGetFiltered()
+  const { result, isLoading } = useDemoGetFiltered({})
   const demoUpload = useDemoUpload()
 
   if (isLoading) return <Loading />
@@ -69,7 +71,7 @@ const Demos = () => {
   const [demoFilter, setDemoFilter] = useState<DemoFilter>({})
   const [highlightFilter, setHighlightFilter] = useState<HighlightFilter>("me")
 
-  const { result, isFetchingNextPage, hasNextPage, fetchNextPage } = useDemoGetFiltered(demoFilter)
+  const { result, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useDemoGetFiltered(demoFilter)
   const demos = result.demos
 
   const [sentryRef] = useInfiniteScroll({
@@ -81,7 +83,7 @@ const Demos = () => {
 
   return (
     <>
-      <DemosFilter highlight={highlightFilter} setHighlight={setHighlightFilter} demo={demoFilter} setDemo={setDemoFilter} />
+      <DemosFilter highlight={highlightFilter} setHighlight={setHighlightFilter} demo={demoFilter} setDemo={setDemoFilter} loading={isLoading} total={result.total} />
 
       <Section
         card={false}
@@ -89,7 +91,7 @@ const Demos = () => {
 
         {demos.length > 0
           ? demos.map(d => <Card key={d.id}><Demo demo={d} highlightFilter={highlightFilter} /></Card>)
-          : <NoDemosFiltered clearFilters={() => setDemoFilter({})} />
+          : !isLoading && <NoDemosFiltered clearFilters={() => setDemoFilter({})} />
         }
 
         <Loading isFetchingNextPage={isFetchingNextPage} hasNextPage={hasNextPage} />
@@ -105,6 +107,8 @@ type DemosFilterProps = {
   setHighlight: Dispatch<SetStateAction<HighlightFilter>>;
   demo: DemoFilter;
   setDemo: Dispatch<SetStateAction<DemoFilter>>;
+  loading: boolean;
+  total: number;
 }
 
 type DemosFilterType = "highlight" | "demo" | "none"
@@ -112,7 +116,7 @@ type DemosFilterType = "highlight" | "demo" | "none"
 type DemoFilterKeys = keyof DemoFilter
 type DemoFilterValues = DemoFilter[DemoFilterKeys]
 
-const DemosFilter = ({ highlight, setHighlight, demo, setDemo }: DemosFilterProps) => {
+const DemosFilter = ({ highlight, setHighlight, demo, setDemo, loading, total }: DemosFilterProps) => {
   const [filter, setFilter] = useState<DemosFilterType>("highlight")
 
   const { data: settings } = useSettingGlobalGet()
@@ -129,25 +133,30 @@ const DemosFilter = ({ highlight, setHighlight, demo, setDemo }: DemosFilterProp
 
   return (
     <Section
-      title="Filters"
+      title={`Filters`}
       card={false}
-      rightSection={
-        <Segment
-          data={[
-            { value: "highlight", label: "Clips" },
-            { value: "demo", label: "Matches" },
-            { value: "none", label: <LuEyeOff className="size-5" /> }
-          ]}
-          value={filter}
-          onChange={e => setFilter(e as DemosFilterType)}
-          className="ml-auto"
-        />
-      }
+      rightSection={(
+        <Group gap={0} justify="end">
+          <Segment
+            data={[
+              { value: "highlight", label: "Clips" },
+              { value: "demo", label: "Matches" },
+              { value: "none", label: <LuEyeOff className="size-5" /> }
+            ]}
+            value={filter}
+            onChange={e => setFilter(e as DemosFilterType)}
+          />
+          <div className="text-white min-w-[11ch] text-right">
+            {!loading && <p>{`${total} Matche${total !== 1 ? 's' : ''}`}</p>}
+          </div>
+        </Group>
+      )}
     >
       <Collapse in={filter !== "none"}>
-        <Card>
+        <Card className="relative">
+          <LoadingOverlay loading={loading} />
           {filter === "highlight" && (
-            <Group>
+            <Stack align="flex-start">
               <Segment
                 data={[
                   { value: "me", label: "My clips" },
@@ -157,18 +166,27 @@ const DemosFilter = ({ highlight, setHighlight, demo, setDemo }: DemosFilterProp
                 onChange={e => setHighlight(e as HighlightFilter)}
                 label="Visible Clips"
               />
-            </Group>
+            </Stack>
           )}
 
           {filter === "demo" && (
-            <Group>
+            <Stack align="flex-start">
               <Segment
                 data={sources}
                 value={!demo.source ? "all" : demo.source}
                 onChange={e => handleDemoChange("source", e !== "all" ? e as DemoSource : undefined)}
-                label="Match Source"
+                label="Source"
               />
-            </Group>
+              <Segment
+                data={[
+                  { value: "all", label: "All" },
+                  ...Object.values(Result).map(r => ({ value: r, label: resultString[r] })),
+                ]}
+                value={!demo.result ? "all" : demo.result}
+                onChange={e => handleDemoChange("result", e !== "all" ? e as Result : undefined)}
+                label="Result"
+              />
+            </Stack>
           )}
         </Card>
       </Collapse>
