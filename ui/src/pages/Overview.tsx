@@ -1,22 +1,20 @@
-import { BottomOfPage } from "@/components/atoms/ButtomOfPage"
-import { Card } from "@/components/atoms/Card"
-import { Loading } from "@/components/atoms/Loading"
-import { LoadingOverlay } from "@/components/atoms/LoadingOverlay"
-import { Page, PageTitle, Section } from "@/components/atoms/Page"
-import { Demo, HighlightFilter } from "@/components/demo/Demo"
-import { Segment } from "@/components/molecules/Segment"
-import { SettingNoConnections } from "@/components/setting/SettingNoConnections"
-import { useDemoGetFiltered, useDemoUpload } from "@/lib/api/demo"
-import { useSettingGlobalGet } from "@/lib/api/setting_global"
-import { useSettingUserGet } from "@/lib/api/setting_user"
-import { DemoFilter, DemoSource } from "@/lib/types/demo"
-import { Result, resultString } from "@/lib/types/stat"
-import { getErrorMessage } from "@/lib/utils"
-import { Button, Center, Collapse, FileButton, Group, Stack } from "@mantine/core"
-import { notifications } from "@mantine/notifications"
-import { Dispatch, SetStateAction, useState } from "react"
-import { LuCircleCheckBig, LuClock, LuEyeOff, LuFilter } from "react-icons/lu"
-import useInfiniteScroll from "react-infinite-scroll-hook"
+import { BottomOfPage } from "@/components/atoms/ButtomOfPage";
+import { Card } from "@/components/atoms/Card";
+import { Loading } from "@/components/atoms/Loading";
+import { Page, PageTitle, Section } from "@/components/atoms/Page";
+import { Demo, HighlightFilter } from "@/components/demo/Demo";
+import { DemoFilter } from "@/components/demo/DemoFilter";
+import { SettingNoConnections } from "@/components/setting/SettingNoConnections";
+import { useDemoGetFiltered, useDemoUpload } from "@/lib/api/demo";
+import { DemoFilter as DemoFilterType } from "@/lib/types/demo";
+import { useSettingGlobalGet } from "@/lib/api/setting_global";
+import { useSettingUserGet } from "@/lib/api/setting_user";
+import { getErrorMessage } from "@/lib/utils";
+import { Button, Center, FileButton, Group, Stack } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
+import { useState } from "react";
+import { LuCircleCheckBig, LuClock, LuFilter } from "react-icons/lu";
+import useInfiniteScroll from "react-infinite-scroll-hook";
 
 export const Overview = () => {
   const { data: settingGlobal } = useSettingGlobalGet()
@@ -68,7 +66,7 @@ export const Overview = () => {
 }
 
 const Demos = () => {
-  const [demoFilter, setDemoFilter] = useState<DemoFilter>({})
+  const [demoFilter, setDemoFilter] = useState<DemoFilterType>({})
   const [highlightFilter, setHighlightFilter] = useState<HighlightFilter>("me")
 
   const { result, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useDemoGetFiltered(demoFilter)
@@ -83,7 +81,7 @@ const Demos = () => {
 
   return (
     <>
-      <DemosFilter highlight={highlightFilter} setHighlight={setHighlightFilter} demo={demoFilter} setDemo={setDemoFilter} loading={isLoading} total={result.total} />
+      <DemoFilter highlight={highlightFilter} setHighlight={setHighlightFilter} demo={demoFilter} setDemo={setDemoFilter} loading={isLoading} total={result.total} />
 
       <Section
         card={false}
@@ -99,98 +97,6 @@ const Demos = () => {
         <BottomOfPage ref={sentryRef} showLoading={isFetchingNextPage} hasNextPage={hasNextPage} />
       </Section>
     </>
-  )
-}
-
-type DemosFilterProps = {
-  highlight: HighlightFilter;
-  setHighlight: Dispatch<SetStateAction<HighlightFilter>>;
-  demo: DemoFilter;
-  setDemo: Dispatch<SetStateAction<DemoFilter>>;
-  loading: boolean;
-  total: number;
-}
-
-type DemosFilterType = "highlight" | "demo" | "none"
-
-type DemoFilterKeys = keyof DemoFilter
-type DemoFilterValues = DemoFilter[DemoFilterKeys]
-
-const DemosFilter = ({ highlight, setHighlight, demo, setDemo, loading, total }: DemosFilterProps) => {
-  const [filter, setFilter] = useState<DemosFilterType>("highlight")
-
-  const { data: settings } = useSettingGlobalGet()
-
-  const sources = [
-    { value: "all", label: "All" },
-    { value: DemoSource.Steam, label: "Steam" },
-  ]
-  if (settings?.demoUpload) sources.push({ value: DemoSource.Manual, label: "Manual" })
-
-  const handleDemoChange = (k: DemoFilterKeys, v: DemoFilterValues) => {
-    setDemo(prev => ({ ...prev, [k]: v }))
-  }
-
-  return (
-    <Section
-      title={`Filters`}
-      card={false}
-      rightSection={(
-        <Group gap={0} justify="end">
-          <Segment
-            data={[
-              { value: "highlight", label: "Clips" },
-              { value: "demo", label: "Matches" },
-              { value: "none", label: <LuEyeOff className="size-5" /> }
-            ]}
-            value={filter}
-            onChange={e => setFilter(e as DemosFilterType)}
-          />
-          <div className="text-white min-w-[11ch] text-right">
-            {!loading && <p>{`${total} Matche${total !== 1 ? 's' : ''}`}</p>}
-          </div>
-        </Group>
-      )}
-    >
-      <Collapse in={filter !== "none"}>
-        <Card className="relative">
-          <LoadingOverlay loading={loading} />
-          {filter === "highlight" && (
-            <Stack align="flex-start">
-              <Segment
-                data={[
-                  { value: "me", label: "My clips" },
-                  { value: "group", label: "Group" },
-                ]}
-                value={highlight}
-                onChange={e => setHighlight(e as HighlightFilter)}
-                label="Visible Clips"
-              />
-            </Stack>
-          )}
-
-          {filter === "demo" && (
-            <Stack align="flex-start">
-              <Segment
-                data={sources}
-                value={!demo.source ? "all" : demo.source}
-                onChange={e => handleDemoChange("source", e !== "all" ? e as DemoSource : undefined)}
-                label="Source"
-              />
-              <Segment
-                data={[
-                  { value: "all", label: "All" },
-                  ...Object.values(Result).map(r => ({ value: r, label: resultString[r] })),
-                ]}
-                value={!demo.result ? "all" : demo.result}
-                onChange={e => handleDemoChange("result", e !== "all" ? e as Result : undefined)}
-                label="Result"
-              />
-            </Stack>
-          )}
-        </Card>
-      </Collapse>
-    </Section>
   )
 }
 
