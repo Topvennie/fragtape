@@ -18,9 +18,9 @@ export const useDemoGetFiltered = (filter?: DemoFilter) => {
 
       if (filter?.source !== undefined) queryParams.append("source", filter?.source)
       if (filter?.result !== undefined) queryParams.append("result", filter?.result)
-      if (filter?.PlayedAtStart !== undefined) queryParams.append("played_at_start", filter.PlayedAtStart.toISOString())
-      if (filter?.PlayedAtEnd !== undefined) queryParams.append("played_at_end", filter.PlayedAtEnd.toISOString())
-      if (filter?.HasHighlight !== undefined) queryParams.append("has_highlight", filter.HasHighlight.toString())
+      if (filter?.playedAtStart !== undefined) queryParams.append("played_at_start", filter.playedAtStart.toISOString())
+      if (filter?.playedAtEnd !== undefined) queryParams.append("played_at_end", filter.playedAtEnd.toISOString())
+      if (filter?.hasHighlight !== undefined) queryParams.append("has_highlight", filter.hasHighlight.toString())
 
       const url = `${ENDPOINT}/filtered?${queryParams.toString()}`
       return (await apiGet(url, convertDemoFilterResult)).data

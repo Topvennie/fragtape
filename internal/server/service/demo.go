@@ -20,6 +20,7 @@ type Demo struct {
 
 	demo      repository.Demo
 	highlight repository.Highlight
+	setting   repository.SettingGlobal
 	stat      repository.Stat
 	statsDemo repository.StatsDemo
 	user      repository.User
@@ -30,6 +31,7 @@ func (s *Service) NewDemo() *Demo {
 		service:   *s,
 		demo:      *s.repo.NewDemo(),
 		highlight: *s.repo.NewHighlight(),
+		setting:   *s.repo.NewSettingGlobal(),
 		stat:      *s.repo.NewStat(),
 		statsDemo: *s.repo.NewStatsDemo(),
 		user:      *s.repo.NewUser(),
@@ -153,9 +155,18 @@ func (d *Demo) GetFiltered(ctx context.Context, filter dto.DemoFilter) (dto.Demo
 }
 
 func (d *Demo) Upload(ctx context.Context, userID int, file []byte) error {
+	setting, err := d.setting.Get(ctx)
+	if err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+	if !setting.DemoUpload {
+		return fiber.NewError(fiber.StatusForbidden, "uploads are disabled")
+	}
+
 	demo := &model.Demo{
 		Source:   model.DemoSourceManual,
-		SourceID: time.Now().Format("%Y-%m-%d_%H-%M-%S") + strconv.Itoa(userID),
+		SourceID: time.Now().Format("2006-01-02_15-04-05") + strconv.Itoa(userID),
 		Status:   model.DemoStatusQueuedParse,
 		FileID:   uuid.NewString(),
 	}

@@ -83,7 +83,7 @@ export const convertDemoFilterResult = (d: API.DemoFilterResult) => {
 export interface DemoFilter {
   source?: DemoSource;
   result?: Result;
-  PlayedAtStart?: Date;
-  PlayedAtEnd?: Date;
-  HasHighlight?: boolean;
+  playedAtStart?: Date;
+  playedAtEnd?: Date;
+  hasHighlight?: boolean;
 }
