@@ -207,7 +207,7 @@ WHERE
   (NOT $6::bool OR s.result = $7::RESULT) AND
   (NOT $8::bool OR d.played_at >= $9::timestamptz) AND
   (NOT $10::bool OR d.played_at <= $11::timestamptz) AND
-(NOT $12::bool OR EXISTS (SELECT 1 FROM highlights h WHERE h.demo_id = d.id AND h.user_id = $3) = $13::bool)
+  (NOT $12::bool OR EXISTS (SELECT 1 FROM highlights h WHERE h.demo_id = d.id AND h.user_id = $3) = $13::bool)
 ORDER BY d.played_at DESC
 LIMIT $1 OFFSET $2
 `
