@@ -8,18 +8,20 @@ type Props = {
   color: Color;
 } & ComponentProps<"div">
 
-type Color = "orange" | "blue" | "green"
+type Color = "orange" | "blue" | "green" | "red"
 
 const backgroundColor: Record<Color, string> = {
   "orange": "bg-orange-400/10",
   "blue": "bg-blue-400/10",
   "green": "bg-green-400/10",
+  "red": "bg-red-400/10",
 }
 
 const borderColor: Record<Color, string> = {
   "orange": "border-orange-400/40",
   "blue": "border-blue-400/40",
   "green": "border-green-400/40",
+  "red": "bg-border-400/40",
 }
 
 export const Alert = ({ color, icon = null, title = "", border = false, children, className, ...props }: Props) => {

@@ -38,6 +38,8 @@ worker:
       password:
       shared_secret:
       service_url: http://steam:3002
+    faceit:
+      api_key:
 
   downloader:
     interval_s: 10

@@ -12,8 +12,8 @@ import (
 )
 
 const settingUserCreate = `-- name: SettingUserCreate :one
-INSERT INTO setting_user (user_id, steam_match_token, steam_authentication_token)
-VALUES ($1, $2, $3)
+INSERT INTO setting_user (user_id, steam_match_token, steam_authentication_token, faceit_id)
+VALUES ($1, $2, $3, $4)
 RETURNING id
 `
 
@@ -21,17 +21,23 @@ type SettingUserCreateParams struct {
 	UserID                   int32
 	SteamMatchToken          pgtype.Text
 	SteamAuthenticationToken pgtype.Text
+	FaceitID                 pgtype.Text
 }
 
 func (q *Queries) SettingUserCreate(ctx context.Context, arg SettingUserCreateParams) (int32, error) {
-	row := q.db.QueryRow(ctx, settingUserCreate, arg.UserID, arg.SteamMatchToken, arg.SteamAuthenticationToken)
+	row := q.db.QueryRow(ctx, settingUserCreate,
+		arg.UserID,
+		arg.SteamMatchToken,
+		arg.SteamAuthenticationToken,
+		arg.FaceitID,
+	)
 	var id int32
 	err := row.Scan(&id)
 	return id, err
 }
 
 const settingUserGetByUser = `-- name: SettingUserGetByUser :one
-SELECT id, user_id, steam_match_token, steam_authentication_token
+SELECT id, user_id, steam_match_token, steam_authentication_token, faceit_id
 FROM setting_user
 WHERE user_id = $1
 `
@@ -44,6 +50,7 @@ func (q *Queries) SettingUserGetByUser(ctx context.Context, userID int32) (Setti
 		&i.UserID,
 		&i.SteamMatchToken,
 		&i.SteamAuthenticationToken,
+		&i.FaceitID,
 	)
 	return i, err
 }
@@ -52,7 +59,8 @@ const settingUserUpdate = `-- name: SettingUserUpdate :exec
 UPDATE setting_user
 SET
   steam_match_token = $2,
-  steam_authentication_token = $3
+  steam_authentication_token = $3,
+  faceit_id = $4
 WHERE id = $1
 `
 
@@ -60,9 +68,15 @@ type SettingUserUpdateParams struct {
 	ID                       int32
 	SteamMatchToken          pgtype.Text
 	SteamAuthenticationToken pgtype.Text
+	FaceitID                 pgtype.Text
 }
 
 func (q *Queries) SettingUserUpdate(ctx context.Context, arg SettingUserUpdateParams) error {
-	_, err := q.db.Exec(ctx, settingUserUpdate, arg.ID, arg.SteamMatchToken, arg.SteamAuthenticationToken)
+	_, err := q.db.Exec(ctx, settingUserUpdate,
+		arg.ID,
+		arg.SteamMatchToken,
+		arg.SteamAuthenticationToken,
+		arg.FaceitID,
+	)
 	return err
 }

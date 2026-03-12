@@ -23,8 +23,7 @@ RETURNING id;
 UPDATE highlights
 SET 
   demo_id = coalesce(sqlc.narg('demo_id'), demo_id),
-  file_id = coalesce(sqlc.narg('file_id'), file_id),
-  title = coalesce(sqlc.narg('title'), title)
+  file_id = coalesce(sqlc.narg('file_id'), file_id)
 WHERE id = $1;
 
 -- name: HighlightDeleteByDemo :exec

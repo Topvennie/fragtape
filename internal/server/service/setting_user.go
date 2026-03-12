@@ -8,6 +8,7 @@ import (
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/internal/server/dto"
+	"github.com/topvennie/fragtape/internal/worker/fetch/faceit"
 	"github.com/topvennie/fragtape/internal/worker/fetch/steam"
 	"go.uber.org/zap"
 )
@@ -121,6 +122,65 @@ func (s *SettingUser) SteamDisconnect(ctx context.Context, userID int) error {
 
 	setting.SteamMatchToken = ""
 	setting.SteamAuthenticationToken = ""
+
+	if err := s.setting.Update(ctx, *setting); err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+
+	return nil
+}
+
+func (s *SettingUser) FaceitConnect(ctx context.Context, userID int) error {
+	user, err := s.user.Get(ctx, userID)
+	if err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+
+	setting, err := s.setting.GetByUser(ctx, userID)
+	if err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+	if setting == nil {
+		return fiber.ErrInternalServerError
+	}
+	if setting.FaceitID != "" {
+		return fiber.NewError(fiber.StatusBadRequest, "Faceit is already configured")
+	}
+
+	// Get faceit id
+	faceitID, err := faceit.F.GetUserID(ctx, *user)
+	if err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+
+	if faceitID == "" {
+		return fiber.ErrNotFound
+	}
+
+	setting.FaceitID = faceitID
+	if err := s.setting.Update(ctx, *setting); err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+
+	return nil
+}
+
+func (s *SettingUser) FaceitDisconnect(ctx context.Context, userID int) error {
+	setting, err := s.setting.GetByUser(ctx, userID)
+	if err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+	if setting == nil {
+		return fiber.ErrInternalServerError
+	}
+
+	setting.FaceitID = ""
 
 	if err := s.setting.Update(ctx, *setting); err != nil {
 		zap.S().Error(err)

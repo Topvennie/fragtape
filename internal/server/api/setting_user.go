@@ -27,6 +27,8 @@ func (s *SettingUser) createRoutes() {
 	s.router.Get("/", s.get)
 	s.router.Post("/steam", s.steamConnect)
 	s.router.Delete("/steam", s.steamDisconnect)
+	s.router.Post("/faceit", s.faceitConnect)
+	s.router.Delete("/faceit", s.faceitDisconnect)
 }
 
 func (s *SettingUser) get(c *fiber.Ctx) error {
@@ -61,7 +63,7 @@ func (s *SettingUser) steamConnect(c *fiber.Ctx) error {
 		return err
 	}
 
-	return nil
+	return c.SendStatus(fiber.StatusOK)
 }
 
 func (s *SettingUser) steamDisconnect(c *fiber.Ctx) error {
@@ -74,5 +76,31 @@ func (s *SettingUser) steamDisconnect(c *fiber.Ctx) error {
 		return err
 	}
 
-	return nil
+	return c.SendStatus(fiber.StatusOK)
+}
+
+func (s *SettingUser) faceitConnect(c *fiber.Ctx) error {
+	userID, ok := c.Locals("userID").(int)
+	if !ok {
+		return fiber.ErrUnauthorized
+	}
+
+	if err := s.setting.FaceitConnect(c.Context(), userID); err != nil {
+		return err
+	}
+
+	return c.SendStatus(fiber.StatusOK)
+}
+
+func (s *SettingUser) faceitDisconnect(c *fiber.Ctx) error {
+	userID, ok := c.Locals("userID").(int)
+	if !ok {
+		return fiber.ErrUnauthorized
+	}
+
+	if err := s.setting.FaceitDisconnect(c.Context(), userID); err != nil {
+		return err
+	}
+
+	return c.SendStatus(fiber.StatusOK)
 }

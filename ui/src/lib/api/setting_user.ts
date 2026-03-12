@@ -30,3 +30,21 @@ export const useSettingUserSteamDisconnect = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["setting", "user"] }),
   })
 }
+
+export const useSettingUserFaceitConnect = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: () => apiPost(`${ENDPOINT}/faceit`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["setting", "user"] }),
+  })
+}
+
+export const useSettingUserFaceitDisconnect = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: () => apiDelete(`${ENDPOINT}/faceit`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["setting", "user"] }),
+  })
+}
