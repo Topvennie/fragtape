@@ -1,11 +1,11 @@
 import { useAuth } from "@/lib/hooks/useAuth"
-import { DemoStatus, Demo as DemoType } from "@/lib/types/demo"
+import { DemoHighlightFilter, DemoStatus, Demo as DemoType } from "@/lib/types/demo"
 import { Highlight } from "@/lib/types/highlight"
 import { Result, resultString } from "@/lib/types/stat"
 import { cn, formatDate } from "@/lib/utils"
 import { Button, Collapse, Group, Stack } from "@mantine/core"
 import { useMediaQuery } from "@mantine/hooks"
-import { ReactNode, useEffect, useState } from "react"
+import { ReactNode, useEffect, useMemo, useState } from "react"
 import { LuChevronDown, LuClapperboard, LuTriangleAlert } from "react-icons/lu"
 import { HighlightCarousel } from "../highlight/HighlightCarousel"
 import { FragtapeIcon } from "../icons/FragtapeIcon"
@@ -13,10 +13,8 @@ import { DemoThumbnail } from "./DemoThumbnail"
 
 type Props = {
   demo: DemoType;
-  highlightFilter?: HighlightFilter;
+  highlightFilter?: DemoHighlightFilter;
 }
-
-export type HighlightFilter = "me" | "group"
 
 const resultColor: Record<Result, string> = {
   [Result.Win]: "text-green-400",
@@ -45,7 +43,7 @@ export const Demo = ({ demo, highlightFilter }: Props) => {
   }
 }
 
-const Finished = ({ demo, highlightFilter = "me" }: Props) => {
+const Finished = ({ demo, highlightFilter = { player: "me" } }: Props) => {
   const { user } = useAuth()
   const [showClips, setShowClips] = useState(false)
 
@@ -57,7 +55,16 @@ const Finished = ({ demo, highlightFilter = "me" }: Props) => {
   if (!player) return null // Shouldn't really be possible
 
   const highlights = demo.players.flatMap(p => p.highlights)
-  const filteredHighlights = highlightFilter === "me" ? player?.highlights ?? [] : highlights
+  const filteredHighlights = useMemo(() => {
+    const all = highlightFilter.player === "me" ? player?.highlights ?? [] : highlights
+    return all.filter(h => {
+      if (highlightFilter.minKillCount !== undefined) {
+        if (h.kills < highlightFilter.minKillCount) return false
+      }
+
+      return true
+    })
+  }, [highlights, highlightFilter])
 
   const score = () => {
     const winnerRounds = Math.max(demo.stats.roundsCt, demo.stats.roundsT)

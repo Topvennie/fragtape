@@ -52,6 +52,7 @@ const Connected = () => {
     <Stack>
       <Alert
         color="green"
+        border={false}
         icon={<LuCircleCheckBig className="size-4 text-green-500" />}
         className="text-xs whitespace-pre-wrap"
       >

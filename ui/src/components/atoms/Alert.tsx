@@ -24,7 +24,7 @@ const borderColor: Record<Color, string> = {
 
 export const Alert = ({ color, icon = null, title = "", border = false, children, className, ...props }: Props) => {
   return (
-    <div className={cn(`flex items-start gap-4 p-4 rounded-md border ${backgroundColor[color]} ${border ? borderColor[color] : ""}`, className)} {...props}>
+    <div className={cn(`flex items-start gap-4 p-4 rounded-md ${backgroundColor[color]} ${border ? "border " + borderColor[color] : ""}`, className)} {...props}>
       {icon}
       <div className="flex flex-col gap-2">
         {title && <div className="font-bold text-white">{title}</div>}

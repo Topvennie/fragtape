@@ -15,8 +15,8 @@ FROM highlights
 WHERE demo_id = ANY($1::int[]);
 
 -- name: HighlightCreate :one
-INSERT INTO highlights (user_id, demo_id, title, round, duration_s)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO highlights (user_id, demo_id, title, round, kills, duration_s)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING id;
 
 -- name: HighlightUpdate :exec

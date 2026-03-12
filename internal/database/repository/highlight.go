@@ -64,6 +64,7 @@ func (h *Highlight) Create(ctx context.Context, highlight *model.Highlight) erro
 		DemoID:    int32(highlight.DemoID),
 		Title:     highlight.Title,
 		Round:     int32(highlight.Round),
+		Kills:     int32(highlight.Kills),
 		DurationS: int32(highlight.Duration / time.Second),
 	})
 	if err != nil {
