@@ -22,6 +22,8 @@ jobs:
             file: docker/worker.Dockerfile
           - service: recorder
             file: docker/recorder.Dockerfile
+          - service: steam
+            file: docker/steam.Dockerfile
 
     steps:
       - name: Checkout code

@@ -30,6 +30,8 @@ services:
   server:
     image: ghcr.io/topvennie/fragtape/server:latest
     env_file: .env
+    volumes:
+      - production.yml:/app/production.yml
     ports:
       - 8000:8000
     depends_on:
@@ -41,6 +43,8 @@ services:
   worker:
     image: ghcr.io/topvennie/fragtape/worker:latest
     env_file: .env
+    volumes:
+      - production.yml:/app/production.yml
     depends_on:
       db:
         condition: service_healthy
@@ -68,11 +72,18 @@ services:
       - 3389:3389/udp
     volumes:
       - recorder_data:/storage
+      - production.yml:/app/production.yml
     depends_on:
       db:
         condition: service_healthy
       minio:
         condition: service_healthy
+
+  steam:
+    image: ghcr.io/topvennie/fragtape/steam:latest
+    env_file: .env
+    volumes:
+      - production.yml:/app/production.yml
 
 volumes:
   db_data:
