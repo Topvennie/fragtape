@@ -52,7 +52,6 @@ const Finished = ({ demo, highlightFilter = { player: "me" } }: Props) => {
   const mdPoint = useMediaQuery('(width >= 48em)')
 
   const player = demo.players.find(p => p.user.id === user?.id)
-  if (!player) return null // Shouldn't really be possible
 
   const highlights = demo.players.flatMap(p => p.highlights)
   const filteredHighlights = useMemo(() => {
@@ -64,7 +63,9 @@ const Finished = ({ demo, highlightFilter = { player: "me" } }: Props) => {
 
       return true
     })
-  }, [highlights, highlightFilter])
+  }, [highlights, highlightFilter, player])
+
+  if (!player) return null // Shouldn't really be possible
 
   const score = () => {
     const winnerRounds = Math.max(demo.stats.roundsCt, demo.stats.roundsT)
