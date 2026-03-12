@@ -89,3 +89,7 @@ recorder:
     secure: false
     username: minio
     password: miniominio
+
+service:
+  steam:
+    port: 3002
