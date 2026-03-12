@@ -87,3 +87,8 @@ export interface DemoFilter {
   playedAtEnd?: Date;
   hasHighlight?: boolean;
 }
+
+export interface DemoHighlightFilter {
+  player: "me" | "group";
+  minKillCount?: number;
+}

@@ -1,6 +1,5 @@
-import { DemoFilter as DemoFilterType, DemoSource } from "@/lib/types/demo";
+import { DemoFilter as DemoFilterType, DemoHighlightFilter, DemoSource } from "@/lib/types/demo";
 import { Dispatch, SetStateAction, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { HighlightFilter } from "./Demo";
 import { useSettingGlobalGet } from "@/lib/api/setting_global";
 import { Result, resultString } from "@/lib/types/stat";
 import { Group, Stack } from "@mantine/core";
@@ -12,21 +11,18 @@ import { Card } from "../atoms/Card";
 import { LoadingOverlay } from "../atoms/LoadingOverlay";
 import { DatePickerInput } from "../molecules/DatePickerInput";
 import { DatesRangeValue } from "@mantine/dates";
+import NumberFlow from '@number-flow/react'
 
 type Props = {
-  highlight: HighlightFilter;
-  setHighlight: Dispatch<SetStateAction<HighlightFilter>>;
+  highlight: DemoHighlightFilter;
+  setHighlight: Dispatch<SetStateAction<DemoHighlightFilter>>;
   demo: DemoFilterType;
   setDemo: Dispatch<SetStateAction<DemoFilterType>>;
   loading: boolean;
   total: number;
 }
 
-
 type DemosFilterType = "highlight" | "demo" | "none"
-
-type Keys = keyof DemoFilterType
-type Values = DemoFilterType[Keys]
 
 export const DemoFilter = ({ highlight, setHighlight, demo, setDemo, loading, total }: Props) => {
   const [filter, setFilter] = useLocalStorage({ key: "fragtape-ui-demo-filter", defaultValue: "none" })
@@ -73,8 +69,8 @@ export const DemoFilter = ({ highlight, setHighlight, demo, setDemo, loading, to
               onChange: (e) => setFilter(e as DemosFilterType),
             }}
           />
-          <div className="min-w-[11ch] text-right text-white">
-            {!loading && <p>{`${total} Match${total !== 1 ? "es" : ""}`}</p>}
+          <div className={`min-w-[11ch] text-right text-white ${loading ? "invsible" : "block"}`}>
+            <NumberFlow value={total} suffix={` Match${total !== 1 ? "es" : ""}`} />
           </div>
         </Group>
       }
@@ -95,7 +91,14 @@ export const DemoFilter = ({ highlight, setHighlight, demo, setDemo, loading, to
   );
 }
 
+type HighlightKeys = keyof DemoHighlightFilter
+type HighlightValues = DemoHighlightFilter[HighlightKeys]
+
 const Highlight = ({ highlight, setHighlight }: Pick<Props, "highlight" | "setHighlight">) => {
+  const handleHighlightChange = (k: HighlightKeys, v: HighlightValues) => {
+    setHighlight(prev => ({ ...prev, [k]: v }))
+  }
+
   return (
     <Stack align="flex-start">
       <Segment
@@ -104,14 +107,28 @@ const Highlight = ({ highlight, setHighlight }: Pick<Props, "highlight" | "setHi
             { value: "me", label: "My clips" },
             { value: "group", label: "Group" },
           ],
-          value: highlight,
-          onChange: (e) => setHighlight(e as HighlightFilter),
+          value: highlight.player,
+          onChange: (e) => handleHighlightChange("player", e as "me" | "group"),
         }}
         label="Visible Clips"
+      />
+      <Segment
+        segmentProps={{
+          data: [
+            { value: "all", label: "Any" },
+            ...Array.from({ length: 3 }).map((_, idx) => ({ value: (idx + 3).toString(), label: (idx + 3).toString() }))
+          ],
+          value: highlight.minKillCount ? highlight.minKillCount.toString() : "all",
+          onChange: (e) => handleHighlightChange("minKillCount", e !== "all" ? Number(e) : undefined),
+        }}
+        label="Minimum kill count"
       />
     </Stack>
   )
 }
+
+type DemoKeys = keyof DemoFilterType
+type DemoValues = DemoFilterType[DemoKeys]
 
 const Demo = ({ demo, setDemo }: Pick<Props, "demo" | "setDemo">) => {
   const { data: settings } = useSettingGlobalGet()
@@ -121,12 +138,20 @@ const Demo = ({ demo, setDemo }: Pick<Props, "demo" | "setDemo">) => {
   ]
   if (settings?.demoUpload) sources.push({ value: DemoSource.Manual, label: "Manual" })
 
-  const handleDemoChange = (k: Keys, v: Values) => {
+  const handleDemoChange = (k: DemoKeys, v: DemoValues) => {
     setDemo(prev => ({ ...prev, [k]: v }))
   }
 
   const handleDateChange = (r: DatesRangeValue) => {
     if (r[0] && r[1] || (!r[0] && !r[1])) {
+      r[0]?.setHours(0)
+      r[0]?.setMinutes(0)
+      r[0]?.setSeconds(0)
+
+      r[1]?.setHours(23)
+      r[1]?.setMinutes(59)
+      r[1]?.setSeconds(59)
+
       handleDemoChange("playedAtStart", r[0] ?? undefined)
       handleDemoChange("playedAtEnd", r[1] ?? undefined)
     }

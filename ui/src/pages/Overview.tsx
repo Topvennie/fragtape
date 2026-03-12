@@ -2,11 +2,11 @@ import { BottomOfPage } from "@/components/atoms/ButtomOfPage";
 import { Card } from "@/components/atoms/Card";
 import { Loading } from "@/components/atoms/Loading";
 import { Page, PageTitle, Section } from "@/components/atoms/Page";
-import { Demo, HighlightFilter } from "@/components/demo/Demo";
+import { Demo } from "@/components/demo/Demo";
 import { DemoFilter } from "@/components/demo/DemoFilter";
 import { SettingNoConnections } from "@/components/setting/SettingNoConnections";
 import { useDemoGetFiltered, useDemoUpload } from "@/lib/api/demo";
-import { DemoFilter as DemoFilterType } from "@/lib/types/demo";
+import { DemoFilter as DemoFilterType, DemoHighlightFilter } from "@/lib/types/demo";
 import { useSettingGlobalGet } from "@/lib/api/setting_global";
 import { useSettingUserGet } from "@/lib/api/setting_user";
 import { getErrorMessage } from "@/lib/utils";
@@ -67,7 +67,7 @@ export const Overview = () => {
 
 const Demos = () => {
   const [demoFilter, setDemoFilter] = useState<DemoFilterType>({})
-  const [highlightFilter, setHighlightFilter] = useState<HighlightFilter>("me")
+  const [highlightFilter, setHighlightFilter] = useState<DemoHighlightFilter>({ player: "me" })
 
   const { result, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useDemoGetFiltered(demoFilter)
   const demos = result.demos

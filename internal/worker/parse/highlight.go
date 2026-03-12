@@ -775,6 +775,7 @@ func constructHighlight(user model.User, demo model.Demo, match demo.Match, roun
 		UserID:   user.ID,
 		Title:    title,
 		Round:    round.number,
+		Kills:    len(player.kills),
 		Duration: duration,
 		Segments: segments,
 	}

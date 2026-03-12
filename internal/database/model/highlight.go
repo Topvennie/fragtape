@@ -13,6 +13,7 @@ type Highlight struct {
 	FileID    string
 	Title     string
 	Round     int
+	Kills     int
 	Duration  time.Duration
 	CreatedAt time.Time
 
@@ -28,6 +29,7 @@ func HighlightModel(h sqlc.Highlight) *Highlight {
 		FileID:    fromString(h.FileID),
 		Title:     h.Title,
 		Round:     int(h.Round),
+		Kills:     int(h.Kills),
 		Duration:  time.Duration(h.DurationS) * time.Second,
 		CreatedAt: h.CreatedAt.Time,
 	}

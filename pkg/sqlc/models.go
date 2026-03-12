@@ -211,6 +211,7 @@ type Highlight struct {
 	FileID    pgtype.Text
 	Title     string
 	Round     int32
+	Kills     int32
 	DurationS int32
 	CreatedAt pgtype.Timestamptz
 }
