@@ -139,6 +139,7 @@ const Demo = ({ demo, setDemo }: Pick<Props, "demo" | "setDemo">) => {
   const sources = [
     { value: "all", label: "All sources" },
     { value: DemoSource.Steam, label: "Steam" },
+    { value: DemoSource.Faceit, label: "Faceit" },
   ]
   if (settings?.demoUpload) sources.push({ value: DemoSource.Manual, label: "Manual" })
 
