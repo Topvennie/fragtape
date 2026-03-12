@@ -43,9 +43,11 @@ export const Overview = () => {
     })
   }
 
+  const noConnections = !settingUser?.connectedSteam && !settingUser?.connectedFaceit
+
   return (
     <Page>
-      {!settingUser?.connectedSteam && <SettingNoConnections />}
+      {noConnections && <SettingNoConnections />}
 
       <PageTitle
         title="Recent Matches"
