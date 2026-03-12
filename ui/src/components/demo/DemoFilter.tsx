@@ -1,17 +1,17 @@
-import { DemoFilter as DemoFilterType, DemoHighlightFilter, DemoSource } from "@/lib/types/demo";
-import { Dispatch, SetStateAction, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useSettingGlobalGet } from "@/lib/api/setting_global";
+import { DemoFilter as DemoFilterType, DemoHighlightFilter, DemoSource } from "@/lib/types/demo";
 import { Result, resultString } from "@/lib/types/stat";
-import { Group, Stack } from "@mantine/core";
+import { Group } from "@mantine/core";
+import { DatesRangeValue } from "@mantine/dates";
 import { useLocalStorage } from "@mantine/hooks";
+import NumberFlow from '@number-flow/react';
+import { Dispatch, SetStateAction, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { LuEyeOff } from "react-icons/lu";
-import { Section } from "../atoms/Page";
-import { Segment } from "../molecules/Segment";
 import { Card } from "../atoms/Card";
 import { LoadingOverlay } from "../atoms/LoadingOverlay";
+import { Section } from "../atoms/Page";
 import { DatePickerInput } from "../molecules/DatePickerInput";
-import { DatesRangeValue } from "@mantine/dates";
-import NumberFlow from '@number-flow/react'
+import { Segment } from "../molecules/Segment";
 
 type Props = {
   highlight: DemoHighlightFilter;
@@ -100,7 +100,7 @@ const Highlight = ({ highlight, setHighlight }: Pick<Props, "highlight" | "setHi
   }
 
   return (
-    <Stack align="flex-start">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <Segment
         segmentProps={{
           data: [
@@ -122,8 +122,12 @@ const Highlight = ({ highlight, setHighlight }: Pick<Props, "highlight" | "setHi
           onChange: (e) => handleHighlightChange("minKillCount", e !== "all" ? Number(e) : undefined),
         }}
         label="Minimum kill count"
+        labelProps={{
+          className: "md:text-right"
+        }}
+        className="md:justify-self-end"
       />
-    </Stack>
+    </div>
   )
 }
 
