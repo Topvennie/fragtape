@@ -3,12 +3,14 @@ package dto
 import "github.com/topvennie/fragtape/internal/database/model"
 
 type SettingUser struct {
-	ConnectedSteam bool `json:"connected_steam"`
+	ConnectedSteam  bool `json:"connected_steam"`
+	ConnectedFaceit bool `json:"connected_faceit"`
 }
 
 func SettingUserDTO(s *model.SettingUser) SettingUser {
 	return SettingUser{
-		ConnectedSteam: s.SteamMatchToken != "" && s.SteamAuthenticationToken != "",
+		ConnectedSteam:  s.SteamMatchToken != "" && s.SteamAuthenticationToken != "",
+		ConnectedFaceit: s.FaceitID != "",
 	}
 }
 

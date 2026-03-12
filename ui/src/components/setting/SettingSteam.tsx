@@ -8,8 +8,9 @@ import { zod4Resolver } from "mantine-form-zod-resolver"
 import { useState } from "react"
 import { LuArrowRight, LuCircleCheckBig, LuInfo, LuTrash2 } from "react-icons/lu"
 import { Alert } from "../atoms/Alert"
+import { ConnectedBadge } from "../atoms/ConnectedBadge"
+import { DisconnectedBadge } from "../atoms/DisconnectedBadge"
 import { Section } from "../atoms/Page"
-import { Ping } from "../atoms/Ping"
 import { TextInput } from "../atoms/TextInput"
 
 export const SettingSteam = () => {
@@ -67,15 +68,6 @@ const Connected = () => {
   )
 }
 
-const ConnectedBadge = () => {
-  return (
-    <div className="rounded-full bg-(--mantine-color-green-light) px-3 py-1 flex items-center gap-1 text-green-500 text-xs">
-      <Ping healthy />
-      Connected
-    </div>
-  )
-}
-
 const Disconnected = () => {
   const [submitting, setSubmitting] = useState(false)
   const steamConnect = useSettingUserSteamConnect()
@@ -94,7 +86,7 @@ const Disconnected = () => {
     }
 
     setSubmitting(true)
-    const id = notifications.show({ message: "Testing Connection...", autoClose: false, loading: true })
+    const id = notifications.show({ message: "Connecting...", autoClose: false, loading: true })
 
     steamConnect.mutate(form.getValues(), {
       onSuccess: () => notifications.update({ id, message: "Steam connected", autoClose: true, loading: false }),
@@ -156,10 +148,3 @@ const Disconnected = () => {
   )
 }
 
-const DisconnectedBadge = () => {
-  return (
-    <div className="rounded-full bg-gray-400/10 px-3 py-1 flex items-center gap-1 text-gray-400 text-xs">
-      Not connected
-    </div>
-  )
-}

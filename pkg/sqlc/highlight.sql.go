@@ -161,8 +161,7 @@ const highlightUpdate = `-- name: HighlightUpdate :exec
 UPDATE highlights
 SET 
   demo_id = coalesce($2, demo_id),
-  file_id = coalesce($3, file_id),
-  title = coalesce($4, title)
+  file_id = coalesce($3, file_id)
 WHERE id = $1
 `
 
@@ -170,15 +169,9 @@ type HighlightUpdateParams struct {
 	ID     int32
 	DemoID pgtype.Int4
 	FileID pgtype.Text
-	Title  pgtype.Text
 }
 
 func (q *Queries) HighlightUpdate(ctx context.Context, arg HighlightUpdateParams) error {
-	_, err := q.db.Exec(ctx, highlightUpdate,
-		arg.ID,
-		arg.DemoID,
-		arg.FileID,
-		arg.Title,
-	)
+	_, err := q.db.Exec(ctx, highlightUpdate, arg.ID, arg.DemoID, arg.FileID)
 	return err
 }

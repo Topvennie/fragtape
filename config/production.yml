@@ -37,6 +37,8 @@ worker:
       password:
       shared_secret:
       service_url:
+    faceit:
+      api_key:
 
   parser:
     interval_s: 60

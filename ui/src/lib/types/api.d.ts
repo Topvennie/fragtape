@@ -68,6 +68,7 @@ export namespace API {
 
   export interface SettingUser {
     connected_steam: boolean;
+    connected_faceit: boolean;
   }
 }
 

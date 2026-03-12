@@ -7,6 +7,7 @@ type SettingUser struct {
 	UserID                   int
 	SteamMatchToken          string
 	SteamAuthenticationToken string
+	FaceitID                 string
 }
 
 func SettingUserModel(s sqlc.SettingUser) *SettingUser {
@@ -15,5 +16,6 @@ func SettingUserModel(s sqlc.SettingUser) *SettingUser {
 		UserID:                   int(s.UserID),
 		SteamMatchToken:          fromString(s.SteamMatchToken),
 		SteamAuthenticationToken: fromString(s.SteamAuthenticationToken),
+		FaceitID:                 fromString(s.FaceitID),
 	}
 }

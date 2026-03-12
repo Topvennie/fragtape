@@ -7,9 +7,9 @@ async function main() {
 
   const port = cfg.getNumber("service.steam.port", 8001);
 
-  const accountName = cfg.getString("worker.steam.username", "");
-  const password = cfg.getString("worker.steam.password", "");
-  const sharedSecret = cfg.getString("worker.steam.shared_secret", "");
+  const accountName = cfg.getString("worker.fetcher.steam.username", "");
+  const password = cfg.getString("worker.fetcher.steam.password", "");
+  const sharedSecret = cfg.getString("worker.fetcher.steam.shared_secret", "");
 
   const steam = new SteamService({ accountName, password, sharedSecret });
 

@@ -96,7 +96,6 @@ func (h *Highlight) Update(ctx context.Context, highlight model.Highlight) error
 		ID:     int32(highlight.ID),
 		DemoID: toInt(highlight.DemoID),
 		FileID: toString(highlight.FileID),
-		Title:  toString(highlight.Title),
 	}); err != nil {
 		return fmt.Errorf("update highlight %+v | %w", highlight, err)
 	}

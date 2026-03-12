@@ -236,6 +236,7 @@ type SettingUser struct {
 	UserID                   int32
 	SteamMatchToken          pgtype.Text
 	SteamAuthenticationToken pgtype.Text
+	FaceitID                 pgtype.Text
 }
 
 type Stat struct {

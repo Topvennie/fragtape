@@ -37,6 +37,7 @@ func (s *SettingUser) Create(ctx context.Context, setting *model.SettingUser) er
 		UserID:                   int32(setting.UserID),
 		SteamMatchToken:          toString(setting.SteamMatchToken),
 		SteamAuthenticationToken: toString(setting.SteamAuthenticationToken),
+		FaceitID:                 toString(setting.FaceitID),
 	})
 	if err != nil {
 		return fmt.Errorf("create user setting %+v | %w", *setting, err)
@@ -52,6 +53,7 @@ func (s *SettingUser) Update(ctx context.Context, setting model.SettingUser) err
 		ID:                       int32(setting.ID),
 		SteamMatchToken:          toString(setting.SteamMatchToken),
 		SteamAuthenticationToken: toString(setting.SteamAuthenticationToken),
+		FaceitID:                 toString(setting.FaceitID),
 	}); err != nil {
 		return fmt.Errorf("update user setting %+v | %w", setting, err)
 	}
