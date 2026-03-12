@@ -3,14 +3,11 @@ WORKDIR /app
 
 RUN corepack enable
 
-COPY package.json pnpm-lock.yaml ./
+COPY service/steam/package.json service/steam/pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
-
-COPY tsconfig.json tsconfig.build.json ./
-COPY src ./src
+COPY service/steam/tsconfig.json service/steam/tsconfig.build.json ./
+COPY service/steam/src ./src
 RUN pnpm run build
 
 RUN pnpm prune --prod
