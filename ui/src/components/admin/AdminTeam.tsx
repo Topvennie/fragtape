@@ -14,6 +14,7 @@ import { Section } from "../atoms/Page"
 import { Search } from "../molecules/Search"
 import { UserList } from "../user/UserList"
 import { Loading } from "../atoms/Loading"
+import NumberFlow from "@number-flow/react"
 
 export const AdminTeam = () => {
   const { user } = useAuth()
@@ -76,7 +77,7 @@ const AddAdmin = () => {
   const [name, setName] = useState("")
   const [debouncedName] = useDebouncedValue(name, 200);
 
-  const { result, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useUserFiltered({ name: debouncedName, admin: false, real: true });
+  const { result, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useUserFiltered({ name: debouncedName, admin: false, real: false });
   const users = result.users.filter(u => !u.admin)
 
   const [sentryRef] = useInfiniteScroll({
@@ -115,7 +116,9 @@ const AddAdmin = () => {
           onChange={e => setName(e.target.value)}
           className="grow"
         />
-        <p className="text-secondary">{`${result.total} users`}</p>
+        <div className="min-w-[11ch] text-right text-secondary">
+          <NumberFlow value={result.total} suffix={` user${result.total !== 1 ? "s" : ""}`} />
+        </div>
       </Group>
 
       <UserList
