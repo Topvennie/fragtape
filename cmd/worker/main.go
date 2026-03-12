@@ -8,6 +8,7 @@ import (
 	"github.com/topvennie/fragtape/internal/status"
 	"github.com/topvennie/fragtape/internal/worker/download"
 	"github.com/topvennie/fragtape/internal/worker/fetch"
+	"github.com/topvennie/fragtape/internal/worker/fetch/faceit"
 	"github.com/topvennie/fragtape/internal/worker/fetch/steam"
 	"github.com/topvennie/fragtape/internal/worker/finalize"
 	"github.com/topvennie/fragtape/internal/worker/parse"
@@ -63,6 +64,10 @@ func main() {
 	// Steam integration
 	if err := steam.Init(*repo); err != nil {
 		zap.S().Fatalf("Initialize steam %v", err)
+	}
+	// Faceit integration
+	if err := faceit.Init(); err != nil {
+		zap.S().Fatalf("Initialize faceit %v", err)
 	}
 
 	// Fetcher

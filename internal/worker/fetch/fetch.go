@@ -8,6 +8,7 @@ import (
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/internal/status"
+	"github.com/topvennie/fragtape/internal/worker/fetch/faceit"
 	"github.com/topvennie/fragtape/internal/worker/fetch/steam"
 	"github.com/topvennie/fragtape/pkg/config"
 	"github.com/topvennie/fragtape/pkg/utils"
@@ -39,7 +40,7 @@ func New(repo repository.Repository) *Manager {
 	return &Manager{
 		interval: config.GetDefaultDurationS("worker.fetcher.interval_s", 300),
 		cooldown: config.GetDefaultDurationS("worker.fetcher.cooldown_s", 600),
-		fetchers: []Fetcher{steam.S},
+		fetchers: []Fetcher{steam.S, faceit.F},
 		repo:     repo,
 		demo:     *repo.NewDemo(),
 		stat:     *repo.NewStat(),
