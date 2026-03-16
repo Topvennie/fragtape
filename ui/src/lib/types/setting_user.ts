@@ -5,12 +5,14 @@ import { JSONBody } from "./general";
 export interface SettingUser {
   connectedSteam: boolean;
   connectedFaceit: boolean;
+  firstTimeWizard: boolean;
 }
 
 export const convertSettingUser = (s: API.SettingUser): SettingUser => {
   return {
     connectedSteam: s.connected_steam,
     connectedFaceit: s.connected_faceit,
+    firstTimeWizard: s.first_time_wizard,
   }
 }
 

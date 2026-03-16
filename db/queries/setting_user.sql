@@ -13,6 +13,7 @@ UPDATE setting_user
 SET
   steam_match_token = $2,
   steam_authentication_token = $3,
-  faceit_id = $4
+  faceit_id = $4,
+  first_time_wizard = $5
 WHERE id = $1;
 

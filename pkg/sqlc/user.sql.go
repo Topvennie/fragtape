@@ -96,7 +96,7 @@ func (q *Queries) UserGetAdmin(ctx context.Context) ([]User, error) {
 const userGetAllRealWithSettingLastDemo = `-- name: UserGetAllRealWithSettingLastDemo :many
 SELECT
   u.id, u.uid, u.name, u.display_name, u.avatar_url, u.crosshair, u.admin,
-  s_u.id, s_u.user_id, s_u.steam_match_token, s_u.steam_authentication_token, s_u.faceit_id,
+  s_u.id, s_u.user_id, s_u.steam_match_token, s_u.steam_authentication_token, s_u.faceit_id, s_u.first_time_wizard,
   COALESCE(d.id, 0),
   COALESCE(d.source, 'manual'),
   COALESCE(d.source_id, ''),
@@ -145,6 +145,7 @@ func (q *Queries) UserGetAllRealWithSettingLastDemo(ctx context.Context) ([]User
 			&i.SettingUser.SteamMatchToken,
 			&i.SettingUser.SteamAuthenticationToken,
 			&i.SettingUser.FaceitID,
+			&i.SettingUser.FirstTimeWizard,
 			&i.ID,
 			&i.Source,
 			&i.SourceID,

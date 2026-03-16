@@ -37,7 +37,7 @@ func (q *Queries) SettingUserCreate(ctx context.Context, arg SettingUserCreatePa
 }
 
 const settingUserGetByUser = `-- name: SettingUserGetByUser :one
-SELECT id, user_id, steam_match_token, steam_authentication_token, faceit_id
+SELECT id, user_id, steam_match_token, steam_authentication_token, faceit_id, first_time_wizard
 FROM setting_user
 WHERE user_id = $1
 `
@@ -51,6 +51,7 @@ func (q *Queries) SettingUserGetByUser(ctx context.Context, userID int32) (Setti
 		&i.SteamMatchToken,
 		&i.SteamAuthenticationToken,
 		&i.FaceitID,
+		&i.FirstTimeWizard,
 	)
 	return i, err
 }
@@ -60,7 +61,8 @@ UPDATE setting_user
 SET
   steam_match_token = $2,
   steam_authentication_token = $3,
-  faceit_id = $4
+  faceit_id = $4,
+  first_time_wizard = $5
 WHERE id = $1
 `
 
@@ -69,6 +71,7 @@ type SettingUserUpdateParams struct {
 	SteamMatchToken          pgtype.Text
 	SteamAuthenticationToken pgtype.Text
 	FaceitID                 pgtype.Text
+	FirstTimeWizard          bool
 }
 
 func (q *Queries) SettingUserUpdate(ctx context.Context, arg SettingUserUpdateParams) error {
@@ -77,6 +80,7 @@ func (q *Queries) SettingUserUpdate(ctx context.Context, arg SettingUserUpdatePa
 		arg.SteamMatchToken,
 		arg.SteamAuthenticationToken,
 		arg.FaceitID,
+		arg.FirstTimeWizard,
 	)
 	return err
 }

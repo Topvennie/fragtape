@@ -29,6 +29,7 @@ func (s *SettingUser) createRoutes() {
 	s.router.Delete("/steam", s.steamDisconnect)
 	s.router.Post("/faceit", s.faceitConnect)
 	s.router.Delete("/faceit", s.faceitDisconnect)
+	s.router.Post("/first_time_wizard", s.firstTimeWizard)
 }
 
 func (s *SettingUser) get(c *fiber.Ctx) error {
@@ -99,6 +100,27 @@ func (s *SettingUser) faceitDisconnect(c *fiber.Ctx) error {
 	}
 
 	if err := s.setting.FaceitDisconnect(c.Context(), userID); err != nil {
+		return err
+	}
+
+	return c.SendStatus(fiber.StatusOK)
+}
+
+func (s *SettingUser) firstTimeWizard(c *fiber.Ctx) error {
+	userID, ok := c.Locals("userID").(int)
+	if !ok {
+		return fiber.ErrUnauthorized
+	}
+
+	var firstTimeWizard dto.SettingUserFirsTimeWizard
+	if err := c.BodyParser(&firstTimeWizard); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	if err := dto.Validate.Struct(firstTimeWizard); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	if err := s.setting.FirstTimeWizard(c.Context(), userID, firstTimeWizard); err != nil {
 		return err
 	}
 

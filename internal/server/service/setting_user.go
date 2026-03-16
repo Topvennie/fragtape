@@ -189,3 +189,23 @@ func (s *SettingUser) FaceitDisconnect(ctx context.Context, userID int) error {
 
 	return nil
 }
+
+func (s *SettingUser) FirstTimeWizard(ctx context.Context, userID int, firstTimeWizard dto.SettingUserFirsTimeWizard) error {
+	setting, err := s.setting.GetByUser(ctx, userID)
+	if err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+	if setting == nil {
+		return fiber.ErrInternalServerError
+	}
+
+	setting.FirstTimeWizard = *firstTimeWizard.FirsTimeWizard
+
+	if err := s.setting.Update(ctx, *setting); err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+
+	return nil
+}
