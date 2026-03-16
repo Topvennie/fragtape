@@ -54,6 +54,7 @@ func (s *SettingUser) Update(ctx context.Context, setting model.SettingUser) err
 		SteamMatchToken:          toString(setting.SteamMatchToken),
 		SteamAuthenticationToken: toString(setting.SteamAuthenticationToken),
 		FaceitID:                 toString(setting.FaceitID),
+		FirstTimeWizard:          setting.FirstTimeWizard,
 	}); err != nil {
 		return fmt.Errorf("update user setting %+v | %w", setting, err)
 	}

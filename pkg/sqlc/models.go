@@ -237,6 +237,7 @@ type SettingUser struct {
 	SteamMatchToken          pgtype.Text
 	SteamAuthenticationToken pgtype.Text
 	FaceitID                 pgtype.Text
+	FirstTimeWizard          bool
 }
 
 type Stat struct {

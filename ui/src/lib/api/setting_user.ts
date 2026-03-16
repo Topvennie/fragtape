@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { apiDelete, apiGet, apiPost } from "./query"
-import { convertSettingUser, SettingUserSteamSchema } from "../types/setting_user"
+import { convertSettingUser, SettingUser, SettingUserSteamSchema } from "../types/setting_user"
 import { STALE_TIME } from "../types/staletime"
 
 const ENDPOINT = "setting/user"
@@ -45,6 +45,15 @@ export const useSettingUserFaceitDisconnect = () => {
 
   return useMutation({
     mutationFn: () => apiDelete(`${ENDPOINT}/faceit`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["setting", "user"] }),
+  })
+}
+
+export const useSettingUserFirstTimeWizard = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (setting: Pick<SettingUser, "firstTimeWizard">) => apiPost(`${ENDPOINT}/first_time_wizard`, setting),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["setting", "user"] }),
   })
 }

@@ -1,3 +1,4 @@
+import { UserFirstTime } from "@/components/user/UserFirstTime"
 import { AuthLayout } from "@/layout/AuthLayout"
 import { DataLayout } from "@/layout/DataLayout"
 import { NavLayout } from "@/layout/NavLayout"
@@ -8,6 +9,8 @@ export const Index = () => {
     <AuthLayout>
       <DataLayout>
         <NavLayout>
+          <UserFirstTime />
+
           <Outlet />
         </NavLayout>
       </DataLayout>
