@@ -36,7 +36,7 @@ worker:
       username:
       password:
       shared_secret:
-      service_url:
+      service_url: http://steam:3002
     faceit:
       api_key:
 
