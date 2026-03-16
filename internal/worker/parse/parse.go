@@ -9,7 +9,6 @@ import (
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/internal/status"
-	"github.com/topvennie/fragtape/internal/worker/parse/demo"
 	"github.com/topvennie/fragtape/pkg/config"
 	"go.uber.org/zap"
 )
@@ -23,7 +22,8 @@ type Manager struct {
 	user      repository.User
 	repo      repository.Repository
 
-	demoParser demo.Demo
+	parserPosPerSec  int
+	parserPosMinDist int
 
 	interval   time.Duration
 	concurrent int
@@ -33,20 +33,18 @@ type Manager struct {
 
 func New(repo repository.Repository) *Manager {
 	return &Manager{
-		demo:      *repo.NewDemo(),
-		highlight: *repo.NewHighlight(),
-		setting:   *repo.NewSettingGlobal(),
-		stat:      *repo.NewStat(),
-		statsDemo: *repo.NewStatsDemo(),
-		user:      *repo.NewUser(),
-		repo:      repo,
-		demoParser: *demo.New(
-			config.GetDefaultInt("worker.parser.positions_per_second", 4),
-			config.GetDefaultInt("worker.parser.positions_min_distance", 10),
-		),
-		interval:   config.GetDefaultDurationS("worker.parser.interval_s", 60),
-		concurrent: config.GetDefaultInt("worker.parser.concurrent", 8),
-		wg:         sync.WaitGroup{},
+		demo:             *repo.NewDemo(),
+		highlight:        *repo.NewHighlight(),
+		setting:          *repo.NewSettingGlobal(),
+		stat:             *repo.NewStat(),
+		statsDemo:        *repo.NewStatsDemo(),
+		user:             *repo.NewUser(),
+		repo:             repo,
+		parserPosPerSec:  config.GetDefaultInt("worker.parser.positions_per_second", 4),
+		parserPosMinDist: config.GetDefaultInt("worker.parser.positions_min_distance", 10),
+		interval:         config.GetDefaultDurationS("worker.parser.interval_s", 60),
+		concurrent:       config.GetDefaultInt("worker.parser.concurrent", 8),
+		wg:               sync.WaitGroup{},
 	}
 }
 

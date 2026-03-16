@@ -26,7 +26,8 @@ func (m *Manager) getMatch(ctx context.Context, d *model.Demo) (*demo.Match, err
 	// Take into account that we might already have the data
 	// if the pipeline failed later on
 	if d.DataID == "" {
-		match, err = m.demoParser.Parse(file)
+		demoParser := demo.New(m.parserPosPerSec, m.parserPosMinDist)
+		match, err = demoParser.Parse(file)
 		if err != nil {
 			return nil, fmt.Errorf("parse demo file %w", err)
 		}
