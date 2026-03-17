@@ -161,6 +161,61 @@ func (q *Queries) UserGetAllRealWithSettingLastDemo(ctx context.Context) ([]User
 	return items, nil
 }
 
+const userGetByIDWithSettingLastDemo = `-- name: UserGetByIDWithSettingLastDemo :one
+SELECT
+  u.id, u.uid, u.name, u.display_name, u.avatar_url, u.crosshair, u.admin,
+  s_u.id, s_u.user_id, s_u.steam_match_token, s_u.steam_authentication_token, s_u.faceit_id, s_u.first_time_wizard,
+  COALESCE(d.id, 0),
+  COALESCE(d.source, 'manual'),
+  COALESCE(d.source_id, ''),
+  d.created_at
+FROM users u
+LEFT JOIN setting_user s_u ON s_u.user_id = u.id
+LEFT JOIN LATERAL (
+  SELECT d2.id, d2.source, d2.source_id, d2.created_at
+  FROM stats s
+  JOIN demos d2 ON d2.id = s.demo_id
+  WHERE s.user_id = u.id
+  ORDER BY d2.created_at DESC
+  LIMIT 1
+) d ON true
+WHERE u.id = $1
+`
+
+type UserGetByIDWithSettingLastDemoRow struct {
+	User        User
+	SettingUser SettingUser
+	ID          int32
+	Source      DemoSource
+	SourceID    string
+	CreatedAt   pgtype.Timestamptz
+}
+
+func (q *Queries) UserGetByIDWithSettingLastDemo(ctx context.Context, id int32) (UserGetByIDWithSettingLastDemoRow, error) {
+	row := q.db.QueryRow(ctx, userGetByIDWithSettingLastDemo, id)
+	var i UserGetByIDWithSettingLastDemoRow
+	err := row.Scan(
+		&i.User.ID,
+		&i.User.Uid,
+		&i.User.Name,
+		&i.User.DisplayName,
+		&i.User.AvatarUrl,
+		&i.User.Crosshair,
+		&i.User.Admin,
+		&i.SettingUser.ID,
+		&i.SettingUser.UserID,
+		&i.SettingUser.SteamMatchToken,
+		&i.SettingUser.SteamAuthenticationToken,
+		&i.SettingUser.FaceitID,
+		&i.SettingUser.FirstTimeWizard,
+		&i.ID,
+		&i.Source,
+		&i.SourceID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const userGetByIds = `-- name: UserGetByIds :many
 SELECT id, uid, name, display_name, avatar_url, crosshair, admin
 FROM users

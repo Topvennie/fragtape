@@ -35,6 +35,26 @@ WHERE
 ORDER BY u.name, u.display_name
 LIMIT $1 OFFSET $2;
 
+-- name: UserGetByIDWithSettingLastDemo :one
+SELECT
+  sqlc.embed(u),
+  sqlc.embed(s_u),
+  COALESCE(d.id, 0),
+  COALESCE(d.source, 'manual'),
+  COALESCE(d.source_id, ''),
+  d.created_at
+FROM users u
+LEFT JOIN setting_user s_u ON s_u.user_id = u.id
+LEFT JOIN LATERAL (
+  SELECT d2.id, d2.source, d2.source_id, d2.created_at
+  FROM stats s
+  JOIN demos d2 ON d2.id = s.demo_id
+  WHERE s.user_id = u.id
+  ORDER BY d2.created_at DESC
+  LIMIT 1
+) d ON true
+WHERE u.id = $1;
+
 -- name: UserGetAllRealWithSettingLastDemo :many
 SELECT
   sqlc.embed(u),

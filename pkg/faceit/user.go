@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-
-	"go.uber.org/zap"
 )
 
 func (f *faceit) GetUserID(ctx context.Context, steamID int64) (string, error) {
@@ -46,8 +44,6 @@ func (f *faceit) getUser(ctx context.Context, steamID int64, gameID string) (use
 	q.Add("game_player_id", strconv.FormatInt(steamID, 10))
 	req.URL.RawQuery = q.Encode()
 
-	zap.S().Debugf("%+v", req)
-
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return userResponse{}, fmt.Errorf("do request %w", err)
@@ -55,8 +51,6 @@ func (f *faceit) getUser(ctx context.Context, steamID int64, gameID string) (use
 	defer func() {
 		_ = resp.Body.Close()
 	}()
-
-	zap.S().Debugf("%+v", *resp)
 
 	if resp.StatusCode != http.StatusOK {
 		// Some kind of error

@@ -30,8 +30,8 @@ server:
 
 worker:
   fetcher:
-    interval_s: 30
-    cooldown_s: 0
+    interval_s: 60
+    cooldown_s: 30
 
   downloader:
     interval_s: 10
