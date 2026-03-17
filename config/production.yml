@@ -8,7 +8,6 @@ server:
 
   auth:
     steam:
-      api_key:
       callback_url:
 
   logger:
@@ -32,13 +31,6 @@ worker:
   fetcher:
     interval_s: 300
     cooldown_s: 600
-    steam:
-      username:
-      password:
-      shared_secret:
-      service_url: http://steam:3002
-    faceit:
-      api_key:
 
   parser:
     interval_s: 60
@@ -92,4 +84,11 @@ recorder:
 
 service:
   steam:
+    url: http://steam
     port: 3002
+    api_key:
+    username:
+    password:
+    shared_secret:
+  faceit:
+    api_key:

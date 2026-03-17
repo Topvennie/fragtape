@@ -8,7 +8,6 @@ server:
 
   auth:
     steam:
-      api_key:
       callback_url: http://localhost:3001/api/auth/callback/steam
     redirect_url: http://localhost:3000
 
@@ -33,13 +32,6 @@ worker:
   fetcher:
     interval_s: 30
     cooldown_s: 0
-    steam:
-      username:
-      password:
-      shared_secret:
-      service_url: http://steam:3002
-    faceit:
-      api_key:
 
   downloader:
     interval_s: 10
@@ -97,4 +89,11 @@ recorder:
 
 service:
   steam:
+    url: http://steam
     port: 3002
+    api_key:
+    username:
+    password:
+    shared_secret:
+  faceit:
+    api_key:

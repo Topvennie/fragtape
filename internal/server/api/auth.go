@@ -27,7 +27,7 @@ type Auth struct {
 func NewAuth(router fiber.Router, service service.Service) *Auth {
 	goth.UseProviders(
 		steam.New(
-			config.GetString("server.auth.steam.api_key"),
+			config.GetString("service.steam.api_key"),
 			config.GetString("server.auth.steam.callback_url"),
 		),
 	)

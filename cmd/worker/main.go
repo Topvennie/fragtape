@@ -8,13 +8,13 @@ import (
 	"github.com/topvennie/fragtape/internal/status"
 	"github.com/topvennie/fragtape/internal/worker/download"
 	"github.com/topvennie/fragtape/internal/worker/fetch"
-	"github.com/topvennie/fragtape/internal/worker/fetch/faceit"
-	"github.com/topvennie/fragtape/internal/worker/fetch/steam"
 	"github.com/topvennie/fragtape/internal/worker/finalize"
 	"github.com/topvennie/fragtape/internal/worker/parse"
 	"github.com/topvennie/fragtape/pkg/config"
 	"github.com/topvennie/fragtape/pkg/db"
+	"github.com/topvennie/fragtape/pkg/faceit"
 	"github.com/topvennie/fragtape/pkg/logger"
+	"github.com/topvennie/fragtape/pkg/steam"
 	"github.com/topvennie/fragtape/pkg/storage"
 	"go.uber.org/zap"
 )
@@ -62,11 +62,14 @@ func main() {
 	status.Init(*repo)
 
 	// Steam integration
-	if err := steam.Init(*repo); err != nil {
+	if err := steam.Init(
+		fmt.Sprintf("%s:%s", config.GetString("service.steam.url"), config.GetString("service.steam.port")),
+		config.GetString("service.steam.api_key"),
+	); err != nil {
 		zap.S().Fatalf("Initialize steam %v", err)
 	}
 	// Faceit integration
-	if err := faceit.Init(); err != nil {
+	if err := faceit.Init(config.GetString("service.faceit.api_key")); err != nil {
 		zap.S().Fatalf("Initialize faceit %v", err)
 	}
 

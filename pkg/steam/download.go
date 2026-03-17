@@ -8,6 +8,8 @@ import (
 	"net/http"
 )
 
+// Download downloads a demo from the cs servers
+// The first return value is nil if the demo link has expired
 func (s *steam) Download(ctx context.Context, demoURL string) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", demoURL, http.NoBody)
 	if err != nil {
