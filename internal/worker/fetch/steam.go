@@ -1,9 +1,7 @@
-// Package steam communicates with steam with either their api or the steam typescript service
-package steam
+package fetch
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"slices"
@@ -11,48 +9,28 @@ import (
 
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
-	"github.com/topvennie/fragtape/pkg/config"
+	"github.com/topvennie/fragtape/pkg/steam"
 )
 
-var S *steam
-
-type steam struct {
+type steamFetcher struct {
 	setting repository.SettingUser
 	user    repository.User
 
 	timeout time.Time
-
-	steamServiceURL string
-	webAPIKey       string
 }
 
-func Init(repo repository.Repository) error {
-	if S != nil {
-		return nil
-	}
+// Interface compliance
+var _ fetcher = (*steamFetcher)(nil)
 
-	steamService := config.GetDefaultString("worker.fetcher.steam.service_url", "")
-	webAPIKey := config.GetDefaultString("server.auth.steam.api_key", "")
-
-	if steamService == "" {
-		return errors.New("no steam service url set")
+func newSteamFetcher(repo repository.Repository) *steamFetcher {
+	return &steamFetcher{
+		setting: *repo.NewSettingUser(),
+		user:    *repo.NewUser(),
+		timeout: time.Now(),
 	}
-	if webAPIKey == "" {
-		return errors.New("no web api key set")
-	}
-
-	S = &steam{
-		setting:         *repo.NewSettingUser(),
-		user:            *repo.NewUser(),
-		timeout:         time.Now(),
-		steamServiceURL: steamService,
-		webAPIKey:       webAPIKey,
-	}
-
-	return nil
 }
 
-func (s *steam) Fetch(ctx context.Context, user model.User) (model.Demo, bool, error) {
+func (s *steamFetcher) fetch(ctx context.Context, user model.User) (model.Demo, bool, error) {
 	demo := model.Demo{
 		Source: model.DemoSourceSteam,
 	}
@@ -67,8 +45,11 @@ func (s *steam) Fetch(ctx context.Context, user model.User) (model.Demo, bool, e
 		return demo, false, nil
 	}
 
-	// Get next demo from the steam service
-	demoResp, err := s.NextDemo(ctx, user)
+	demoResp, err := steam.S.NextDemo(ctx, steam.NextDemoParams{
+		SteamID:                  user.UID,
+		SteamAuthenticationToken: user.Setting.SteamAuthenticationToken,
+		SteamMatchToken:          user.Setting.SteamMatchToken,
+	})
 	if err != nil {
 		return demo, false, err
 	}

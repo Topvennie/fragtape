@@ -8,27 +8,25 @@ import (
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/internal/status"
-	"github.com/topvennie/fragtape/internal/worker/fetch/faceit"
-	"github.com/topvennie/fragtape/internal/worker/fetch/steam"
 	"github.com/topvennie/fragtape/pkg/config"
 	"github.com/topvennie/fragtape/pkg/utils"
 	"go.uber.org/zap"
 )
 
-type Fetcher interface {
+type fetcher interface {
 	// Fetch gets a new demo file url
 	// It returns
 	//  model.Demo -> the new demo
 	//  bool -> indicating if there is a new demo
 	//  error -> error
-	Fetch(context.Context, model.User) (model.Demo, bool, error)
+	fetch(context.Context, model.User) (model.Demo, bool, error)
 }
 
 type Manager struct {
 	interval time.Duration
 	cooldown time.Duration
 
-	fetchers []Fetcher
+	fetchers []fetcher
 
 	repo repository.Repository
 	demo repository.Demo
@@ -40,7 +38,7 @@ func New(repo repository.Repository) *Manager {
 	return &Manager{
 		interval: config.GetDefaultDurationS("worker.fetcher.interval_s", 300),
 		cooldown: config.GetDefaultDurationS("worker.fetcher.cooldown_s", 600),
-		fetchers: []Fetcher{steam.S, faceit.F},
+		fetchers: []fetcher{newSteamFetcher(repo), newFaceitFetcher()},
 		repo:     repo,
 		demo:     *repo.NewDemo(),
 		stat:     *repo.NewStat(),
@@ -95,7 +93,7 @@ func (m *Manager) loop(ctx context.Context) error {
 	for _, user := range users {
 		// Try each fetcher for a new match
 		for _, fetcher := range m.fetchers {
-			demo, ok, err := fetcher.Fetch(ctx, *user)
+			demo, ok, err := fetcher.fetch(ctx, *user)
 			if err != nil {
 				zap.S().Error(err)
 				continue

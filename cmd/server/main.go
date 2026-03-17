@@ -6,11 +6,11 @@ import (
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/internal/server"
 	"github.com/topvennie/fragtape/internal/server/service"
-	"github.com/topvennie/fragtape/internal/worker/fetch/faceit"
-	"github.com/topvennie/fragtape/internal/worker/fetch/steam"
 	"github.com/topvennie/fragtape/pkg/config"
 	"github.com/topvennie/fragtape/pkg/db"
+	"github.com/topvennie/fragtape/pkg/faceit"
 	"github.com/topvennie/fragtape/pkg/logger"
+	"github.com/topvennie/fragtape/pkg/steam"
 	"github.com/topvennie/fragtape/pkg/storage"
 	"go.uber.org/zap"
 )
@@ -52,10 +52,15 @@ func main() {
 	repo := repository.New(db)
 	service := service.New(*repo)
 
-	if err := steam.Init(*repo); err != nil {
+	// Steam integration
+	if err := steam.Init(
+		fmt.Sprintf("%s:%s", config.GetString("service.steam.url"), config.GetString("service.steam.port")),
+		config.GetString("service.steam.api_key"),
+	); err != nil {
 		zap.S().Fatalf("Initialize steam %v", err)
 	}
-	if err := faceit.Init(); err != nil {
+	// Faceit integration
+	if err := faceit.Init(config.GetString("service.faceit.api_key")); err != nil {
 		zap.S().Fatalf("Initialize faceit %v", err)
 	}
 

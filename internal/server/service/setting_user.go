@@ -8,8 +8,8 @@ import (
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/internal/server/dto"
-	"github.com/topvennie/fragtape/internal/worker/fetch/faceit"
-	"github.com/topvennie/fragtape/internal/worker/fetch/steam"
+	"github.com/topvennie/fragtape/pkg/faceit"
+	"github.com/topvennie/fragtape/pkg/steam"
 	"go.uber.org/zap"
 )
 
@@ -80,14 +80,12 @@ func (s *SettingUser) SteamConnect(ctx context.Context, settingSteam dto.Setting
 		return fiber.NewError(fiber.StatusBadRequest, "Steam is already configured")
 	}
 
-	setting.SteamMatchToken = settingSteam.MatchToken
-	setting.SteamAuthenticationToken = settingSteam.AuthenticationToken
-
-	user.Setting = *setting
-
 	// Verify the credentials
-
-	nextDemo, err := steam.S.NextDemo(ctx, *user)
+	nextDemo, err := steam.S.NextDemo(ctx, steam.NextDemoParams{
+		SteamID:                  user.UID,
+		SteamAuthenticationToken: settingSteam.AuthenticationToken,
+		SteamMatchToken:          settingSteam.MatchToken,
+	})
 	if err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError
@@ -100,7 +98,10 @@ func (s *SettingUser) SteamConnect(ctx context.Context, settingSteam dto.Setting
 		}
 	}
 
-	// Credentials verified
+	// Credentials are verified
+
+	setting.SteamMatchToken = settingSteam.MatchToken
+	setting.SteamAuthenticationToken = settingSteam.AuthenticationToken
 
 	if err := s.setting.Update(ctx, *setting); err != nil {
 		zap.S().Error(err)
@@ -151,7 +152,7 @@ func (s *SettingUser) FaceitConnect(ctx context.Context, userID int) error {
 	}
 
 	// Get faceit id
-	faceitID, err := faceit.F.GetUserID(ctx, *user)
+	faceitID, err := faceit.F.GetUserID(ctx, user.UID)
 	if err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError

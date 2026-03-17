@@ -7,14 +7,12 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/topvennie/fragtape/internal/database/model"
 	"go.uber.org/zap"
 )
 
-func (f *faceit) GetUserID(ctx context.Context, user model.User) (string, error) {
+func (f *faceit) GetUserID(ctx context.Context, steamID int64) (string, error) {
 	// First try for cs2
-	zap.S().Debug("trying cs2")
-	resp, err := f.getUser(ctx, user, "cs2")
+	resp, err := f.getUser(ctx, steamID, "cs2")
 	if err != nil {
 		return "", err
 	}
@@ -23,8 +21,7 @@ func (f *faceit) GetUserID(ctx context.Context, user model.User) (string, error)
 	}
 
 	// Not found for cs2, let's try csgo
-	zap.S().Debug("trying csgo")
-	resp, err = f.getUser(ctx, user, "csgo")
+	resp, err = f.getUser(ctx, steamID, "csgo")
 	if err != nil {
 		return "", err
 	}
@@ -36,7 +33,7 @@ type userResponse struct {
 	PlayerID string `json:"player_id"`
 }
 
-func (f *faceit) getUser(ctx context.Context, user model.User, gameID string) (userResponse, error) {
+func (f *faceit) getUser(ctx context.Context, steamID int64, gameID string) (userResponse, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, apiURL+"players", http.NoBody)
 	if err != nil {
 		return userResponse{}, fmt.Errorf("new request %w", err)
@@ -46,7 +43,7 @@ func (f *faceit) getUser(ctx context.Context, user model.User, gameID string) (u
 
 	q := req.URL.Query()
 	q.Add("game", gameID)
-	q.Add("game_player_id", strconv.FormatInt(user.UID, 10))
+	q.Add("game_player_id", strconv.FormatInt(steamID, 10))
 	req.URL.RawQuery = q.Encode()
 
 	zap.S().Debugf("%+v", req)

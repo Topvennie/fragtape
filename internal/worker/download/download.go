@@ -11,8 +11,8 @@ import (
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/internal/status"
-	"github.com/topvennie/fragtape/internal/worker/fetch/steam"
 	"github.com/topvennie/fragtape/pkg/config"
+	"github.com/topvennie/fragtape/pkg/steam"
 	"github.com/topvennie/fragtape/pkg/storage"
 	"go.uber.org/zap"
 )
