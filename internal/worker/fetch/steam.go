@@ -113,6 +113,7 @@ func (s *steamFetcher) fetch(ctx context.Context, user model.User) (model.Demo, 
 		}
 
 		for _, player := range demoResp.Players {
+			// Try to find an existing player
 			if idx := slices.IndexFunc(users, func(u *model.User) bool { return u.UID == player }); idx != -1 {
 				demo.Stats = append(demo.Stats, model.Stat{
 					UserID: users[idx].ID,

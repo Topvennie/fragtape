@@ -133,7 +133,7 @@ const Disconnected = () => {
       </Alert>
       <div>
         <p className="text-white">Steam Match Token</p>
-        <TextInput placeholder="CSGO-xxxxx-xxxxx-xxxxx-xxxxx-xxxxx" {...form.getInputProps("match_token")} />
+        <TextInput placeholder="CSGO-AAAAA-BBBBB-CCCCC-DDDDD-EEEEE" {...form.getInputProps("match_token")} />
       </div>
       <div>
         <p className="text-white">Steam Authentication Token</p>
