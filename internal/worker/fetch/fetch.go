@@ -3,6 +3,7 @@ package fetch
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/topvennie/fragtape/internal/database/model"
@@ -28,6 +29,9 @@ type Manager struct {
 
 	fetchers []fetcher
 
+	busyUsers map[int]bool
+	mu        sync.Mutex
+
 	repo repository.Repository
 	demo repository.Demo
 	stat repository.Stat
@@ -36,13 +40,14 @@ type Manager struct {
 
 func New(repo repository.Repository) *Manager {
 	return &Manager{
-		interval: config.GetDefaultDurationS("worker.fetcher.interval_s", 300),
-		cooldown: config.GetDefaultDurationS("worker.fetcher.cooldown_s", 600),
-		fetchers: []fetcher{newSteamFetcher(repo), newFaceitFetcher()},
-		repo:     repo,
-		demo:     *repo.NewDemo(),
-		stat:     *repo.NewStat(),
-		user:     *repo.NewUser(),
+		interval:  config.GetDefaultDurationS("worker.fetcher.interval_s", 300),
+		cooldown:  config.GetDefaultDurationS("worker.fetcher.cooldown_s", 600),
+		fetchers:  []fetcher{newSteamFetcher(repo), newFaceitFetcher()},
+		busyUsers: map[int]bool{},
+		repo:      repo,
+		demo:      *repo.NewDemo(),
+		stat:      *repo.NewStat(),
+		user:      *repo.NewUser(),
 	}
 }
 
@@ -82,15 +87,45 @@ func (m *Manager) loop(ctx context.Context) error {
 	now := time.Now()
 	lastDemo := now.Add(-1 * m.cooldown)
 
+	m.mu.Lock()
 	users = utils.SliceFilter(users, func(u *model.User) bool {
+		if busy := m.busyUsers[u.ID]; busy {
+			return false
+		}
+
 		if u.Demo.ID == 0 {
 			return true
 		}
 
 		return u.Demo.CreatedAt.Before(lastDemo)
 	})
+	m.mu.Unlock()
 
 	for _, user := range users {
+		// Is it a new steam user?
+		// Meaning filled in steam credentials but no demos yet
+		if user.Demo.ID == 0 && user.Setting.SteamMatchToken != "" && user.Setting.SteamAuthenticationToken != "" {
+			// It is a new steam user
+			// Mark the user as being processed
+			m.mu.Lock()
+			m.busyUsers[user.ID] = true
+			m.mu.Unlock()
+
+			// Get all the demo's in a seperate thread
+			go func() {
+				if err := m.loopSteamNew(ctx, *user); err != nil {
+					zap.S().Error(err)
+				}
+
+				// Remove the user from the new users proces queue
+				m.mu.Lock()
+				delete(m.busyUsers, user.ID)
+				m.mu.Unlock()
+			}()
+
+			continue
+		}
+
 		// Try each fetcher for a new match
 		for _, fetcher := range m.fetchers {
 			demo, ok, err := fetcher.fetch(ctx, *user)
@@ -104,35 +139,65 @@ func (m *Manager) loop(ctx context.Context) error {
 				continue
 			}
 
-			// Does this demo already exist?
-			oldDemo, err := m.demo.GetBySourceSourceID(ctx, demo.Source, demo.SourceID)
-			if err != nil {
+			if err := m.handleNewDemo(ctx, &demo); err != nil {
 				zap.S().Error(err)
-				continue
 			}
-			if oldDemo != nil {
-				// Demo already exists
-				// Possible if a different user was also in the match and got handled first
-				demo.ID = oldDemo.ID
-			} else {
-				// New demo
-				demo.Status = model.DemoStatusQueuedDownload
+		}
+	}
 
-				if err := m.demo.Create(ctx, &demo); err != nil {
-					zap.S().Error(err)
-					continue
-				}
-			}
+	return nil
+}
 
-			// Add all players (if any)
-			// Use the no conflict create as we only insert the player id
-			// We want to do it atomically and don't overwrite any existing data
-			for _, stat := range demo.Stats {
-				stat.DemoID = demo.ID
-				if err := m.stat.CreateNoConflict(ctx, &stat); err != nil {
-					zap.S().Error(err)
-				}
-			}
+// loopSteamNew can be used for a new steam account
+// It will keep going over the steam match tokens until it reaches the newest one
+func (m *Manager) loopSteamNew(ctx context.Context, user model.User) error {
+	fetcher := newSteamFetcher(m.repo)
+
+	demo, ok, err := fetcher.fetch(ctx, user)
+
+	for ok {
+		if err != nil {
+			return err
+		}
+
+		if err := m.handleNewDemo(ctx, &demo); err != nil {
+			return err
+		}
+
+		// Wait 5 seconds between each fetch
+		time.Sleep(5 * time.Second)
+		demo, ok, err = fetcher.fetch(ctx, user)
+	}
+
+	return err
+}
+
+func (m *Manager) handleNewDemo(ctx context.Context, demo *model.Demo) error {
+	// Does this demo already exist?
+	oldDemo, err := m.demo.GetBySourceSourceID(ctx, demo.Source, demo.SourceID)
+	if err != nil {
+		return err
+	}
+	if oldDemo != nil {
+		// Demo already exists
+		// Possible if a different user was also in the match and got handled first
+		demo.ID = oldDemo.ID
+	} else {
+		// New demo
+		demo.Status = model.DemoStatusQueuedDownload
+
+		if err := m.demo.Create(ctx, demo); err != nil {
+			return err
+		}
+	}
+
+	// Add all players (if any)
+	// Use the no conflict create as we only insert the player id
+	// We want to do it atomically and don't overwrite any existing data
+	for _, stat := range demo.Stats {
+		stat.DemoID = demo.ID
+		if err := m.stat.CreateNoConflict(ctx, &stat); err != nil {
+			return err
 		}
 	}
 

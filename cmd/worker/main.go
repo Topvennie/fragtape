@@ -75,9 +75,6 @@ func main() {
 
 	// Fetcher
 	fetcher := fetch.New(*repo)
-	if err != nil {
-		zap.S().Fatalf("Init fetcher %w", err)
-	}
 	if err := fetcher.Start(context.Background()); err != nil {
 		zap.S().Fatalf("Starting fetcher failed %v", err)
 	}

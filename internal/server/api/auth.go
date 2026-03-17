@@ -57,6 +57,12 @@ func (r *Auth) loginCallback(c *fiber.Ctx) error {
 		return fiber.ErrInternalServerError
 	}
 
+	// Some users have a private name
+	// Set it to their nickname if that is the case
+	if user.Name == "No name is provided by the Steam API" {
+		user.Name = user.NickName
+	}
+
 	userID, err := strconv.ParseInt(user.UserID, 10, 64)
 	if err != nil {
 		return fiber.ErrInternalServerError
