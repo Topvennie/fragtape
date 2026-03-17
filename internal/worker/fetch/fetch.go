@@ -113,7 +113,7 @@ func (m *Manager) loop(ctx context.Context) error {
 
 			// Get all the demo's in a seperate thread
 			go func() {
-				if err := m.loopSteamNew(ctx, *user); err != nil {
+				if err := m.loopSteamNew(ctx, user); err != nil {
 					zap.S().Error(err)
 				}
 
@@ -150,10 +150,10 @@ func (m *Manager) loop(ctx context.Context) error {
 
 // loopSteamNew can be used for a new steam account
 // It will keep going over the steam match tokens until it reaches the newest one
-func (m *Manager) loopSteamNew(ctx context.Context, user model.User) error {
+func (m *Manager) loopSteamNew(ctx context.Context, user *model.User) error {
 	fetcher := newSteamFetcher(m.repo)
 
-	demo, ok, err := fetcher.fetch(ctx, user)
+	demo, ok, err := fetcher.fetch(ctx, *user)
 
 	for ok {
 		if err != nil {
@@ -166,7 +166,13 @@ func (m *Manager) loopSteamNew(ctx context.Context, user model.User) error {
 
 		// Wait 5 seconds between each fetch
 		time.Sleep(5 * time.Second)
-		demo, ok, err = fetcher.fetch(ctx, user)
+		// Refresh the user to update the steam settings
+		user, err = m.user.GetByIDWithSettingLastDemo(ctx, user.ID)
+		if err != nil {
+			return err
+		}
+
+		demo, ok, err = fetcher.fetch(ctx, *user)
 	}
 
 	return err

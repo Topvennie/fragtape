@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/topvennie/fragtape/pkg/utils"
-	"go.uber.org/zap"
 )
 
 type NextDemoParams struct {
@@ -48,7 +47,6 @@ type nextDemoResp struct {
 // If error != nil then something unexpected happened on the golang side
 // If the resp.Error != nil then something unexpected happened on the typescript side
 func (s *steam) NextDemo(ctx context.Context, params NextDemoParams) (NextDemo, error) {
-	zap.S().Debug(s.steamServiceURL)
 	body := nextDemoReq{
 		WebAPIKey:  s.webAPIKey,
 		SteamID:    int(ID64To32(params.SteamID)), // Steam expects 32 bit version

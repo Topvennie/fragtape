@@ -120,6 +120,27 @@ func (u *User) GetFiltered(ctx context.Context, filter model.UserFilter) (*model
 	}, nil
 }
 
+func (u *User) GetByIDWithSettingLastDemo(ctx context.Context, userID int) (*model.User, error) {
+	userDB, err := u.repo.queries(ctx).UserGetByIDWithSettingLastDemo(ctx, int32(userID))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get user by id %d with setting and last demo %w", userID, err)
+	}
+
+	user := model.UserModel(userDB.User)
+	user.Demo = model.Demo{
+		ID:        int(userDB.ID),
+		Source:    model.DemoSource(userDB.Source),
+		SourceID:  userDB.SourceID,
+		CreatedAt: fromTime(userDB.CreatedAt),
+	}
+	user.Setting = *model.SettingUserModel(userDB.SettingUser)
+
+	return user, nil
+}
+
 func (u *User) GetAllRealWithSettingLastDemo(ctx context.Context) ([]*model.User, error) {
 	users, err := u.repo.queries(ctx).UserGetAllRealWithSettingLastDemo(ctx)
 	if err != nil {
