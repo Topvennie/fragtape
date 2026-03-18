@@ -17,6 +17,7 @@ import (
 	"github.com/topvennie/fragtape/pkg/steam"
 	"github.com/topvennie/fragtape/pkg/storage"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 func main() {
@@ -27,9 +28,15 @@ func main() {
 
 	// Logging
 	loggerFile := config.GetDefaultString("worker.logger.file", "")
+	loggerLevelStr := config.GetDefaultString("server.logger.level", "info")
+	loggerLevel, err := zapcore.ParseLevel(loggerLevelStr)
+	if err != nil {
+		panic(fmt.Errorf("invalid logger level %s | %v", loggerLevelStr, err))
+	}
 	zapLogger, err := logger.New(logger.Config{
 		Console: true,
 		File:    loggerFile,
+		Level:   &loggerLevel,
 	})
 	if err != nil {
 		panic(fmt.Errorf("initialize logger %w", err))

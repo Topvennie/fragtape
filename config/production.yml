@@ -12,6 +12,7 @@ server:
 
   logger:
     file: server
+    level: warn
 
   db:
     host: db
@@ -44,6 +45,7 @@ worker:
 
   logger:
     file: worker
+    level: info
 
   db:
     host: db
@@ -67,6 +69,7 @@ recorder:
 
   logger:
     file: recorder
+    level: info
 
   db:
     host: db
