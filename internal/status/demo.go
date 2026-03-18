@@ -8,6 +8,7 @@ import (
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/pkg/storage"
+	"go.uber.org/zap"
 )
 
 var (
@@ -46,10 +47,13 @@ func (d *demo) Get(ctx context.Context, status model.DemoStatus) (*model.Demo, e
 		return nil, nil
 	}
 
+	zap.S().Infof("Demo %d is now %s", demos[0].ID, demos[0].Status)
+
 	return demos[0], nil
 }
 
 func (d *demo) Succes(ctx context.Context, demo *model.Demo) error {
+	zap.S().Infof("Demo %d is going to the next status %s", demo.ID, d.nextStatus(demo.Status))
 	demo.Status = d.nextStatus(demo.Status)
 	demo.Attempts = 0
 
@@ -57,6 +61,7 @@ func (d *demo) Succes(ctx context.Context, demo *model.Demo) error {
 }
 
 func (d *demo) Fail(ctx context.Context, demo *model.Demo, err error) error {
+	zap.S().Warnf("Demo %+v failed %v", *demo, err)
 	demo.Error = err.Error()
 	demo.Status = d.prevStatus(demo.Status)
 	if demo.Attempts > maxAttempts {
@@ -74,6 +79,7 @@ func (d *demo) Fail(ctx context.Context, demo *model.Demo, err error) error {
 }
 
 func (d *demo) Reset(ctx context.Context, newStatus model.DemoStatus) error {
+	zap.S().Infof("Resetting demo statusses from %s to %s", d.nextStatus(newStatus), newStatus)
 	return d.repo.ResetStatusAll(ctx, d.nextStatus(newStatus), newStatus)
 }
 
