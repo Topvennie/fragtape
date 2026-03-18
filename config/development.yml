@@ -31,8 +31,8 @@ server:
 
 worker:
   fetcher:
-    interval_s: 60
-    cooldown_s: 30
+    interval_s: 10
+    cooldown_s: 60
 
   downloader:
     interval_s: 10
@@ -40,7 +40,7 @@ worker:
 
   parser:
     interval_s: 10
-    concurrent: 1
+    concurrent: 4
     positions_per_second:
     positions_min_distance:
 
