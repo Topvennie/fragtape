@@ -5,7 +5,7 @@ import { apiGet, apiPost, NO_CONVERTER, NO_DATA } from "./query"
 
 const ENDPOINT = "demo"
 
-const PAGE_LIMIT = 10
+const PAGE_LIMIT = 20
 
 export const useDemoGetFiltered = (filter?: DemoFilter) => {
   const { data, isLoading, fetchNextPage, isFetchingNextPage, hasNextPage, error, refetch, isFetching } = useInfiniteQuery({
