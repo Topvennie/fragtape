@@ -13,6 +13,7 @@ server:
 
   logger:
     file:
+    level: debug
 
   db:
     host:
@@ -49,6 +50,7 @@ worker:
 
   logger:
     file:
+    level: debug
 
   db:
     host:
@@ -72,6 +74,7 @@ recorder:
 
   logger:
     file: recorder
+    level: debug
 
   db:
     host:

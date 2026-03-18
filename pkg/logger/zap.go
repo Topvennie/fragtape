@@ -13,6 +13,7 @@ import (
 type Config struct {
 	File    string
 	Console bool
+	Level   *zapcore.Level
 }
 
 func New(logCfg Config) (*zap.Logger, error) {
@@ -42,10 +43,21 @@ func New(logCfg Config) (*zap.Logger, error) {
 		cfg = zap.NewDevelopmentConfig()
 		cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("15:04:05")
-		cfg.Level.SetLevel(zap.DebugLevel)
+
+		level := zap.DebugLevel
+		if logCfg.Level != nil {
+			level = *logCfg.Level
+		}
+		cfg.Level.SetLevel(level)
 	} else {
 		cfg = zap.NewProductionConfig()
-		cfg.Level.SetLevel(zap.WarnLevel)
+		cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("15:04:05")
+
+		level := zap.WarnLevel
+		if logCfg.Level != nil {
+			level = *logCfg.Level
+		}
+		cfg.Level.SetLevel(level)
 	}
 
 	cfg.OutputPaths = outputPaths
