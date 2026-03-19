@@ -1,7 +1,7 @@
 import { useSettingUserGet, useSettingUserSteamConnect, useSettingUserSteamDisconnect } from "@/lib/api/setting_user"
 import { settingUserSteamSchema, SettingUserSteamSchema } from "@/lib/types/setting_user"
 import { getErrorMessage } from "@/lib/utils"
-import { Button, Stack } from "@mantine/core"
+import { Button, Group, Stack, Switch } from "@mantine/core"
 import { useForm } from "@mantine/form"
 import { notifications } from "@mantine/notifications"
 import { zod4Resolver } from "mantine-form-zod-resolver"
@@ -74,8 +74,9 @@ const Disconnected = () => {
 
   const form = useForm<SettingUserSteamSchema>({
     initialValues: {
-      match_token: "",
-      authentication_token: "",
+      matchToken: "",
+      authenticationToken: "",
+      importOld: true,
     },
     validate: zod4Resolver(settingUserSteamSchema),
   })
@@ -133,12 +134,19 @@ const Disconnected = () => {
       </Alert>
       <div>
         <p className="text-white">Steam Match Token</p>
-        <TextInput placeholder="CSGO-AAAAA-BBBBB-CCCCC-DDDDD-EEEEE" {...form.getInputProps("match_token")} />
+        <TextInput placeholder="CSGO-AAAAA-BBBBB-CCCCC-DDDDD-EEEEE" {...form.getInputProps("matchToken")} />
       </div>
       <div>
         <p className="text-white">Steam Authentication Token</p>
-        <TextInput placeholder="AAAA-BBBBB-CCCC" {...form.getInputProps("authentication_token")} />
+        <TextInput placeholder="AAAA-BBBBB-CCCC" {...form.getInputProps("authenticationToken")} />
       </div>
+      <Group justify="space-between">
+        <div>
+          <p className="text-white">Import old matches</p>
+          <p className="text-secondary">Often the provided steam match code lets us fetch some older matches. Do you want us to do that?</p>
+        </div>
+        <Switch checked={form.getValues().importOld} onChange={e => form.setFieldValue("importOld", e.target.checked)} size="md" />
+      </Group>
       <div className="ml-auto">
         <Button onClick={handleSubmit} loading={submitting}>
           Save Steam Settings

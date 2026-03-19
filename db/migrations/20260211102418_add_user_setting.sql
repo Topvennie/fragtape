@@ -5,6 +5,7 @@ CREATE TABLE setting_user (
   user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
   steam_match_token TEXT,
   steam_authentication_token TEXT,
+  steam_import_old BOOLEAN,
   faceit_id TEXT,
   first_time_wizard BOOLEAN NOT NULL DEFAULT true
 );

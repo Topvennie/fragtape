@@ -20,7 +20,7 @@ const matchTokenRegex = /^CSGO-[A-Za-z0-9]{5}(?:-[A-Za-z0-9]{5}){4}$/
 const authTokenRegex = /^[A-Za-z0-9]{4}-[A-Za-z0-9]{5}-[A-Za-z0-9]{4}$/
 
 export const settingUserSteamSchema = z.object({
-  match_token: z
+  matchToken: z
     .string()
     .trim()
     .min(1, "Match token is required")
@@ -28,7 +28,7 @@ export const settingUserSteamSchema = z.object({
       matchTokenRegex,
       "Invalid match token format. Expected: CSGO-xxxxx-xxxxx-xxxxx-xxxxx-xxxxx (letters/numbers)"
     ),
-  authentication_token: z
+  authenticationToken: z
     .string()
     .trim()
     .min(1, "Authentication token is required")
@@ -36,5 +36,6 @@ export const settingUserSteamSchema = z.object({
       authTokenRegex,
       "Invalid authentication token format. Expected: xxxx-xxxxx-xxxx (letters/numbers)"
     ),
+  importOld: z.boolean(),
 })
 export type SettingUserSteamSchema = z.infer<typeof settingUserSteamSchema> & JSONBody;
