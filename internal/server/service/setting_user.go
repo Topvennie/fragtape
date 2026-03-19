@@ -102,6 +102,7 @@ func (s *SettingUser) SteamConnect(ctx context.Context, settingSteam dto.Setting
 
 	setting.SteamMatchToken = settingSteam.MatchToken
 	setting.SteamAuthenticationToken = settingSteam.AuthenticationToken
+	setting.SteamImportOld = *settingSteam.ImportOld
 
 	if err := s.setting.Update(ctx, *setting); err != nil {
 		zap.S().Error(err)

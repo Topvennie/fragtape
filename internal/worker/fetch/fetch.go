@@ -160,8 +160,10 @@ func (m *Manager) loopSteamNew(ctx context.Context, user *model.User) error {
 			return err
 		}
 
-		if err := m.handleNewDemo(ctx, &demo); err != nil {
-			return err
+		if user.Setting.SteamImportOld {
+			if err := m.handleNewDemo(ctx, &demo); err != nil {
+				return err
+			}
 		}
 
 		// Wait 5 seconds between each fetch

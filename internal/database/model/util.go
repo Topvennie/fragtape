@@ -22,14 +22,13 @@ func fromInt(i pgtype.Int4) int {
 	return 0
 }
 
-// Uncomment when used
-// func fromBool(b pgtype.Bool) *bool {
-// 	if b.Valid {
-// 		return &b.Bool
-// 	}
-//
-// 	return nil
-// }
+func fromBool(b pgtype.Bool) bool {
+	if b.Valid {
+		return b.Bool
+	}
+
+	return false
+}
 
 func fromTime(t pgtype.Timestamptz) time.Time {
 	if t.Valid {

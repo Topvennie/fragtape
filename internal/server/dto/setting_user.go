@@ -19,6 +19,7 @@ func SettingUserDTO(s *model.SettingUser) SettingUser {
 type SettingUserSteam struct {
 	MatchToken          string `json:"match_token" validate:"required,steammatchtoken"`
 	AuthenticationToken string `json:"authentication_token" validate:"required,steamauthtoken"`
+	ImportOld           *bool  `json:"import_old" validate:"required"`
 }
 
 type SettingUserFirsTimeWizard struct {

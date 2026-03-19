@@ -12,14 +12,15 @@ import (
 )
 
 const settingUserCreate = `-- name: SettingUserCreate :one
-INSERT INTO setting_user (user_id, steam_match_token, steam_authentication_token, faceit_id)
-VALUES ($1, $2, $3, $4)
+INSERT INTO setting_user (user_id, steam_match_token, steam_import_old, steam_authentication_token, faceit_id)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING id
 `
 
 type SettingUserCreateParams struct {
 	UserID                   int32
 	SteamMatchToken          pgtype.Text
+	SteamImportOld           pgtype.Bool
 	SteamAuthenticationToken pgtype.Text
 	FaceitID                 pgtype.Text
 }
@@ -28,6 +29,7 @@ func (q *Queries) SettingUserCreate(ctx context.Context, arg SettingUserCreatePa
 	row := q.db.QueryRow(ctx, settingUserCreate,
 		arg.UserID,
 		arg.SteamMatchToken,
+		arg.SteamImportOld,
 		arg.SteamAuthenticationToken,
 		arg.FaceitID,
 	)
@@ -37,7 +39,7 @@ func (q *Queries) SettingUserCreate(ctx context.Context, arg SettingUserCreatePa
 }
 
 const settingUserGetByUser = `-- name: SettingUserGetByUser :one
-SELECT id, user_id, steam_match_token, steam_authentication_token, faceit_id, first_time_wizard
+SELECT id, user_id, steam_match_token, steam_authentication_token, steam_import_old, faceit_id, first_time_wizard
 FROM setting_user
 WHERE user_id = $1
 `
@@ -50,6 +52,7 @@ func (q *Queries) SettingUserGetByUser(ctx context.Context, userID int32) (Setti
 		&i.UserID,
 		&i.SteamMatchToken,
 		&i.SteamAuthenticationToken,
+		&i.SteamImportOld,
 		&i.FaceitID,
 		&i.FirstTimeWizard,
 	)
@@ -61,8 +64,9 @@ UPDATE setting_user
 SET
   steam_match_token = $2,
   steam_authentication_token = $3,
-  faceit_id = $4,
-  first_time_wizard = $5
+  steam_import_old = $4,
+  faceit_id = $5,
+  first_time_wizard = $6
 WHERE id = $1
 `
 
@@ -70,6 +74,7 @@ type SettingUserUpdateParams struct {
 	ID                       int32
 	SteamMatchToken          pgtype.Text
 	SteamAuthenticationToken pgtype.Text
+	SteamImportOld           pgtype.Bool
 	FaceitID                 pgtype.Text
 	FirstTimeWizard          bool
 }
@@ -79,6 +84,7 @@ func (q *Queries) SettingUserUpdate(ctx context.Context, arg SettingUserUpdatePa
 		arg.ID,
 		arg.SteamMatchToken,
 		arg.SteamAuthenticationToken,
+		arg.SteamImportOld,
 		arg.FaceitID,
 		arg.FirstTimeWizard,
 	)

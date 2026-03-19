@@ -37,6 +37,7 @@ func (s *SettingUser) Create(ctx context.Context, setting *model.SettingUser) er
 		UserID:                   int32(setting.UserID),
 		SteamMatchToken:          toString(setting.SteamMatchToken),
 		SteamAuthenticationToken: toString(setting.SteamAuthenticationToken),
+		SteamImportOld:           toBool(&setting.SteamImportOld),
 		FaceitID:                 toString(setting.FaceitID),
 	})
 	if err != nil {
@@ -53,6 +54,7 @@ func (s *SettingUser) Update(ctx context.Context, setting model.SettingUser) err
 		ID:                       int32(setting.ID),
 		SteamMatchToken:          toString(setting.SteamMatchToken),
 		SteamAuthenticationToken: toString(setting.SteamAuthenticationToken),
+		SteamImportOld:           toBool(&setting.SteamImportOld),
 		FaceitID:                 toString(setting.FaceitID),
 		FirstTimeWizard:          setting.FirstTimeWizard,
 	}); err != nil {

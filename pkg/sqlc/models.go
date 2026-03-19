@@ -236,6 +236,7 @@ type SettingUser struct {
 	UserID                   int32
 	SteamMatchToken          pgtype.Text
 	SteamAuthenticationToken pgtype.Text
+	SteamImportOld           pgtype.Bool
 	FaceitID                 pgtype.Text
 	FirstTimeWizard          bool
 }
