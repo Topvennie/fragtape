@@ -198,6 +198,7 @@ type Demo struct {
 	DataID          pgtype.Text
 	Status          DemoStatus
 	Attempts        int32
+	Expired         pgtype.Bool
 	Error           pgtype.Text
 	PlayedAt        pgtype.Timestamptz
 	StatusUpdatedAt pgtype.Timestamptz

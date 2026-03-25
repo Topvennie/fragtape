@@ -62,6 +62,7 @@ func (d *demo) Succes(ctx context.Context, demo *model.Demo) error {
 
 func (d *demo) Fail(ctx context.Context, demo *model.Demo, err error) error {
 	zap.S().Warnf("Demo %+v failed %v", *demo, err)
+	demo.Expired = false
 	demo.Error = err.Error()
 	demo.Status = d.prevStatus(demo.Status)
 	if demo.Attempts > MaxAttempts {
@@ -74,6 +75,15 @@ func (d *demo) Fail(ctx context.Context, demo *model.Demo, err error) error {
 			_ = d.repo.UpdateFile(ctx, *demo)
 		}
 	}
+
+	return d.repo.UpdateStatus(ctx, *demo)
+}
+
+func (d *demo) Expired(ctx context.Context, demo *model.Demo) error {
+	zap.S().Infof("Demo %d is expired", demo.ID)
+	demo.Status = model.DemoStatusFailed
+	demo.Expired = true
+	demo.Error = ""
 
 	return d.repo.UpdateStatus(ctx, *demo)
 }
