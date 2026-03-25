@@ -13,7 +13,7 @@ import (
 
 var (
 	Demo        *demo
-	maxAttempts = 3
+	MaxAttempts = 3
 	statusses   = []model.DemoStatus{
 		model.DemoStatusQueuedDownload,
 		model.DemoStatusDownloading,
@@ -64,7 +64,7 @@ func (d *demo) Fail(ctx context.Context, demo *model.Demo, err error) error {
 	zap.S().Warnf("Demo %+v failed %v", *demo, err)
 	demo.Error = err.Error()
 	demo.Status = d.prevStatus(demo.Status)
-	if demo.Attempts > maxAttempts {
+	if demo.Attempts > MaxAttempts {
 		demo.Status = model.DemoStatusFailed
 
 		if demo.FileID != "" {
