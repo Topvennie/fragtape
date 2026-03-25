@@ -3,6 +3,7 @@ package download
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -119,6 +120,11 @@ func (m *Manager) loop(ctx context.Context) (bool, error) {
 			return nil
 		})
 	}(); err != nil {
+		// No point in retrying if the demo is no longer available
+		if errors.Is(err, steam.ErrDemoExpired) {
+			demo.Attempts = status.MaxAttempts
+		}
+
 		return false, status.Demo.Fail(ctx, demo, err)
 	}
 
