@@ -19,6 +19,7 @@ export namespace API {
   export interface Demo extends Base {
     source: string;
     status: string;
+    expired: boolean;
     map: string;
     players: DemoPlayer[];
     stats: StatsDemo;

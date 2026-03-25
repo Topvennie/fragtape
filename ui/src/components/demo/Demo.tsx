@@ -39,7 +39,7 @@ export const Demo = ({ demo, highlightFilter }: Props) => {
     case DemoStatus.Finished:
       return <Finished demo={demo} highlightFilter={highlightFilter} />
     case DemoStatus.Failed:
-      return <Failed />
+      return <Failed expired={demo.expired} />
   }
 }
 
@@ -147,13 +147,20 @@ const Loading = ({ text }: { text: string }) => {
   )
 }
 
-const Failed = () => {
+const Failed = ({ expired }: { expired: boolean }) => {
   return (
     <div className="flex items-center gap-4">
       <LuTriangleAlert className="size-8 text-red-400" />
       <div className="flex flex-col justify-center">
-        <p className="text-xl font-bold text-red-400">Highlight generation failed</p>
-        <p className="text-secondary text-sm">{`We couldn't process this match`}</p>
+        {expired
+          ? <p className="text-xl font-bold text-red-400">Demo file expired</p>
+          : (
+            <>
+              <p className="text-xl font-bold text-red-400">Highlight generation failed</p>
+              <p className="text-secondary text-sm">{`We couldn't process this match`}</p>
+            </>
+          )
+        }
       </div>
     </div>
   )
