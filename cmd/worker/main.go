@@ -28,7 +28,7 @@ func main() {
 
 	// Logging
 	loggerFile := config.GetDefaultString("worker.logger.file", "")
-	loggerLevelStr := config.GetDefaultString("server.logger.level", "info")
+	loggerLevelStr := config.GetDefaultString("worker.logger.level", "info")
 	loggerLevel, err := zapcore.ParseLevel(loggerLevelStr)
 	if err != nil {
 		panic(fmt.Errorf("invalid logger level %s | %v", loggerLevelStr, err))

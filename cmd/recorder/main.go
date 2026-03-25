@@ -23,7 +23,7 @@ func main() {
 	}
 
 	loggerFile := config.GetDefaultString("recorder.logger.file", "recorder")
-	loggerLevelStr := config.GetDefaultString("server.logger.level", "info")
+	loggerLevelStr := config.GetDefaultString("recorder.logger.level", "info")
 	loggerLevel, err := zapcore.ParseLevel(loggerLevelStr)
 	if err != nil {
 		panic(fmt.Errorf("invalid logger level %s | %v", loggerLevelStr, err))
