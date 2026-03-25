@@ -59,6 +59,7 @@ SET
   status = $2,
   error = $3,
   attempts = $4,
+  expired = $5,
   status_updated_at = NOW()
 WHERE id = $1;
 

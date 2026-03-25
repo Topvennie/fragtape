@@ -38,6 +38,7 @@ type Demo struct {
 	FileID          string
 	DataID          string
 	Attempts        int
+	Expired         bool
 	Error           string
 	PlayedAt        time.Time
 	StatusUpdatedAt time.Time

@@ -151,6 +151,7 @@ func (d *Demo) UpdateStatus(ctx context.Context, demo model.Demo) error {
 		Status:   sqlc.DemoStatus(demo.Status),
 		Error:    toString(demo.Error),
 		Attempts: int32(demo.Attempts),
+		Expired:  toBool(&demo.Expired),
 	}); err != nil {
 		return fmt.Errorf("update demo status %+v | %w", demo, err)
 	}

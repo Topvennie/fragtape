@@ -13,6 +13,7 @@ CREATE TABLE demos (
   data_id TEXT,
   status DEMO_STATUS NOT NULL,
   attempts INTEGER NOT NULL DEFAULT 0,
+  expired BOOLEAN,
   error TEXT,
   played_at TIMESTAMPTZ,
   status_updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

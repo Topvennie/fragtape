@@ -41,7 +41,7 @@ func (q *Queries) DemoCreate(ctx context.Context, arg DemoCreateParams) (int32, 
 }
 
 const demoGet = `-- name: DemoGet :one
-SELECT id, source, source_id, source_url, file_id, data_id, status, attempts, error, played_at, status_updated_at, created_at
+SELECT id, source, source_id, source_url, file_id, data_id, status, attempts, expired, error, played_at, status_updated_at, created_at
 FROM demos
 WHERE id = $1
 `
@@ -58,6 +58,7 @@ func (q *Queries) DemoGet(ctx context.Context, id int32) (Demo, error) {
 		&i.DataID,
 		&i.Status,
 		&i.Attempts,
+		&i.Expired,
 		&i.Error,
 		&i.PlayedAt,
 		&i.StatusUpdatedAt,
@@ -67,7 +68,7 @@ func (q *Queries) DemoGet(ctx context.Context, id int32) (Demo, error) {
 }
 
 const demoGetBySourceSourceID = `-- name: DemoGetBySourceSourceID :one
-SELECT id, source, source_id, source_url, file_id, data_id, status, attempts, error, played_at, status_updated_at, created_at
+SELECT id, source, source_id, source_url, file_id, data_id, status, attempts, expired, error, played_at, status_updated_at, created_at
 FROM demos
 WHERE source = $1 AND source_id = $2
 `
@@ -89,6 +90,7 @@ func (q *Queries) DemoGetBySourceSourceID(ctx context.Context, arg DemoGetBySour
 		&i.DataID,
 		&i.Status,
 		&i.Attempts,
+		&i.Expired,
 		&i.Error,
 		&i.PlayedAt,
 		&i.StatusUpdatedAt,
@@ -98,7 +100,7 @@ func (q *Queries) DemoGetBySourceSourceID(ctx context.Context, arg DemoGetBySour
 }
 
 const demoGetByStatus = `-- name: DemoGetByStatus :many
-SELECT id, source, source_id, source_url, file_id, data_id, status, attempts, error, played_at, status_updated_at, created_at
+SELECT id, source, source_id, source_url, file_id, data_id, status, attempts, expired, error, played_at, status_updated_at, created_at
 FROM demos
 WHERE status = $1
 ORDER BY created_at ASC
@@ -122,6 +124,7 @@ func (q *Queries) DemoGetByStatus(ctx context.Context, status DemoStatus) ([]Dem
 			&i.DataID,
 			&i.Status,
 			&i.Attempts,
+			&i.Expired,
 			&i.Error,
 			&i.PlayedAt,
 			&i.StatusUpdatedAt,
@@ -153,7 +156,7 @@ SET
   attempts = attempts + 1,
   status_updated_at = NOW()
 WHERE id in (SELECT id from cte)
-RETURNING id, source, source_id, source_url, file_id, data_id, status, attempts, error, played_at, status_updated_at, created_at
+RETURNING id, source, source_id, source_url, file_id, data_id, status, attempts, expired, error, played_at, status_updated_at, created_at
 `
 
 type DemoGetByStatusUpdateAtomicParams struct {
@@ -180,6 +183,7 @@ func (q *Queries) DemoGetByStatusUpdateAtomic(ctx context.Context, arg DemoGetBy
 			&i.DataID,
 			&i.Status,
 			&i.Attempts,
+			&i.Expired,
 			&i.Error,
 			&i.PlayedAt,
 			&i.StatusUpdatedAt,
@@ -197,7 +201,7 @@ func (q *Queries) DemoGetByStatusUpdateAtomic(ctx context.Context, arg DemoGetBy
 
 const demoGetByUserFiltered = `-- name: DemoGetByUserFiltered :many
 SELECT
-  d.id, d.source, d.source_id, d.source_url, d.file_id, d.data_id, d.status, d.attempts, d.error, d.played_at, d.status_updated_at, d.created_at,
+  d.id, d.source, d.source_id, d.source_url, d.file_id, d.data_id, d.status, d.attempts, d.expired, d.error, d.played_at, d.status_updated_at, d.created_at,
   COUNT(*) OVER()::bigint AS total_count
 FROM demos d
 LEFT JOIN stats s ON s.demo_id = d.id
@@ -265,6 +269,7 @@ func (q *Queries) DemoGetByUserFiltered(ctx context.Context, arg DemoGetByUserFi
 			&i.Demo.DataID,
 			&i.Demo.Status,
 			&i.Demo.Attempts,
+			&i.Demo.Expired,
 			&i.Demo.Error,
 			&i.Demo.PlayedAt,
 			&i.Demo.StatusUpdatedAt,
@@ -338,6 +343,7 @@ SET
   status = $2,
   error = $3,
   attempts = $4,
+  expired = $5,
   status_updated_at = NOW()
 WHERE id = $1
 `
@@ -347,6 +353,7 @@ type DemoUpdateStatusParams struct {
 	Status   DemoStatus
 	Error    pgtype.Text
 	Attempts int32
+	Expired  pgtype.Bool
 }
 
 func (q *Queries) DemoUpdateStatus(ctx context.Context, arg DemoUpdateStatusParams) error {
@@ -355,6 +362,7 @@ func (q *Queries) DemoUpdateStatus(ctx context.Context, arg DemoUpdateStatusPara
 		arg.Status,
 		arg.Error,
 		arg.Attempts,
+		arg.Expired,
 	)
 	return err
 }

@@ -74,7 +74,7 @@ func (m *Manager) Start(ctx context.Context) error {
 }
 
 // loop handles one demo
-// It returns a boolean indicating if there are potentially more demos to be handled
+// It returns a boolean == true if the queue is empty
 func (m *Manager) loop(ctx context.Context) (bool, error) {
 	// Get a new demo
 	demo, err := status.Demo.Get(ctx, model.DemoStatusQueuedDownload)
@@ -122,7 +122,7 @@ func (m *Manager) loop(ctx context.Context) (bool, error) {
 	}(); err != nil {
 		// No point in retrying if the demo is no longer available
 		if errors.Is(err, steam.ErrDemoExpired) {
-			demo.Attempts = status.MaxAttempts
+			return false, status.Demo.Expired(ctx, demo)
 		}
 
 		return false, status.Demo.Fail(ctx, demo, err)
