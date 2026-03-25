@@ -32,6 +32,7 @@ export interface Demo {
   id: number;
   source: DemoSource;
   status: DemoStatus;
+  expired: boolean;
   players: DemoPlayer[];
   stats: StatsDemo;
   playedAt: Date;
@@ -57,6 +58,7 @@ export const convertDemo = (d: API.Demo): Demo => {
     id: d.id,
     source: d.source as DemoSource,
     status: d.status as DemoStatus,
+    expired: d.expired,
     players: d.players.map(convertDemoPlayer),
     stats: convertStatsDemo(d.stats),
     playedAt: new Date(d.played_at),

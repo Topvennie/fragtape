@@ -10,6 +10,7 @@ type Demo struct {
 	ID              int              `json:"id"`
 	Source          model.DemoSource `json:"source"`
 	Status          model.DemoStatus `json:"status"`
+	Expired         bool             `json:"expired"`
 	Players         []DemoPlayer     `json:"players"`
 	Stats           StatsDemo        `json:"stats"`
 	PlayedAt        time.Time        `json:"played_at"`
@@ -27,6 +28,7 @@ func DemoDTO(d *model.Demo) Demo {
 		Source:          d.Source,
 		Players:         []DemoPlayer{},
 		Status:          d.Status,
+		Expired:         d.Expired,
 		PlayedAt:        playedAt,
 		StatusUpdatedAt: d.StatusUpdatedAt,
 	}

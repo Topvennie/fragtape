@@ -58,6 +58,7 @@ func DemoModel(d sqlc.Demo) *Demo {
 		FileID:          fromString(d.FileID),
 		DataID:          fromString(d.DataID),
 		Attempts:        int(d.Attempts),
+		Expired:         fromBool(d.Expired),
 		Error:           fromString(d.Error),
 		PlayedAt:        fromTime(d.PlayedAt),
 		StatusUpdatedAt: d.StatusUpdatedAt.Time,
