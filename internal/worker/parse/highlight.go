@@ -739,8 +739,8 @@ func constructHighlight(user model.User, demo model.Demo, match demo.Match, roun
 
 	for _, k := range player.kills {
 		// Use a 5 second before and after the kill buffer
-		start := int(k.tick - 5*match.TickRate)
-		end := int(k.tick + 5*match.TickRate)
+		start := max(int(k.tick-5*match.TickRate), int(round.startTick))
+		end := min(int(k.tick+5*match.TickRate), int(round.endTick))
 
 		// Get the end of the previous segment
 		prevEnd := 0
