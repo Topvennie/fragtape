@@ -9,6 +9,7 @@ import (
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/worker/parse/demo"
 	"github.com/topvennie/fragtape/pkg/utils"
+	"go.uber.org/zap"
 )
 
 func (m *Manager) saveHighlights(ctx context.Context, d model.Demo, match demo.Match) error {
@@ -734,26 +735,28 @@ func special(player player, setting model.SettingGlobal) string {
 }
 
 func constructHighlight(user model.User, demo model.Demo, match demo.Match, round round, player player, title string) *model.Highlight {
+	zap.S().Debugf("%+v", round)
 	// Get all segments
 	segments := make([]model.HighlightSegment, 0, len(player.kills))
 
 	for _, k := range player.kills {
-		// Use a 5 second before and after the kill buffer
+		// Use a 5 second before and 2 seconds after the kill buffer
 		start := max(int(k.tick-5*match.TickRate), int(round.startTick))
-		end := min(int(k.tick+5*match.TickRate), int(round.endTick))
-
-		// Get the end of the previous segment
-		prevEnd := 0
-		if len(segments) > 0 {
-			prevEnd = segments[len(segments)-1].EndTick
-		}
+		end := min(int(k.tick+2*match.TickRate), int(round.endTick))
 
 		// If the previous segment overlaps with this one
-		// or if there's less than 2 seconds between them
+		// or if there's less than 4 seconds between them
 		// merge them
-		if start-int(2*match.TickRate) <= prevEnd {
-			segments[len(segments)-1].EndTick = max(end, prevEnd)
-			continue
+		if len(segments) > 0 {
+			prev := segments[len(segments)-1]
+
+			if start-int(4*match.TickRate) <= prev.EndTick {
+				prev.StartTick = min(prev.StartTick, start)
+				prev.EndTick = max(prev.EndTick, end)
+				segments[len(segments)-1] = prev
+
+				continue
+			}
 		}
 
 		// It's a new segment so add it
