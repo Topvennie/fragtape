@@ -71,7 +71,7 @@ func (m *Manager) Start(ctx context.Context) error {
 }
 
 // loop handles one demo
-// It returns a boolean indicating if there are potentially more demos to be handled
+// It returns true if there are no longer any demos that need to be handled
 func (m *Manager) loop(ctx context.Context) (bool, error) {
 	// Get demos
 	// Their attemps counter is increased by the query

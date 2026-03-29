@@ -738,22 +738,23 @@ func constructHighlight(user model.User, demo model.Demo, match demo.Match, roun
 	segments := make([]model.HighlightSegment, 0, len(player.kills))
 
 	for _, k := range player.kills {
-		// Use a 5 second before and after the kill buffer
-		start := int(k.tick - 5*match.TickRate)
-		end := int(k.tick + 5*match.TickRate)
-
-		// Get the end of the previous segment
-		prevEnd := 0
-		if len(segments) > 0 {
-			prevEnd = segments[len(segments)-1].EndTick
-		}
+		// Use a 5 second before and 2 seconds after the kill buffer
+		start := max(int(k.tick-5*match.TickRate), int(round.startTick))
+		end := min(int(k.tick+2*match.TickRate), int(round.endTick))
 
 		// If the previous segment overlaps with this one
-		// or if there's less than 2 seconds between them
+		// or if there's less than 4 seconds between them
 		// merge them
-		if start-int(2*match.TickRate) <= prevEnd {
-			segments[len(segments)-1].EndTick = max(end, prevEnd)
-			continue
+		if len(segments) > 0 {
+			prev := segments[len(segments)-1]
+
+			if start-int(4*match.TickRate) <= prev.EndTick {
+				prev.StartTick = min(prev.StartTick, start)
+				prev.EndTick = max(prev.EndTick, end)
+				segments[len(segments)-1] = prev
+
+				continue
+			}
 		}
 
 		// It's a new segment so add it

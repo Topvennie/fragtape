@@ -171,7 +171,12 @@ func (d *Demo) Upload(ctx context.Context, userID int, file []byte) error {
 		FileID:   uuid.NewString(),
 	}
 
-	return d.service.withRollback(ctx, func(c context.Context) error {
+	if err = d.service.withRollback(ctx, func(c context.Context) error {
+		if err := storage.S.Set(demo.FileID, file, 0); err != nil {
+			zap.S().Error(err)
+			return fiber.ErrInternalServerError
+		}
+
 		if err := d.demo.Create(ctx, demo); err != nil {
 			zap.S().Error(err)
 			return fiber.ErrInternalServerError
@@ -185,11 +190,11 @@ func (d *Demo) Upload(ctx context.Context, userID int, file []byte) error {
 			return fiber.ErrInternalServerError
 		}
 
-		if err := storage.S.Set(demo.FileID, file, 0); err != nil {
-			zap.S().Error(err)
-			return fiber.ErrInternalServerError
-		}
-
 		return nil
-	})
+	}); err != nil {
+		_ = storage.S.Delete(demo.FileID)
+		return err
+	}
+
+	return nil
 }

@@ -63,4 +63,7 @@ func (d *Demo) handleMatchAnnouncementWinPanel(p demoinfocs.Parser, _ events.Ann
 			}
 		}
 	}
+
+	round := d.getLastRound()
+	round.EndOfficial = Tick(state.IngameTick())
 }

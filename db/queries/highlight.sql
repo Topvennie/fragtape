@@ -9,6 +9,13 @@ FROM highlights
 WHERE demo_id = $1
 ORDER BY created_at;
 
+-- name: HighlightGetByDemoPopulated :many
+SELECT sqlc.embed(h), sqlc.embed(s)
+FROM highlights h
+LEFT JOIN highlight_segments s ON s.highlight_id = h.id
+WHERE demo_id = $1
+ORDER BY h.created_at, s.start_tick;
+
 -- name: HighlightGetByDemos :many
 SELECT *
 FROM highlights

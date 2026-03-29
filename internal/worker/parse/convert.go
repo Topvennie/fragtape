@@ -13,6 +13,8 @@ type round struct {
 	clutcher    demo.PlayerID // Is 0 if there is no clutcher
 	clutchKills int
 	players     map[demo.PlayerID]player
+	startTick   demo.Tick
+	endTick     demo.Tick
 }
 
 type player struct {
@@ -51,8 +53,10 @@ func convertRound(match demo.Match, roundIdx int) round {
 	demoRound := match.Rounds[roundIdx]
 
 	round := round{
-		number:  demoRound.Number,
-		players: make(map[demo.PlayerID]player),
+		number:    demoRound.Number,
+		players:   make(map[demo.PlayerID]player),
+		startTick: demoRound.Start,
+		endTick:   demoRound.EndOfficial,
 	}
 
 	players := getRoundPlayers(*demoRound, match.Players)

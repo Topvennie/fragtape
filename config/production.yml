@@ -65,6 +65,7 @@ recorder:
   interval_s: 60
   dummy_data: false
   hlae_path: "C:\\Program Files (x86)\\HLAE"
+  ffmpeg_path: "C:\\Program Files (x86)\\HLAE FFMPEG"
   cs2_path: "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Counter-Strike Global Offensive"
 
   logger:

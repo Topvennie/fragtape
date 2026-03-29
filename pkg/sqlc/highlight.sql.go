@@ -121,6 +121,53 @@ func (q *Queries) HighlightGetByDemo(ctx context.Context, demoID int32) ([]Highl
 	return items, nil
 }
 
+const highlightGetByDemoPopulated = `-- name: HighlightGetByDemoPopulated :many
+SELECT h.id, h.user_id, h.demo_id, h.file_id, h.title, h.round, h.kills, h.duration_s, h.created_at, s.id, s.highlight_id, s.start_tick, s.end_tick
+FROM highlights h
+LEFT JOIN highlight_segments s ON s.highlight_id = h.id
+WHERE demo_id = $1
+ORDER BY h.created_at, s.start_tick
+`
+
+type HighlightGetByDemoPopulatedRow struct {
+	Highlight        Highlight
+	HighlightSegment HighlightSegment
+}
+
+func (q *Queries) HighlightGetByDemoPopulated(ctx context.Context, demoID int32) ([]HighlightGetByDemoPopulatedRow, error) {
+	rows, err := q.db.Query(ctx, highlightGetByDemoPopulated, demoID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []HighlightGetByDemoPopulatedRow
+	for rows.Next() {
+		var i HighlightGetByDemoPopulatedRow
+		if err := rows.Scan(
+			&i.Highlight.ID,
+			&i.Highlight.UserID,
+			&i.Highlight.DemoID,
+			&i.Highlight.FileID,
+			&i.Highlight.Title,
+			&i.Highlight.Round,
+			&i.Highlight.Kills,
+			&i.Highlight.DurationS,
+			&i.Highlight.CreatedAt,
+			&i.HighlightSegment.ID,
+			&i.HighlightSegment.HighlightID,
+			&i.HighlightSegment.StartTick,
+			&i.HighlightSegment.EndTick,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const highlightGetByDemos = `-- name: HighlightGetByDemos :many
 SELECT id, user_id, demo_id, file_id, title, round, kills, duration_s, created_at
 FROM highlights

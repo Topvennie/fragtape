@@ -161,7 +161,7 @@ Inside the VM install:
 
 - GPU drivers
 - CS2
-- [HLAE](https://github.com/advancedfx/advancedfx)
+- [HLAE](https://github.com/advancedfx/advancedfx) (full version + ffmpeg (regardless if already have ffmpeg locally))
 
 Make sure to add both the CS2 and HLAE executable to the system wide Windows PATH.
 
