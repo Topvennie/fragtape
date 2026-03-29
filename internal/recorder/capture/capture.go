@@ -3,12 +3,14 @@ package capture
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/database/repository"
 	"github.com/topvennie/fragtape/internal/recorder/capture/dummy"
 	"github.com/topvennie/fragtape/internal/recorder/capture/hlae"
 	"github.com/topvennie/fragtape/pkg/config"
+	"github.com/topvennie/fragtape/pkg/utils"
 )
 
 type Capturer struct {
@@ -17,8 +19,8 @@ type Capturer struct {
 
 	dummy bool
 
-	cDummy *dummy.Dummy
-	cHLAE  *hlae.Hlae
+	captureDummy *dummy.Dummy
+	captureHLAE  *hlae.Hlae
 }
 
 func New(repo repository.Repository) (*Capturer, error) {
@@ -33,46 +35,38 @@ func New(repo repository.Repository) (*Capturer, error) {
 		if err != nil {
 			return nil, err
 		}
-		capturer.cDummy = cDummy
+		capturer.captureDummy = cDummy
 	} else {
 		cHLAE, err := hlae.New(repo)
 		if err != nil {
 			return nil, err
 		}
-		capturer.cHLAE = cHLAE
+		capturer.captureHLAE = cHLAE
 	}
 
 	return capturer, nil
 }
 
 func (c *Capturer) Capture(ctx context.Context, demo model.Demo) error {
-	highlightsAll, err := c.highlight.GetByDemo(ctx, demo.ID)
+	highlights, err := c.highlight.GetByDemoPopulated(ctx, demo.ID)
 	if err != nil {
 		return err
 	}
 
 	// If the recorder part of the pipeline failed then it might have already created some highlights
-	highlights := []model.Highlight{}
-	for _, h := range highlightsAll {
-		if h.FileID == "" {
-			highlights = append(highlights, *h)
-		}
-	}
+	highlights = utils.SliceFilter(highlights, func(h *model.Highlight) bool { return h.FileID == "" })
 
 	if len(highlights) == 0 {
 		// No highlights
 		return nil
 	}
+	if !utils.SliceAll(highlights, func(h *model.Highlight) bool { return len(h.Segments) > 0 }) {
+		return fmt.Errorf("demo %d has a highlight without segments", demo.ID)
+	}
 
 	if c.dummy {
-		err = c.cDummy.Capture(ctx, highlights)
-	} else {
-		err = c.cHLAE.Capture(ctx, demo, highlights)
+		return c.captureDummy.Capture(ctx, utils.SliceDereference(highlights))
 	}
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return c.captureHLAE.Capture(ctx, demo, utils.SliceDereference(highlights))
 }

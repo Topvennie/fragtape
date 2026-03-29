@@ -1,0 +1,140 @@
+// recordingDir: string
+const recordingDir = "{{ .RecordingDir }}";
+// demoId: number
+const demoId = {{ .DemoID }};
+//  players: {
+//    id: number,
+//    steamId: number,
+//    highlights: {
+//      id: number,
+//      segments: {
+//        start: number,
+//        end: number,
+//      }[],
+//    }[],
+//  }[]
+//
+const players = {{ .PlayersJSON }};
+
+let setup = false;
+let started = false;
+let ingamePlayers = {};
+
+mirv.onGameEvent = (e) => {
+  switch (e.id) {
+    case 10:
+      handleEventPlayerInfo(e);
+      break;
+    case 114:
+      handleEventStarted(e);
+      break;
+  }
+}
+
+async function main() {
+  print("Starting demo");
+  exec(`playdemo demo/fragtape/${demoId}`);
+
+  for (const player of players) {
+    // Go to the start and wait until it's loaded in
+    // Signalled by started = true
+    exec("mirv_skip tick to 0");
+    exec("mirv_cmd clear"); // Clear any lingering timed commands from previous players
+    while (!started) {
+      await sleep(500);
+    }
+
+    handlePlayer(player);
+
+    // Wait until the player clips are finished
+    // Signalled by pausing the demo
+    while (!mirv.isDemoPaused()) {
+      await sleep(500);
+    }
+
+    started = false;
+    exec("demo_resume");
+  }
+
+  exec("quit");
+}
+
+function handleEventPlayerInfo(e) {
+  const data = JSON.parse(e.data);
+  ingamePlayers[data.steamid] = data.userid + 1;
+}
+
+function handleEventStarted(_) {
+  if (!setup) {
+    print("Setting config");
+    exec("mirv_cvar_unhide_all");
+    exec("cl_clock_correction 0");
+    exec("mirv_fix playerAnimState 1");
+    exec("mirv_snd_timescale 1");
+    exec("cl_draw_only_deathnotices 1");
+
+    print("Setting stream")
+    exec("mirv_streams add normal fragtape");
+    exec("mirv_streams edit fragtape settings afxFfmpeg");
+    exec("host_framerate 60");
+
+    setup = true;
+  }
+
+
+  started = true;
+}
+
+function handlePlayer(player) {
+  print(`Handling player id ${player.id} steam id ${player.steamId}`);
+
+  print("Finding player index");
+  const playerIndex = ingamePlayers[player.steamId];
+  if (playerIndex === undefined) {
+    print("No index found");
+    exec("demo_pause");
+    return;
+  }
+
+  print("Setting save location");
+  exec(`mirv_streams record name "${recordingDir}/${demoId}/${player.id}"`);
+
+  print("Setting up highlights");
+  exec("mirv_skip tick to 0");
+
+  let previousEnd = mirv.getDemoTick() >= 0 ? mirv.getDemoTick() : 1000;
+
+  for (const [highlightIdx, highlight] of player.highlights.entries()) {
+    for (const [segmentIdx, segment] of highlight.segments.entries()) {
+      execTimed(previousEnd + 100, `mirv_skip tick to ${segment.start - 100}`);
+      execTimed(segment.start - 90, `spec_player ${playerIndex}`);
+      execTimed(segment.start - 50, `echo "Starting highlight ${highlightIdx + 1}/${player.highlights.length} segment ${segmentIdx + 1}/${highlight.segments.length}"`);
+      execTimed(segment.start, "mirv_streams record start");
+      execTimed(segment.end, "mirv_streams record end");
+
+      previousEnd = segment.end;
+    }
+  }
+
+  execTimed(previousEnd + 100, "demo_pause");
+}
+
+function print(message) {
+  mirv.exec("echo ");
+  mirv.exec(`echo [Fragtape] ${message}`);
+  mirv.exec("echo ");
+}
+
+function exec(cmd) {
+  mirv.exec(cmd);
+}
+
+function execTimed(tick, cmd) {
+  mirv.exec(`mirv_cmd addAtTick ${tick} ${cmd}`);
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+main();

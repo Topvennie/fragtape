@@ -46,6 +46,31 @@ func (h *Highlight) GetByDemo(ctx context.Context, demoID int) ([]*model.Highlig
 	return utils.SliceMap(highlights, model.HighlightModel), nil
 }
 
+func (h *Highlight) GetByDemoPopulated(ctx context.Context, demoID int) ([]*model.Highlight, error) {
+	highlights, err := h.repo.queries(ctx).HighlightGetByDemoPopulated(ctx, int32(demoID))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get highlights by demo %d | %w", demoID, err)
+	}
+
+	highlightMap := make(map[int]*model.Highlight)
+
+	for _, h := range highlights {
+		highlight, ok := highlightMap[int(h.Highlight.ID)]
+		if !ok {
+			highlight = model.HighlightModel(h.Highlight)
+			highlight.Segments = []model.HighlightSegment{}
+		}
+
+		highlight.Segments = append(highlight.Segments, *model.HighlightSegmentModel(h.HighlightSegment))
+		highlightMap[highlight.ID] = highlight
+	}
+
+	return utils.MapValues(highlightMap), nil
+}
+
 func (h *Highlight) GetByDemos(ctx context.Context, demoIDs []int) ([]*model.Highlight, error) {
 	highlights, err := h.repo.queries(ctx).HighlightGetByDemos(ctx, utils.SliceMap(demoIDs, func(id int) int32 { return int32(id) }))
 	if err != nil {

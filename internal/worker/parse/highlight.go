@@ -9,7 +9,6 @@ import (
 	"github.com/topvennie/fragtape/internal/database/model"
 	"github.com/topvennie/fragtape/internal/worker/parse/demo"
 	"github.com/topvennie/fragtape/pkg/utils"
-	"go.uber.org/zap"
 )
 
 func (m *Manager) saveHighlights(ctx context.Context, d model.Demo, match demo.Match) error {
@@ -735,7 +734,6 @@ func special(player player, setting model.SettingGlobal) string {
 }
 
 func constructHighlight(user model.User, demo model.Demo, match demo.Match, round round, player player, title string) *model.Highlight {
-	zap.S().Debugf("%+v", round)
 	// Get all segments
 	segments := make([]model.HighlightSegment, 0, len(player.kills))
 
